@@ -238,10 +238,10 @@
         </div>
         
         <div class="nav-menu">
-            <a href="/parceiro/configuracoes">Visão Geral</a>
-            <a href="/parceiro/configuracoes/api">API Keys</a>
-            <a href="/parceiro/configuracoes/personalidades" class="active">Personalidades</a>
-            <a href="/parceiro/chat">Chat</a>
+            <a href="/painel-externo/config">Visão Geral</a>
+            <a href="/painel-externo/config/api">API Keys</a>
+            <a href="/painel-externo/config/personalidades" class="active">Personalidades</a>
+            <a href="/painel-externo/chat">Chat</a>
         </div>
         
         <?php if ($success): ?>
@@ -257,7 +257,7 @@
         <?php endif; ?>
         
         <div class="form-card">
-            <form method="POST" action="<?= $isEdit ? '/parceiro/personalidades/atualizar' : '/parceiro/personalidades/salvar' ?>">
+            <form method="POST" action="<?= $isEdit ? '/painel-externo/personalidades/atualizar' : '/painel-externo/personalidades/salvar' ?>">
                 <?php if ($isEdit): ?>
                     <input type="hidden" name="id" value="<?= $personality['id'] ?>">
                 <?php endif; ?>
@@ -352,11 +352,11 @@
                     <button type="submit" class="btn btn-primary">
                         <span>💾</span> <?= $isEdit ? 'Atualizar' : 'Criar' ?> Personalidade
                     </button>
-                    <a href="/parceiro/configuracoes/personalidades" class="btn btn-secondary">
+                    <a href="/painel-externo/config/personalidades" class="btn btn-secondary">
                         Cancelar
                     </a>
                     <?php if ($isEdit): ?>
-                        <a href="/parceiro/chat" class="btn btn-secondary">
+                        <a href="/painel-externo/chat" class="btn btn-secondary">
                             <span>💬</span> Testar no Chat
                         </a>
                     <?php endif; ?>

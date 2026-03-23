@@ -25,6 +25,8 @@ use App\Models\SocialPortfolioItem;
 use App\Models\SocialConversation;
 use App\Models\SocialMessage;
 use App\Models\Subscription;
+use App\Models\PartnerApiKey;
+use App\Models\PartnerPersonality;
 use PDO;
 
 class ExternalUserDashboardController extends Controller
@@ -64,6 +66,16 @@ class ExternalUserDashboardController extends Controller
         return CoursePartnerBranding::findByUserId($partnerId);
     }
 
+    private function isPartnerOwner(array $user): bool
+    {
+        if (empty($_SERVER['TUQ_PARTNER_SITE']) || empty($_SERVER['TUQ_PARTNER_USER_ID'])) {
+            return false;
+        }
+        
+        $partnerUserId = (int)$_SERVER['TUQ_PARTNER_USER_ID'];
+        return (int)$user['id'] === $partnerUserId;
+    }
+
     public function index(): void
     {
         $user = $this->requireLogin();
@@ -90,6 +102,19 @@ class ExternalUserDashboardController extends Controller
         $communities = CourseAllowedCommunity::allowedCommunitiesByUser($userId);
         $communitiesCount = count($communities);
 
+        // Check if user is partner owner and get partner data
+        $isPartnerOwner = $this->isPartnerOwner($user);
+        $partnerData = null;
+        
+        if ($isPartnerOwner) {
+            $partnerData = [
+                'apiKeysCount' => count(PartnerApiKey::findByUserId($userId)),
+                'personalitiesCount' => count(PartnerPersonality::allByUserId($userId)),
+                'hasApiKey' => PartnerApiKey::hasAnyActiveKey($userId),
+                'personalities' => PartnerPersonality::allActiveByUserId($userId),
+            ];
+        }
+
         $this->view('external_dashboard/index', [
             'pageTitle' => 'Meu Painel',
             'user' => $user,
@@ -98,6 +123,125 @@ class ExternalUserDashboardController extends Controller
             'averageProgress' => $averageProgress,
             'communitiesCount' => $communitiesCount,
             'isPartnerSite' => $isPartnerSite,
+            'isPartnerOwner' => $isPartnerOwner,
+            'partnerData' => $partnerData,
+            'layout' => 'external_user_dashboard',
+        ]);
+    }
+
+    public function partnerConfig(): void
+    {
+        $user = $this->requireLogin();
+        
+        if (!$this->isPartnerOwner($user)) {
+            header('Location: /painel-externo');
+            exit;
+        }
+
+        $userId = (int)$user['id'];
+        $apiKeys = PartnerApiKey::findByUserId($userId);
+        $personalities = PartnerPersonality::allByUserId($userId);
+        $hasApiKey = PartnerApiKey::hasAnyActiveKey($userId);
+
+        $this->view('partner/config_index', [
+            'pageTitle' => 'Configurações do Parceiro',
+            'user' => $user,
+            'apiKeys' => $apiKeys,
+            'personalities' => $personalities,
+            'hasApiKey' => $hasApiKey,
+            'success' => $_SESSION['partner_success'] ?? null,
+            'error' => $_SESSION['partner_error'] ?? null,
+            'layout' => 'external_user_dashboard',
+        ]);
+
+        unset($_SESSION['partner_success'], $_SESSION['partner_error']);
+    }
+
+    public function partnerApiConfig(): void
+    {
+        $user = $this->requireLogin();
+        
+        if (!$this->isPartnerOwner($user)) {
+            header('Location: /painel-externo');
+            exit;
+        }
+
+        $userId = (int)$user['id'];
+        $apiKeys = PartnerApiKey::findByUserId($userId);
+
+        $this->view('partner/config_api', [
+            'pageTitle' => 'Configurar API Keys',
+            'user' => $user,
+            'apiKeys' => $apiKeys,
+            'success' => $_SESSION['partner_success'] ?? null,
+            'error' => $_SESSION['partner_error'] ?? null,
+            'layout' => 'external_user_dashboard',
+        ]);
+
+        unset($_SESSION['partner_success'], $_SESSION['partner_error']);
+    }
+
+    public function partnerPersonalidades(): void
+    {
+        $user = $this->requireLogin();
+        
+        if (!$this->isPartnerOwner($user)) {
+            header('Location: /painel-externo');
+            exit;
+        }
+
+        $userId = (int)$user['id'];
+        $personalities = PartnerPersonality::allByUserId($userId);
+
+        $this->view('partner/personalidades_list', [
+            'pageTitle' => 'Personalidades',
+            'user' => $user,
+            'personalities' => $personalities,
+            'success' => $_SESSION['partner_success'] ?? null,
+            'error' => $_SESSION['partner_error'] ?? null,
+            'layout' => 'external_user_dashboard',
+        ]);
+
+        unset($_SESSION['partner_success'], $_SESSION['partner_error']);
+    }
+
+    public function partnerChat(): void
+    {
+        $user = $this->requireLogin();
+        
+        if (!$this->isPartnerOwner($user)) {
+            header('Location: /painel-externo');
+            exit;
+        }
+
+        $userId = (int)$user['id'];
+
+        // Verificar se tem API key configurada
+        if (!PartnerApiKey::hasAnyActiveKey($userId)) {
+            $_SESSION['partner_error'] = 'Configure sua API Key primeiro para acessar o chat.';
+            header('Location: /painel-externo/config/api');
+            exit;
+        }
+
+        // Buscar personalidades do parceiro
+        $personalities = PartnerPersonality::allActiveByUserId($userId);
+        
+        if (!$personalities) {
+            $_SESSION['partner_error'] = 'Crie pelo menos uma personalidade para acessar o chat.';
+            header('Location: /painel-externo/config/personalidades');
+            exit;
+        }
+
+        // Buscar personalidade padrão
+        $defaultPersonality = PartnerPersonality::findDefaultByUserId($userId);
+        $selectedPersonality = $defaultPersonality ?: $personalities[0];
+
+        $this->view('partner/chat', [
+            'pageTitle' => 'Chat IA',
+            'user' => $user,
+            'personalities' => $personalities,
+            'selectedPersonality' => $selectedPersonality,
+            'hasApiKey' => PartnerApiKey::hasAnyActiveKey($userId),
             'layout' => 'external_user_dashboard',
         ]);
     }

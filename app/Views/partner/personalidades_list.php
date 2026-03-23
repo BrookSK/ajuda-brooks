@@ -327,10 +327,10 @@
         </div>
         
         <div class="nav-menu">
-            <a href="/parceiro/configuracoes">Visão Geral</a>
-            <a href="/parceiro/configuracoes/api">API Keys</a>
-            <a href="/parceiro/configuracoes/personalidades" class="active">Personalidades</a>
-            <a href="/parceiro/chat">Chat</a>
+            <a href="/painel-externo/config">Visão Geral</a>
+            <a href="/painel-externo/config/api">API Keys</a>
+            <a href="/painel-externo/config/personalidades" class="active">Personalidades</a>
+            <a href="/painel-externo/chat">Chat</a>
         </div>
         
         <?php if ($success): ?>
@@ -350,7 +350,7 @@
                 <span>🔍</span>
                 <input type="text" placeholder="Buscar personalidades..." id="searchInput">
             </div>
-            <a href="/parceiro/personalidades/novo" class="btn btn-primary">
+            <a href="/painel-externo/personalidades/novo" class="btn btn-primary">
                 <span>➕</span> Nova Personalidade
             </a>
         </div>
@@ -359,7 +359,7 @@
             <div class="empty-state">
                 <h3>Nenhuma personalidade criada</h3>
                 <p>Crie sua primeira personalidade para começar a personalizar o chat com diferentes estilos e especialidades.</p>
-                <a href="/parceiro/personalidades/novo" class="btn btn-primary">
+                <a href="/painel-externo/personalidades/novo" class="btn btn-primary">
                     <span>➕</span> Criar Primeira Personalidade
                 </a>
             </div>
@@ -392,21 +392,21 @@
                         </div>
                         
                         <div class="personality-actions">
-                            <a href="/parceiro/personalidades/editar?id=<?= $personality['id'] ?>" class="btn btn-sm btn-secondary">
+                            <a href="/painel-externo/personalidades/editar?id=<?= $personality['id'] ?>" class="btn btn-sm btn-secondary">
                                 Editar
                             </a>
                             
                             <?php if (empty($personality['is_default'])): ?>
-                                <a href="/parceiro/personalidades/<?= $personality['id'] ?>/default" class="btn btn-sm btn-success">
+                                <a href="/painel-externo/personalidades/<?= $personality['id'] ?>/default" class="btn btn-sm btn-success">
                                     Definir Padrão
                                 </a>
                             <?php endif; ?>
                             
-                            <a href="/parceiro/personalidades/<?= $personality['id'] ?>/toggle" class="btn btn-sm <?= !empty($personality['active']) ? 'btn-secondary' : 'btn-success' ?>">
+                            <a href="/painel-externo/personalidades/<?= $personality['id'] ?>/toggle" class="btn btn-sm <?= !empty($personality['active']) ? 'btn-secondary' : 'btn-success' ?>">
                                 <?= !empty($personality['active']) ? 'Desativar' : 'Ativar' ?>
                             </a>
                             
-                            <a href="/parceiro/personalidades/<?= $personality['id'] ?>/delete" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja excluir esta personalidade?')">
+                            <a href="/painel-externo/personalidades/<?= $personality['id'] ?>/delete" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja excluir esta personalidade?')">
                                 Excluir
                             </a>
                         </div>

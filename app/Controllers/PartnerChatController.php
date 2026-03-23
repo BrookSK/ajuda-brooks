@@ -49,7 +49,7 @@ class PartnerChatController extends Controller
         // Verificar se tem API key configurada
         if (!PartnerApiKey::hasAnyActiveKey($userId)) {
             $_SESSION['partner_error'] = 'Configure sua API Key primeiro para acessar o chat.';
-            header('Location: /parceiro/configuracoes/api');
+            header('Location: /painel-externo/config/api');
             exit;
         }
 
@@ -58,7 +58,7 @@ class PartnerChatController extends Controller
         
         if (!$personalities) {
             $_SESSION['partner_error'] = 'Crie pelo menos uma personalidade para acessar o chat.';
-            header('Location: /parceiro/configuracoes/personalidades');
+            header('Location: /painel-externo/config/personalidades');
             exit;
         }
 

@@ -92,14 +92,14 @@ class PartnerConfigController extends Controller
 
         if ($provider === '' || $apiKey === '') {
             $_SESSION['partner_error'] = 'Preencha o provider e a API Key.';
-            header('Location: /parceiro/configuracoes/api');
+            header('Location: /painel-externo/config/api');
             exit;
         }
 
         $validProviders = ['openai', 'anthropic', 'perplexity'];
         if (!in_array($provider, $validProviders)) {
             $_SESSION['partner_error'] = 'Provider inválido. Use: openai, anthropic ou perplexity.';
-            header('Location: /parceiro/configuracoes/api');
+            header('Location: /painel-externo/config/api');
             exit;
         }
 
@@ -124,11 +124,11 @@ class PartnerConfigController extends Controller
             }
 
             $_SESSION['partner_success'] = 'API Key salva com sucesso!';
-            header('Location: /parceiro/configuracoes/api');
+            header('Location: /painel-externo/config/api');
             exit;
         } catch (\Throwable $e) {
             $_SESSION['partner_error'] = 'Erro ao salvar API Key: ' . $e->getMessage();
-            header('Location: /parceiro/configuracoes/api');
+            header('Location: /painel-externo/config/api');
             exit;
         }
     }
@@ -141,7 +141,7 @@ class PartnerConfigController extends Controller
         $keyId = (int)($_GET['id'] ?? 0);
         if ($keyId <= 0) {
             $_SESSION['partner_error'] = 'ID inválido.';
-            header('Location: /parceiro/configuracoes/api');
+            header('Location: /painel-externo/config/api');
             exit;
         }
 
@@ -152,7 +152,7 @@ class PartnerConfigController extends Controller
             $_SESSION['partner_error'] = 'Erro ao atualizar API Key: ' . $e->getMessage();
         }
 
-        header('Location: /parceiro/configuracoes/api');
+        header('Location: /painel-externo/config/api');
         exit;
     }
 
@@ -164,7 +164,7 @@ class PartnerConfigController extends Controller
         $keyId = (int)($_GET['id'] ?? 0);
         if ($keyId <= 0) {
             $_SESSION['partner_error'] = 'ID inválido.';
-            header('Location: /parceiro/configuracoes/api');
+            header('Location: /painel-externo/config/api');
             exit;
         }
 
@@ -175,7 +175,7 @@ class PartnerConfigController extends Controller
             $_SESSION['partner_error'] = 'Erro ao excluir API Key: ' . $e->getMessage();
         }
 
-        header('Location: /parceiro/configuracoes/api');
+        header('Location: /painel-externo/config/api');
         exit;
     }
 }

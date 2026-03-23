@@ -301,7 +301,7 @@ function render_markdown_safe(string $text): string {
             
             <?php if (!$hasApiKey): ?>
                 <div class="error-message">
-                    Configure sua API Key em <a href="/parceiro/configuracoes/api" style="color: #fff; text-decoration: underline;">Configurações</a> para usar o chat.
+                    Configure sua API Key em <a href="/painel-externo/config/api" style="color: #fff; text-decoration: underline;">Configurações</a> para usar o chat.
                 </div>
             <?php endif; ?>
             
@@ -374,7 +374,7 @@ function render_markdown_safe(string $text): string {
             typingIndicator.style.display = 'block';
             
             // Enviar para API
-            fetch('/parceiro/chat/enviar', {
+            fetch('/painel-externo/chat/enviar', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',

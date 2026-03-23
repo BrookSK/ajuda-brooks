@@ -88,14 +88,14 @@ class PartnerPersonalityController extends Controller
 
         if ($name === '' || $area === '' || $slug === '' || $prompt === '') {
             $_SESSION['partner_error'] = 'Preencha todos os campos obrigatórios.';
-            header('Location: /parceiro/personalidades/novo');
+            header('Location: /painel-externo/personalidades/novo');
             exit;
         }
 
         // Validar slug único
         if (!PartnerPersonality::isSlugUnique($userId, $slug)) {
             $_SESSION['partner_error'] = 'Este slug já está em uso. Escolha outro.';
-            header('Location: /parceiro/personalidades/novo');
+            header('Location: /painel-externo/personalidades/novo');
             exit;
         }
 
@@ -111,11 +111,11 @@ class PartnerPersonalityController extends Controller
             ]);
 
             $_SESSION['partner_success'] = 'Personalidade criada com sucesso!';
-            header('Location: /parceiro/configuracoes/personalidades');
+            header('Location: /painel-externo/config/personalidades');
             exit;
         } catch (\Throwable $e) {
             $_SESSION['partner_error'] = 'Erro ao criar personalidade: ' . $e->getMessage();
-            header('Location: /parceiro/personalidades/novo');
+            header('Location: /painel-externo/personalidades/novo');
             exit;
         }
     }
@@ -128,14 +128,14 @@ class PartnerPersonalityController extends Controller
         $personalityId = (int)($_GET['id'] ?? 0);
         if ($personalityId <= 0) {
             $_SESSION['partner_error'] = 'Personalidade inválida.';
-            header('Location: /parceiro/configuracoes/personalidades');
+            header('Location: /painel-externo/config/personalidades');
             exit;
         }
 
         $personality = PartnerPersonality::findById($personalityId);
         if (!$personality || (int)$personality['user_id'] !== $userId) {
             $_SESSION['partner_error'] = 'Personalidade não encontrada.';
-            header('Location: /parceiro/configuracoes/personalidades');
+            header('Location: /painel-externo/config/personalidades');
             exit;
         }
 
@@ -159,14 +159,14 @@ class PartnerPersonalityController extends Controller
         $personalityId = (int)($_POST['id'] ?? 0);
         if ($personalityId <= 0) {
             $_SESSION['partner_error'] = 'Personalidade inválida.';
-            header('Location: /parceiro/configuracoes/personalidades');
+            header('Location: /painel-externo/config/personalidades');
             exit;
         }
 
         $personality = PartnerPersonality::findById($personalityId);
         if (!$personality || (int)$personality['user_id'] !== $userId) {
             $_SESSION['partner_error'] = 'Personalidade não encontrada.';
-            header('Location: /parceiro/configuracoes/personalidades');
+            header('Location: /painel-externo/config/personalidades');
             exit;
         }
 
@@ -179,14 +179,14 @@ class PartnerPersonalityController extends Controller
 
         if ($name === '' || $area === '' || $slug === '' || $prompt === '') {
             $_SESSION['partner_error'] = 'Preencha todos os campos obrigatórios.';
-            header('Location: /parceiro/personalidades/editar?id=' . $personalityId);
+            header('Location: /painel-externo/personalidades/editar?id=' . $personalityId);
             exit;
         }
 
         // Validar slug único (exceto o atual)
         if (!PartnerPersonality::isSlugUnique($userId, $slug, $personalityId)) {
             $_SESSION['partner_error'] = 'Este slug já está em uso. Escolha outro.';
-            header('Location: /parceiro/personalidades/editar?id=' . $personalityId);
+            header('Location: /painel-externo/personalidades/editar?id=' . $personalityId);
             exit;
         }
 
@@ -201,11 +201,11 @@ class PartnerPersonalityController extends Controller
             ]);
 
             $_SESSION['partner_success'] = 'Personalidade atualizada com sucesso!';
-            header('Location: /parceiro/configuracoes/personalidades');
+            header('Location: /painel-externo/config/personalidades');
             exit;
         } catch (\Throwable $e) {
             $_SESSION['partner_error'] = 'Erro ao atualizar personalidade: ' . $e->getMessage();
-            header('Location: /parceiro/personalidades/editar?id=' . $personalityId);
+            header('Location: /painel-externo/personalidades/editar?id=' . $personalityId);
             exit;
         }
     }
@@ -218,14 +218,14 @@ class PartnerPersonalityController extends Controller
         $personalityId = (int)($_GET['id'] ?? 0);
         if ($personalityId <= 0) {
             $_SESSION['partner_error'] = 'Personalidade inválida.';
-            header('Location: /parceiro/configuracoes/personalidades');
+            header('Location: /painel-externo/config/personalidades');
             exit;
         }
 
         $personality = PartnerPersonality::findById($personalityId);
         if (!$personality || (int)$personality['user_id'] !== $userId) {
             $_SESSION['partner_error'] = 'Personalidade não encontrada.';
-            header('Location: /parceiro/configuracoes/personalidades');
+            header('Location: /painel-externo/config/personalidades');
             exit;
         }
 
@@ -236,7 +236,7 @@ class PartnerPersonalityController extends Controller
             $_SESSION['partner_error'] = 'Erro ao excluir personalidade: ' . $e->getMessage();
         }
 
-        header('Location: /parceiro/configuracoes/personalidades');
+        header('Location: /painel-externo/config/personalidades');
         exit;
     }
 
@@ -248,14 +248,14 @@ class PartnerPersonalityController extends Controller
         $personalityId = (int)($_GET['id'] ?? 0);
         if ($personalityId <= 0) {
             $_SESSION['partner_error'] = 'Personalidade inválida.';
-            header('Location: /parceiro/configuracoes/personalidades');
+            header('Location: /painel-externo/config/personalidades');
             exit;
         }
 
         $personality = PartnerPersonality::findById($personalityId);
         if (!$personality || (int)$personality['user_id'] !== $userId) {
             $_SESSION['partner_error'] = 'Personalidade não encontrada.';
-            header('Location: /parceiro/configuracoes/personalidades');
+            header('Location: /painel-externo/config/personalidades');
             exit;
         }
 
@@ -266,7 +266,7 @@ class PartnerPersonalityController extends Controller
             $_SESSION['partner_error'] = 'Erro ao atualizar personalidade: ' . $e->getMessage();
         }
 
-        header('Location: /parceiro/configuracoes/personalidades');
+        header('Location: /painel-externo/config/personalidades');
         exit;
     }
 
@@ -278,14 +278,14 @@ class PartnerPersonalityController extends Controller
         $personalityId = (int)($_GET['id'] ?? 0);
         if ($personalityId <= 0) {
             $_SESSION['partner_error'] = 'Personalidade inválida.';
-            header('Location: /parceiro/configuracoes/personalidades');
+            header('Location: /painel-externo/config/personalidades');
             exit;
         }
 
         $personality = PartnerPersonality::findById($personalityId);
         if (!$personality || (int)$personality['user_id'] !== $userId) {
             $_SESSION['partner_error'] = 'Personalidade não encontrada.';
-            header('Location: /parceiro/configuracoes/personalidades');
+            header('Location: /painel-externo/config/personalidades');
             exit;
         }
 
@@ -296,7 +296,7 @@ class PartnerPersonalityController extends Controller
             $_SESSION['partner_error'] = 'Erro ao definir personalidade padrão: ' . $e->getMessage();
         }
 
-        header('Location: /parceiro/configuracoes/personalidades');
+        header('Location: /painel-externo/config/personalidades');
         exit;
     }
 }

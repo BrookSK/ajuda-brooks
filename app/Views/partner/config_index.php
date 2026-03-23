@@ -225,10 +225,10 @@
         </div>
         
         <div class="nav-menu">
-            <a href="/parceiro/configuracoes" class="active">Visão Geral</a>
-            <a href="/parceiro/configuracoes/api">API Keys</a>
-            <a href="/parceiro/configuracoes/personalidades">Personalidades</a>
-            <a href="/parceiro/chat">Chat</a>
+            <a href="/painel-externo/config" class="active">Visão Geral</a>
+            <a href="/painel-externo/config/api">API Keys</a>
+            <a href="/painel-externo/config/personalidades">Personalidades</a>
+            <a href="/painel-externo/chat">Chat</a>
         </div>
         
         <?php if ($success): ?>
@@ -258,7 +258,7 @@
                     <div class="status-dot <?= $hasApiKey ? 'active' : 'inactive' ?>"></div>
                     <span><?= $hasApiKey ? 'Configurado' : 'Não configurado' ?></span>
                 </div>
-                <a href="/parceiro/configuracoes/api" class="card-action">
+                <a href="/painel-externo/config/api" class="card-action">
                     <?= $hasApiKey ? 'Gerenciar' : 'Configurar' ?>
                 </a>
             </div>
@@ -277,7 +277,7 @@
                     <div class="status-dot inactive"></div>
                     <span><?= count($apiKeys) ?> personalidades</span>
                 </div>
-                <a href="/parceiro/configuracoes/personalidades" class="card-action">
+                <a href="/painel-externo/config/personalidades" class="card-action">
                     Gerenciar
                 </a>
             </div>
@@ -296,7 +296,7 @@
                     <div class="status-dot <?= $hasApiKey ? 'active' : 'inactive' ?>"></div>
                     <span><?= $hasApiKey ? 'Disponível' : 'API necessária' ?></span>
                 </div>
-                <a href="/parceiro/chat" class="card-action <?= !$hasApiKey ? 'secondary' : '' ?>">
+                <a href="/painel-externo/chat" class="card-action <?= !$hasApiKey ? 'secondary' : '' ?>">
                     <?= $hasApiKey ? 'Abrir Chat' : 'Configurar API' ?>
                 </a>
             </div>
@@ -305,16 +305,16 @@
         <div class="quick-actions">
             <h2>Ações Rápidas</h2>
             <div class="actions-grid">
-                <a href="/parceiro/configuracoes/api" class="action-btn">
+                <a href="/painel-externo/config/api" class="action-btn">
                     <span>➕</span> Nova API Key
                 </a>
-                <a href="/parceiro/personalidades/novo" class="action-btn">
+                <a href="/painel-externo/personalidades/novo" class="action-btn">
                     <span>🎭</span> Nova Personalidade
                 </a>
-                <a href="/parceiro/chat" class="action-btn">
+                <a href="/painel-externo/chat" class="action-btn">
                     <span>💬</span> Testar Chat
                 </a>
-                <a href="/parceiro/configuracoes/personalidades" class="action-btn">
+                <a href="/painel-externo/config/personalidades" class="action-btn">
                     <span>📋</span> Ver Todas
                 </a>
             </div>

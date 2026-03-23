@@ -19,7 +19,7 @@ $minPayout = $minPayoutCents / 100;
             <div style="font-size: 13px; color: var(--text-secondary);">Você só recebe quando o acumulado atingir pelo menos <strong>R$ <?= number_format($minPayout, 2, ',', '.') ?></strong>. Se não atingir, fica acumulado para o próximo mês.</div>
         </div>
 
-        <form method="get" action="/parceiro/comissoes" style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;">
+        <form method="get" action="/painel-externo/comissoes" style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;">
             <div>
                 <div style="font-size:12px; color:var(--text-secondary); margin-bottom:4px;">Ano</div>
                 <input type="number" name="year" value="<?= (int)$year ?>" style="width:110px; padding:8px 10px; border-radius:10px; border:1px solid var(--border-subtle); background:var(--surface-card); color:var(--text-primary);">
@@ -136,7 +136,7 @@ $minPayout = $minPayoutCents / 100;
         <div style="flex:1 1 420px; min-width:280px;">
             <div style="font-size:14px; font-weight:900; margin-bottom:8px;">Meus dados para pagamento</div>
             <div style="background:var(--surface-card); border-radius:14px; border:1px solid var(--border-subtle); padding:12px 12px;">
-                <form method="post" action="/parceiro/comissoes/salvar-dados" style="display:flex; flex-direction:column; gap:10px;">
+                <form method="post" action="/painel-externo/comissoes/salvar-dados" style="display:flex; flex-direction:column; gap:10px;">
                     <div>
                         <label style="display:block; font-size:12px; color:var(--text-secondary); margin-bottom:4px;">Chave PIX</label>
                         <input type="text" name="pix_key" value="<?= htmlspecialchars((string)($partner['pix_key'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" placeholder="CPF/CNPJ, e-mail, telefone ou chave aleatória" style="width:100%; padding:9px 10px; border-radius:10px; border:1px solid var(--border-subtle); background:var(--surface-subtle); color:var(--text-primary);">

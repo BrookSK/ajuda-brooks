@@ -295,10 +295,10 @@
         </div>
         
         <div class="nav-menu">
-            <a href="/parceiro/configuracoes">Visão Geral</a>
-            <a href="/parceiro/configuracoes/api" class="active">API Keys</a>
-            <a href="/parceiro/configuracoes/personalidades">Personalidades</a>
-            <a href="/parceiro/chat">Chat</a>
+            <a href="/painel-externo/config" class="active">Visão Geral</a>
+            <a href="/painel-externo/config/api">API Keys</a>
+            <a href="/painel-externo/config/personalidades">Personalidades</a>
+            <a href="/painel-externo/chat">Chat</a>
         </div>
         
         <?php if ($success): ?>
@@ -315,7 +315,7 @@
         
         <div class="form-card">
             <h2>Adicionar Nova API Key</h2>
-            <form method="POST" action="/parceiro/configuracoes/api/salvar">
+            <form method="POST" action="/painel-externo/config/api/salvar">
                 <div class="form-row">
                     <div class="form-group">
                         <label for="provider">Provedor</label>
@@ -349,7 +349,7 @@
                     <button type="submit" class="btn btn-primary">
                         <span>💾</span> Salvar API Key
                     </button>
-                    <a href="/parceiro/configuracoes" class="btn btn-secondary">
+                    <a href="/painel-externo/config" class="btn btn-secondary">
                         Cancelar
                     </a>
                 </div>
@@ -363,7 +363,7 @@
                 <div class="empty-state">
                     <h3>Nenhuma API Key configurada</h3>
                     <p>Configure sua primeira API key acima para começar a usar o chat.</p>
-                    <a href="/parceiro/chat" class="btn btn-primary" disabled>
+                    <a href="/painel-externo/config/api" class="btn btn-primary" disabled>
                         <span>💬</span> Chat Indisponível
                     </a>
                 </div>
@@ -390,10 +390,10 @@
                         </div>
                         
                         <div class="api-key-actions">
-                            <a href="/parceiro/configuracoes/api/toggle?id=<?= $apiKey['id'] ?>" class="btn btn-sm <?= !empty($apiKey['is_active']) ? 'btn-secondary' : 'btn-primary' ?>">
+                            <a href="/painel-externo/config/api/toggle?id=<?= $apiKey['id'] ?>" class="btn btn-sm <?= !empty($apiKey['is_active']) ? 'btn-secondary' : 'btn-primary' ?>">
                                 <?= !empty($apiKey['is_active']) ? 'Desativar' : 'Ativar' ?>
                             </a>
-                            <a href="/parceiro/configuracoes/api/delete?id=<?= $apiKey['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja excluir esta API key?')">
+                            <a href="/painel-externo/config/api/delete?id=<?= $apiKey['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja excluir esta API key?')">
                                 Excluir
                             </a>
                         </div>
@@ -401,7 +401,7 @@
                 <?php endforeach; ?>
                 
                 <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #333;">
-                    <a href="/parceiro/chat" class="btn btn-primary">
+                    <a href="/painel-externo/chat" class="btn btn-primary">
                         <span>💬</span> Testar Chat
                     </a>
                 </div>

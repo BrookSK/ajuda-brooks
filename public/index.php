@@ -212,25 +212,25 @@ if ($isPartnerHost) {
     $partnerRouter->post('/painel-externo/notificacoes/marcar-lida', 'ExternalUserDashboardController@markNotificationAsRead');
     $partnerRouter->post('/painel-externo/notificacoes/marcar-todas-lidas', 'ExternalUserDashboardController@markAllNotificationsAsRead');
 
-    // Rotas do Dashboard Profissional Parceiro
-    $partnerRouter->get('/parceiro/configuracoes', 'PartnerConfigController@index');
-    $partnerRouter->get('/parceiro/configuracoes/api', 'PartnerConfigController@apiConfig');
-    $partnerRouter->post('/parceiro/configuracoes/api/salvar', 'PartnerConfigController@saveApiKey');
-    $partnerRouter->get('/parceiro/configuracoes/api/toggle', 'PartnerConfigController@toggleApiKey');
-    $partnerRouter->get('/parceiro/configuracoes/api/delete', 'PartnerConfigController@deleteApiKey');
+    // Rotas do Dashboard Profissional Parceiro (integrado ao painel externo)
+    $partnerRouter->get('/painel-externo/config', 'ExternalUserDashboardController@partnerConfig');
+    $partnerRouter->get('/painel-externo/config/api', 'ExternalUserDashboardController@partnerApiConfig');
+    $partnerRouter->post('/painel-externo/config/api/salvar', 'PartnerConfigController@saveApiKey');
+    $partnerRouter->get('/painel-externo/config/api/toggle', 'PartnerConfigController@toggleApiKey');
+    $partnerRouter->get('/painel-externo/config/api/delete', 'PartnerConfigController@deleteApiKey');
     
-    $partnerRouter->get('/parceiro/configuracoes/personalidades', 'PartnerPersonalityController@index');
-    $partnerRouter->get('/parceiro/personalidades/novo', 'PartnerPersonalityController@create');
-    $partnerRouter->post('/parceiro/personalidades/salvar', 'PartnerPersonalityController@save');
-    $partnerRouter->get('/parceiro/personalidades/editar', 'PartnerPersonalityController@edit');
-    $partnerRouter->post('/parceiro/personalidades/atualizar', 'PartnerPersonalityController@update');
-    $partnerRouter->get('/parceiro/personalidades/{id}/delete', 'PartnerPersonalityController@delete');
-    $partnerRouter->get('/parceiro/personalidades/{id}/toggle', 'PartnerPersonalityController@toggleActive');
-    $partnerRouter->get('/parceiro/personalidades/{id}/default', 'PartnerPersonalityController@setDefault');
+    $partnerRouter->get('/painel-externo/config/personalidades', 'ExternalUserDashboardController@partnerPersonalidades');
+    $partnerRouter->get('/painel-externo/personalidades/novo', 'PartnerPersonalityController@create');
+    $partnerRouter->post('/painel-externo/personalidades/salvar', 'PartnerPersonalityController@save');
+    $partnerRouter->get('/painel-externo/personalidades/editar', 'PartnerPersonalityController@edit');
+    $partnerRouter->post('/painel-externo/personalidades/atualizar', 'PartnerPersonalityController@update');
+    $partnerRouter->get('/painel-externo/personalidades/{id}/delete', 'PartnerPersonalityController@delete');
+    $partnerRouter->get('/painel-externo/personalidades/{id}/toggle', 'PartnerPersonalityController@toggleActive');
+    $partnerRouter->get('/painel-externo/personalidades/{id}/default', 'PartnerPersonalityController@setDefault');
     
-    $partnerRouter->get('/parceiro/chat', 'PartnerChatController@index');
-    $partnerRouter->post('/parceiro/chat/enviar', 'PartnerChatController@sendMessage');
-    $partnerRouter->get('/parceiro/chat/stream', 'PartnerChatController@stream');
+    $partnerRouter->get('/painel-externo/chat', 'ExternalUserDashboardController@partnerChat');
+    $partnerRouter->post('/painel-externo/chat/enviar', 'PartnerChatController@sendMessage');
+    $partnerRouter->get('/painel-externo/chat/stream', 'PartnerChatController@stream');
 
     $partnerRouter->dispatch($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD']);
     exit;

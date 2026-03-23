@@ -212,6 +212,26 @@ if ($isPartnerHost) {
     $partnerRouter->post('/painel-externo/notificacoes/marcar-lida', 'ExternalUserDashboardController@markNotificationAsRead');
     $partnerRouter->post('/painel-externo/notificacoes/marcar-todas-lidas', 'ExternalUserDashboardController@markAllNotificationsAsRead');
 
+    // Rotas do Dashboard Profissional Parceiro
+    $partnerRouter->get('/parceiro/configuracoes', 'PartnerConfigController@index');
+    $partnerRouter->get('/parceiro/configuracoes/api', 'PartnerConfigController@apiConfig');
+    $partnerRouter->post('/parceiro/configuracoes/api/salvar', 'PartnerConfigController@saveApiKey');
+    $partnerRouter->get('/parceiro/configuracoes/api/toggle', 'PartnerConfigController@toggleApiKey');
+    $partnerRouter->get('/parceiro/configuracoes/api/delete', 'PartnerConfigController@deleteApiKey');
+    
+    $partnerRouter->get('/parceiro/configuracoes/personalidades', 'PartnerPersonalityController@index');
+    $partnerRouter->get('/parceiro/personalidades/novo', 'PartnerPersonalityController@create');
+    $partnerRouter->post('/parceiro/personalidades/salvar', 'PartnerPersonalityController@save');
+    $partnerRouter->get('/parceiro/personalidades/editar', 'PartnerPersonalityController@edit');
+    $partnerRouter->post('/parceiro/personalidades/atualizar', 'PartnerPersonalityController@update');
+    $partnerRouter->get('/parceiro/personalidades/{id}/delete', 'PartnerPersonalityController@delete');
+    $partnerRouter->get('/parceiro/personalidades/{id}/toggle', 'PartnerPersonalityController@toggleActive');
+    $partnerRouter->get('/parceiro/personalidades/{id}/default', 'PartnerPersonalityController@setDefault');
+    
+    $partnerRouter->get('/parceiro/chat', 'PartnerChatController@index');
+    $partnerRouter->post('/parceiro/chat/enviar', 'PartnerChatController@sendMessage');
+    $partnerRouter->get('/parceiro/chat/stream', 'PartnerChatController@stream');
+
     $partnerRouter->dispatch($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD']);
     exit;
 }

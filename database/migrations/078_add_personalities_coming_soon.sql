@@ -1,1 +1,0 @@
-ALTER TABLE personalities ADD COLUMN coming_soon TINYINT(1) NOT NULL DEFAULT 0;

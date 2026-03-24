@@ -1,2 +1,0 @@
-ALTER TABLE conversations
-  ADD COLUMN is_favorite TINYINT(1) NOT NULL DEFAULT 0;

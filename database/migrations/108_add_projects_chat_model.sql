@@ -1,2 +1,0 @@
-ALTER TABLE projects
-  ADD COLUMN chat_model VARCHAR(80) NULL;

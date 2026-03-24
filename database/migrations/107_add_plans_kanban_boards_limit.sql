@@ -1,2 +1,0 @@
-ALTER TABLE plans
-    ADD COLUMN kanban_boards_limit INT UNSIGNED NULL DEFAULT NULL;

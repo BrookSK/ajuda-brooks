@@ -7,16 +7,16 @@ $dbConfigs = [
     'dev' => [
         'host' => 'localhost',
         'port' => 3306,
-        'database' => 'Agente-IA-Ajuda-Brooks', // altere aqui
-        'username' => 'Agente-IA-Ajuda-Brooks',         // altere aqui
+        'database' => 'Agente-IA-Tuquinha', // altere aqui
+        'username' => 'Agente-IA-Tuquinha',         // altere aqui
         'password' => '67NPU@*ciffjwbh7',             // altere aqui
         'charset'  => 'utf8mb4',
     ],
     'prod' => [
         'host' => 'localhost',
         'port' => 3306,
-        'database' => 'Agente-IA-Ajuda-Brooks', // altere aqui
-        'username' => 'Agente-IA-Ajuda-Brooks',     // altere aqui
+        'database' => 'Agente-IA-Tuquinha', // altere aqui
+        'username' => 'Agente-IA-Tuquinha',     // altere aqui
         'password' => '67NPU@*ciffjwbh7', // altere aqui
         'charset'  => 'utf8mb4',
     ],

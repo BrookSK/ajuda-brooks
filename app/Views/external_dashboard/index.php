@@ -1,74 +1,11 @@
 <div class="header">
     <h1>Bem-vindo, <?= htmlspecialchars($user['name'] ?? 'Usuário', ENT_QUOTES, 'UTF-8') ?></h1>
-    <p><?= $isPartnerOwner ? 'Gerencie seu ambiente e configurações' : 'Acesse seus cursos e comunidades' ?></p>
+    <p>Acesse seus cursos e comunidades</p>
 </div>
 
 <?php
 $primaryColor = !empty($branding['primary_color']) ? $branding['primary_color'] : '#e53935';
 ?>
-
-<!-- Partner Configuration Cards (Apenas para donos) -->
-<?php if ($isPartnerOwner && $partnerData): ?>
-<div style="margin-bottom: 32px;">
-    <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 16px; color: var(--text-primary);">⚙️ Configurações do Ambiente</h2>
-    
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
-        <div class="stat-card" style="background: transparent; border: 2px solid <?= $primaryColor ?>; padding: 20px; border-radius: 12px; color: var(--text-primary);">
-            <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">API Keys</div>
-            <div style="font-size: 36px; font-weight: 700; margin-bottom: 4px; color: <?= $primaryColor ?>;"><?= $partnerData['apiKeysCount'] ?></div>
-            <div style="font-size: 12px; color: var(--text-secondary);">
-                <?= $partnerData['hasApiKey'] ? 'Configurada' : 'Não configurada' ?>
-            </div>
-        </div>
-
-        <div class="stat-card" style="background: transparent; border: 2px solid <?= $primaryColor ?>; padding: 20px; border-radius: 12px; color: var(--text-primary);">
-            <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">Personalidades</div>
-            <div style="font-size: 36px; font-weight: 700; margin-bottom: 4px; color: <?= $primaryColor ?>;"><?= $partnerData['personalitiesCount'] ?></div>
-            <div style="font-size: 12px; color: var(--text-secondary);">
-                Criadas para seu chat
-            </div>
-        </div>
-
-        <div class="stat-card" style="background: transparent; border: 2px solid <?= $primaryColor ?>; padding: 20px; border-radius: 12px; color: var(--text-primary);">
-            <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">Chat IA</div>
-            <div style="font-size: 36px; font-weight: 700; margin-bottom: 4px; color: <?= $primaryColor ?>;"><?= $partnerData['hasApiKey'] && !empty($partnerData['personalities']) ? '✅' : '⚠️' ?></div>
-            <div style="font-size: 12px; color: var(--text-secondary);">
-                <?= $partnerData['hasApiKey'] && !empty($partnerData['personalities']) ? 'Disponível' : 'Configuração necessária' ?>
-            </div>
-        </div>
-    </div>
-
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
-        <a href="/painel-externo/config" class="card nav-card" style="cursor: pointer; transition: transform 0.2s, border-color 0.2s; background: transparent; border: 2px solid <?= $primaryColor ?>; text-decoration: none;">
-            <div style="font-size: 48px; margin-bottom: 12px;">⚙️</div>
-            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 6px; color: var(--text-primary);">Configurações</h3>
-            <p style="font-size: 13px; color: var(--text-secondary);">Gerencie API keys e personalidades</p>
-        </a>
-
-        <a href="/painel-externo/config/api" class="card nav-card" style="cursor: pointer; transition: transform 0.2s, border-color 0.2s; background: transparent; border: 2px solid <?= $primaryColor ?>; text-decoration: none;">
-            <div style="font-size: 48px; margin-bottom: 12px;">🔑</div>
-            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 6px; color: var(--text-primary);">API Keys</h3>
-            <p style="font-size: 13px; color: var(--text-secondary);">Configure suas chaves de IA</p>
-        </a>
-
-        <a href="/painel-externo/config/personalidades" class="card nav-card" style="cursor: pointer; transition: transform 0.2s, border-color 0.2s; background: transparent; border: 2px solid <?= $primaryColor ?>; text-decoration: none;">
-            <div style="font-size: 48px; margin-bottom: 12px;">🎭</div>
-            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 6px; color: var(--text-primary);">Personalidades</h3>
-            <p style="font-size: 13px; color: var(--text-secondary);">Crie especialistas personalizados</p>
-        </a>
-
-        <?php if ($partnerData['hasApiKey'] && !empty($partnerData['personalities'])): ?>
-        <a href="/painel-externo/chat" class="card nav-card" style="cursor: pointer; transition: transform 0.2s, border-color 0.2s; background: transparent; border: 2px solid <?= $primaryColor ?>; text-decoration: none;">
-            <div style="font-size: 48px; margin-bottom: 12px;">💬</div>
-            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 6px; color: var(--text-primary);">Chat IA</h3>
-            <p style="font-size: 13px; color: var(--text-secondary);">Converse com suas personalidades</p>
-        </a>
-        <?php endif; ?>
-    </div>
-</div>
-
-<hr style="margin: 32px 0; border: none; border-top: 1px solid var(--border-color);">
-<?php endif; ?>
 <!-- Statistics Cards -->
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px;">
     <div class="stat-card" style="background: transparent; border: 2px solid <?= $primaryColor ?>; padding: 20px; border-radius: 12px; color: var(--text-primary);">

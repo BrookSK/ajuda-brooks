@@ -4,7 +4,26 @@
 
 use App\Models\CoursePartner;
 
-$pageTitle = $pageTitle ?? 'Resenha 2.0';
+$_brandSystemName    = 'Resenha 2.0';
+$_brandAiName        = 'Tuquinha';
+$_brandSubtitle      = 'Branding vivo na veia';
+$_brandAccentColor   = '#e53935';
+$_brandAccentSoft    = '#ff6f60';
+$_brandLogoPath      = '';
+$_brandFaviconPath   = '';
+try {
+    if (class_exists('App\\Models\\Setting')) {
+        $_brandSystemName  = (string)(\App\Models\Setting::get('system_name', 'Resenha 2.0') ?: 'Resenha 2.0');
+        $_brandAiName      = (string)(\App\Models\Setting::get('system_ai_name', 'Tuquinha') ?: 'Tuquinha');
+        $_brandSubtitle    = (string)(\App\Models\Setting::get('system_subtitle', 'Branding vivo na veia') ?? 'Branding vivo na veia');
+        $_brandAccentColor = (string)(\App\Models\Setting::get('brand_accent_color', '#e53935') ?: '#e53935');
+        $_brandAccentSoft  = (string)(\App\Models\Setting::get('brand_accent_soft', '#ff6f60') ?: '#ff6f60');
+        $_brandLogoPath    = (string)(\App\Models\Setting::get('brand_logo_path', '') ?? '');
+        $_brandFaviconPath = (string)(\App\Models\Setting::get('brand_favicon_path', '') ?? '');
+    }
+} catch (\Throwable $_brandErr) {}
+
+$pageTitle = $pageTitle ?? $_brandSystemName;
 
 $menuIconMap = [];
 try {
@@ -105,16 +124,16 @@ if (!empty($_SESSION['user_id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#e53935">
+    <meta name="theme-color" content="<?= htmlspecialchars($_brandAccentColor) ?>">
     <title><?= htmlspecialchars($pageTitle) ?></title>
-    <link rel="icon" type="image/png" href="/public/favicon.png">
+    <link rel="icon" type="image/png" href="<?= htmlspecialchars($_brandFaviconPath ?: '/public/favicon.png') ?>">
     <link rel="manifest" href="/public/manifest.webmanifest">
     <style>
         :root {
             --bg-main: #050509;
             --bg-secondary: #111118;
-            --accent: #e53935;
-            --accent-soft: #ff6f60;
+            --accent: <?= htmlspecialchars($_brandAccentColor) ?>;
+            --accent-soft: <?= htmlspecialchars($_brandAccentSoft) ?>;
             --text-primary: #f5f5f5;
             --text-secondary: #b0b0b0;
             --border-subtle: #272727;
@@ -133,8 +152,8 @@ if (!empty($_SESSION['user_id'])) {
         body[data-theme="light"] {
             --bg-main: #fdf7f7;
             --bg-secondary: #ffffff;
-            --accent: #e53935;
-            --accent-soft: #ff8a65;
+            --accent: <?= htmlspecialchars($_brandAccentColor) ?>;
+            --accent-soft: <?= htmlspecialchars($_brandAccentSoft) ?>;
             --text-primary: #1f2933;
             --text-secondary: #4b5563;
             --border-subtle: #d1d5db;
@@ -782,10 +801,10 @@ if (!empty($_SESSION['user_id'])) {
         <div>
             <button type="button" class="sidebar-close" id="sidebar-close" aria-label="Fechar menu">×</button>
             <div class="brand">
-                <div class="brand-logo"><img src="/public/favicon.png" alt="Tuquinha" style="width:100%; height:100%; display:block; object-fit:cover;"></div>
+                <div class="brand-logo"><img src="<?= htmlspecialchars($_brandLogoPath ?: '/public/favicon.png') ?>" alt="<?= htmlspecialchars($_brandAiName) ?>" style="width:100%; height:100%; display:block; object-fit:cover;"></div>
                 <div>
-                    <div class="brand-text-title">Resenha 2.0</div>
-                    <div class="brand-text-sub">Branding vivo na veia</div>
+                    <div class="brand-text-title"><?= htmlspecialchars($_brandSystemName) ?></div>
+                    <div class="brand-text-sub"><?= htmlspecialchars($_brandSubtitle) ?></div>
                 </div>
             </div>
             <?php
@@ -916,7 +935,7 @@ if (!empty($_SESSION['user_id'])) {
                 <div class="sidebar-section-title">Conversa</div>
                 <a href="<?= htmlspecialchars($newChatHref) ?>" class="sidebar-button primary<?= $isActiveNav(['/chat', '/personalidades']) ? ' sidebar-button--active' : '' ?>" data-tour="nav-new-chat" style="margin-bottom: 8px;">
                     <span class="icon">+</span>
-                    <span>Novo chat com o Tuquinha</span>
+                    <span>Novo chat com o <?= htmlspecialchars($_brandAiName) ?></span>
                 </a>
                 <?php
                     $currentSlug = $_SESSION['plan_slug'] ?? null;
@@ -949,7 +968,7 @@ if (!empty($_SESSION['user_id'])) {
                             <path d="M18 4.8V7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         </svg>');
                     ?></span>
-                    <span>Quem é o Tuquinha</span>
+                    <span>Quem é o <?= htmlspecialchars($_brandAiName) ?></span>
                 </a>
 
                 <?php if ($canUseCaderno): ?>
@@ -982,7 +1001,7 @@ if (!empty($_SESSION['user_id'])) {
                 <?php endif; ?>
 
                 <?php if (!empty($_SESSION['user_id'])): ?>
-                    <div class="sidebar-section-title" style="margin-top: 10px;">Rede social do Tuquinha</div>
+                    <div class="sidebar-section-title" style="margin-top: 10px;">Rede social do <?= htmlspecialchars($_brandAiName) ?></div>
                     <a href="/perfil" class="sidebar-button<?= $isActiveNav('/perfil') ? ' sidebar-button--active' : '' ?>">
                         <span class="icon" aria-hidden="true"><?php echo $renderMenuIcon('social_profile', '🧑'); ?></span>
                         <span>Perfil social</span>
@@ -1098,7 +1117,11 @@ if (!empty($_SESSION['user_id'])) {
                         <span class="icon" aria-hidden="true"><?php echo $renderMenuIcon('admin_dashboard', '📊'); ?></span>
                         <span>Dashboard</span>
                     </a>
-                    <a href="/admin/config" class="sidebar-button">
+                    <a href="/admin/personalizacao" class="sidebar-button<?= $isActiveNav('/admin/personalizacao') ? ' sidebar-button--active' : '' ?>" style="margin-top: 6px;">
+                        <span class="icon" aria-hidden="true"><?php echo $renderMenuIcon('admin_branding', '🎨'); ?></span>
+                        <span>Personalização do sistema</span>
+                    </a>
+                    <a href="/admin/config" class="sidebar-button<?= $isActiveNav('/admin/config') ? ' sidebar-button--active' : '' ?>" style="margin-top: 6px;">
                         <span class="icon" aria-hidden="true"><?php echo $renderMenuIcon('admin_config', '⚙'); ?></span>
                         <span>Configurações do sistema</span>
                     </a>
@@ -1128,7 +1151,7 @@ if (!empty($_SESSION['user_id'])) {
                     </a>
                     <a href="/admin/personalidades" class="sidebar-button" style="margin-top: 6px;">
                         <span class="icon" aria-hidden="true"><?php echo $renderMenuIcon('admin_personalities', '🎭'); ?></span>
-                        <span>Personalidades do Tuquinha</span>
+                        <span>Personalidades do <?= htmlspecialchars($_brandAiName) ?></span>
                     </a>
                     <a href="/admin/usuarios" class="sidebar-button" style="margin-top: 6px;">
                         <span class="icon" aria-hidden="true"><?php echo $renderMenuIcon('admin_users', '👥'); ?></span>

@@ -524,6 +524,8 @@ $router->get('/admin/branding-parceiros', 'AdminPartnerBrandingController@index'
 $router->get('/admin/branding-parceiros/editar', 'AdminPartnerBrandingController@form');
 $router->post('/admin/branding-parceiros/salvar', 'AdminPartnerBrandingController@save');
 $router->post('/admin/branding-parceiros/aprovar-subdominio', 'AdminPartnerBrandingController@approveSubdomain');
+$router->get('/admin/personalizacao', 'AdminSystemBrandingController@index');
+$router->post('/admin/personalizacao', 'AdminSystemBrandingController@save');
 $router->get('/admin/config', 'AdminConfigController@index');
 $router->post('/admin/config', 'AdminConfigController@save');
 $router->get('/admin/config/certificado-preview', 'AdminConfigController@certificatePreview');

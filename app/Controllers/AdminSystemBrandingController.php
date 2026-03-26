@@ -25,6 +25,7 @@ class AdminSystemBrandingController extends Controller
         $systemSubtitle   = Setting::get('system_subtitle', 'Branding vivo na veia') ?? '';
         $accentColor      = Setting::get('brand_accent_color', '#e53935') ?: '#e53935';
         $accentSoftColor  = Setting::get('brand_accent_soft', '#ff6f60') ?: '#ff6f60';
+        $btnTextColor     = Setting::get('brand_btn_text_color', '#050509') ?: '#050509';
         $logoPath         = Setting::get('brand_logo_path', '') ?? '';
         $faviconPath      = Setting::get('brand_favicon_path', '') ?? '';
         $newsRssFeeds     = Setting::get('news_rss_feeds', "https://www.meioemensagem.com.br/feed\nhttps://www.meioemensagem.com.br/categoria/marketing/feed\nhttps://www.publicitarioscriativos.com/feed\nhttps://mundodomarketing.com.br/feed\nhttps://www.promoview.com.br/feed\nhttps://gkpb.com.br/feed") ?? '';
@@ -38,6 +39,7 @@ class AdminSystemBrandingController extends Controller
             'systemSubtitle'  => $systemSubtitle,
             'accentColor'     => $accentColor,
             'accentSoftColor' => $accentSoftColor,
+            'btnTextColor'    => $btnTextColor,
             'logoPath'        => $logoPath,
             'faviconPath'     => $faviconPath,
             'newsRssFeeds'    => $newsRssFeeds,
@@ -75,6 +77,11 @@ class AdminSystemBrandingController extends Controller
         $accentSoftColor = trim((string)($_POST['accent_soft_color'] ?? '#ff6f60'));
         if (!preg_match('/^#[0-9a-fA-F]{3,8}$/', $accentSoftColor)) {
             $accentSoftColor = '#ff6f60';
+        }
+
+        $btnTextColor = trim((string)($_POST['btn_text_color'] ?? '#050509'));
+        if (!preg_match('/^#[0-9a-fA-F]{3,8}$/', $btnTextColor)) {
+            $btnTextColor = '#050509';
         }
 
         $logoPath    = Setting::get('brand_logo_path', '') ?? '';
@@ -142,6 +149,7 @@ class AdminSystemBrandingController extends Controller
             'system_subtitle'      => $systemSubtitle,
             'brand_accent_color'   => $accentColor,
             'brand_accent_soft'    => $accentSoftColor,
+            'brand_btn_text_color' => $btnTextColor,
             'brand_logo_path'      => $logoPath,
             'brand_favicon_path'   => $faviconPath,
             'news_rss_feeds'       => $newsRssFeeds,
@@ -160,6 +168,7 @@ class AdminSystemBrandingController extends Controller
             'systemSubtitle'  => $systemSubtitle,
             'accentColor'     => $accentColor,
             'accentSoftColor' => $accentSoftColor,
+            'btnTextColor'    => $btnTextColor,
             'logoPath'        => $logoPath,
             'faviconPath'     => $faviconPath,
             'newsRssFeeds'    => $newsRssFeeds,

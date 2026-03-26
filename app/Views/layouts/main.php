@@ -23,7 +23,46 @@ try {
     }
 } catch (\Throwable $_brandErr) {}
 
+// Cor de texto nos botões primários
+$_brandBtnTextColor = '#050509';
+try {
+    if (class_exists('App\\Models\\Setting')) {
+        $_brandBtnTextColor = (string)(\App\Models\Setting::get('brand_btn_text_color', '#050509') ?: '#050509');
+    }
+} catch (\Throwable $_e) {}
+
+// Helper: hex → rgba(r,g,b,alpha)
+if (!function_exists('_tuqRgba')) {
+    function _tuqRgba(string $hex, float $alpha): string {
+        $hex = ltrim($hex, '#');
+        if (strlen($hex) === 3) {
+            $hex = str_repeat($hex[0], 2) . str_repeat($hex[1], 2) . str_repeat($hex[2], 2);
+        }
+        $r = (int)hexdec(substr($hex, 0, 2));
+        $g = (int)hexdec(substr($hex, 2, 2));
+        $b = (int)hexdec(substr($hex, 4, 2));
+        return "rgba({$r},{$g},{$b},{$alpha})";
+    }
+}
+$_aRgba08 = _tuqRgba($_brandAccentColor, 0.08);
+$_aRgba10 = _tuqRgba($_brandAccentColor, 0.10);
+$_aRgba12 = _tuqRgba($_brandAccentColor, 0.12);
+$_aRgba15 = _tuqRgba($_brandAccentColor, 0.15);
+$_aRgba16 = _tuqRgba($_brandAccentColor, 0.16);
+$_aRgba18 = _tuqRgba($_brandAccentColor, 0.18);
+$_aRgba22 = _tuqRgba($_brandAccentColor, 0.22);
+$_aRgba35 = _tuqRgba($_brandAccentColor, 0.35);
+$_aRgba45 = _tuqRgba($_brandAccentColor, 0.45);
+$_aRgba80 = _tuqRgba($_brandAccentColor, 0.80);
+$_aRgba95 = _tuqRgba($_brandAccentColor, 0.95);
+
 $pageTitle = $pageTitle ?? $_brandSystemName;
+if ($_brandAiName !== 'Tuquinha') {
+    $pageTitle = str_replace('Tuquinha', $_brandAiName, (string)$pageTitle);
+}
+if ($_brandSystemName !== 'Resenha 2.0') {
+    $pageTitle = str_replace('Resenha 2.0', $_brandSystemName, (string)$pageTitle);
+}
 
 $menuIconMap = [];
 try {
@@ -145,7 +184,8 @@ if (!empty($_SESSION['user_id'])) {
             --shadow-card: 0 14px 34px rgba(0,0,0,0.42);
             --shadow-card-strong: 0 18px 44px rgba(0,0,0,0.62);
             --shadow-tile: 0 16px 34px rgba(0,0,0,0.38);
-            --shadow-accent: 0 10px 26px rgba(229,57,53,0.35);
+            --shadow-accent: 0 10px 26px <?= $_aRgba35 ?>;
+            --btn-text: <?= htmlspecialchars($_brandBtnTextColor) ?>;
         }
 
         /* Tema claro (hot / cold) controlado via atributo data-theme="light" no body */
@@ -165,7 +205,8 @@ if (!empty($_SESSION['user_id'])) {
             --shadow-card: 0 10px 24px rgba(15, 23, 42, 0.10);
             --shadow-card-strong: 0 14px 30px rgba(15, 23, 42, 0.16);
             --shadow-tile: 0 10px 20px rgba(15, 23, 42, 0.10);
-            --shadow-accent: 0 10px 22px rgba(229,57,53,0.22);
+            --shadow-accent: 0 10px 22px <?= $_aRgba22 ?>;
+            --btn-text: <?= htmlspecialchars($_brandBtnTextColor) ?>;
         }
         * {
             margin: 0;
@@ -253,9 +294,9 @@ if (!empty($_SESSION['user_id'])) {
         body[data-theme="light"] textarea::placeholder {
             color: rgba(75, 85, 99, 0.8);
         }
-        body[data-theme="light"] #social-chat-messages [style*="linear-gradient(135deg,#e53935,#ff6f60)"],
-        body[data-theme="light"] #social-chat-messages [style*="linear-gradient(135deg, #e53935,#ff6f60)"] {
-            color: #ffffff !important;
+        body[data-theme="light"] #social-chat-messages [style*="linear-gradient(135deg,<?= htmlspecialchars($_brandAccentColor) ?>,<?= htmlspecialchars($_brandAccentSoft) ?>)"],
+        body[data-theme="light"] #social-chat-messages [style*="linear-gradient(135deg, <?= htmlspecialchars($_brandAccentColor) ?>,<?= htmlspecialchars($_brandAccentSoft) ?>)"] {
+            color: var(--btn-text) !important;
         }
 
         .sidebar {
@@ -299,14 +340,14 @@ if (!empty($_SESSION['user_id'])) {
             overflow: hidden;
             flex: 0 0 auto;
             background: #050509;
-            box-shadow: 0 0 18px rgba(229, 57, 53, 0.8);
+            box-shadow: 0 0 18px <?= $_aRgba80 ?>;
         }
         body[data-theme="light"] .brand-logo {
             box-shadow: none;
         }
 
         body[data-theme="light"] #tuq-about-video-card {
-            background: linear-gradient(135deg, rgba(229,57,53,0.10), rgba(255,255,255,0.92)) !important;
+            background: linear-gradient(135deg, <?= $_aRgba10 ?>, rgba(255,255,255,0.92)) !important;
         }
         .brand-text-title {
             font-weight: 700;
@@ -340,19 +381,19 @@ if (!empty($_SESSION['user_id'])) {
             transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
         }
         .sidebar-button.sidebar-button--active {
-            border-color: rgba(229, 57, 53, 0.35);
-            background: rgba(229, 57, 53, 0.12);
-            box-shadow: 0 0 0 1px rgba(229, 57, 53, 0.16);
+            border-color: <?= $_aRgba35 ?>;
+            background: <?= $_aRgba12 ?>;
+            box-shadow: 0 0 0 1px <?= $_aRgba16 ?>;
         }
         body[data-theme="light"] .sidebar-button.sidebar-button--active {
-            border-color: rgba(229, 57, 53, 0.35);
-            background: rgba(229, 57, 53, 0.08);
+            border-color: <?= $_aRgba35 ?>;
+            background: <?= $_aRgba08 ?>;
         }
         .sidebar-button span.icon {
             width: 18px;
             height: 18px;
             border-radius: 999px;
-            background: rgba(229, 57, 53, 0.15);
+            background: <?= $_aRgba15 ?>;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -362,9 +403,9 @@ if (!empty($_SESSION['user_id'])) {
             background: transparent;
         }
         .sidebar-button.primary {
-            background: linear-gradient(135deg, #e53935, #ff6f60);
+            background: linear-gradient(135deg, <?= htmlspecialchars($_brandAccentColor) ?>, <?= htmlspecialchars($_brandAccentSoft) ?>);
             border-color: transparent;
-            color: #050509;
+            color: var(--btn-text);
             font-weight: 600;
         }
         body[data-theme="light"] .sidebar-button {
@@ -373,9 +414,9 @@ if (!empty($_SESSION['user_id'])) {
             color: #111827;
         }
         body[data-theme="light"] .sidebar-button.primary {
-            background: linear-gradient(135deg, #e53935, #ff6f60);
+            background: linear-gradient(135deg, <?= htmlspecialchars($_brandAccentColor) ?>, <?= htmlspecialchars($_brandAccentSoft) ?>);
             border-color: transparent;
-            color: #050509;
+            color: var(--btn-text);
         }
         .sidebar-button:hover {
             background: rgba(255, 255, 255, 0.06);
@@ -411,7 +452,7 @@ if (!empty($_SESSION['user_id'])) {
             margin-left: 260px;
             display: flex;
             flex-direction: column;
-            background: radial-gradient(circle at top, rgba(229, 57, 53, 0.1) 0, var(--bg-main) 50%);
+            background: radial-gradient(circle at top, <?= $_aRgba10 ?> 0, var(--bg-main) 50%);
             min-height: 100vh;
             overflow-x: hidden;
         }
@@ -484,7 +525,7 @@ if (!empty($_SESSION['user_id'])) {
             height: 18px;
             border-radius: 50%;
             overflow: hidden;
-            background: radial-gradient(circle at 30% 20%, #fff 0, #ff8a65 25%, #e53935 65%, #050509 100%);
+            background: radial-gradient(circle at 30% 20%, #fff 0, <?= htmlspecialchars($_brandAccentSoft) ?> 25%, <?= htmlspecialchars($_brandAccentColor) ?> 65%, #050509 100%);
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -727,15 +768,15 @@ if (!empty($_SESSION['user_id'])) {
             }
 
             .mobile-quick-nav a.is-active {
-                border-color: rgba(229,57,53,0.45);
-                background: rgba(229,57,53,0.18);
-                color: #ff6f60;
+                border-color: <?= $_aRgba45 ?>;
+                background: <?= $_aRgba18 ?>;
+                color: <?= htmlspecialchars($_brandAccentSoft) ?>;
             }
 
             body[data-theme="light"] .mobile-quick-nav a.is-active {
-                border-color: rgba(220, 38, 38, 0.35);
-                background: rgba(220, 38, 38, 0.10);
-                color: #b91c1c;
+                border-color: <?= $_aRgba35 ?>;
+                background: <?= $_aRgba10 ?>;
+                color: <?= htmlspecialchars($_brandAccentColor) ?>;
             }
 
             .mobile-quick-nav a.is-primary {

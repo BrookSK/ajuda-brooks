@@ -4,6 +4,7 @@
 /** @var string $systemSubtitle */
 /** @var string $accentColor */
 /** @var string $accentSoftColor */
+/** @var string $btnTextColor */
 /** @var string $logoPath */
 /** @var string $faviconPath */
 /** @var string $newsRssFeeds */
@@ -115,12 +116,28 @@
                     <small style="color:#777; font-size:11px;">Gradientes e highlights suaves.</small>
                 </div>
 
+                <div style="flex:1; min-width:220px;">
+                    <label style="font-size:12px; color:var(--text-secondary); display:block; margin-bottom:6px;">
+                        Cor do texto dos botões
+                    </label>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <input type="color" id="btn_text_picker"
+                               value="<?= htmlspecialchars($btnTextColor ?? '#050509') ?>"
+                               style="width:44px; height:38px; padding:2px 3px; border-radius:8px; border:1px solid var(--border-subtle); background:var(--input-bg); cursor:pointer; flex:0 0 auto;">
+                        <input type="text" name="btn_text_color" id="btn_text_text"
+                               value="<?= htmlspecialchars($btnTextColor ?? '#050509') ?>"
+                               style="flex:1; padding:9px 11px; border-radius:8px; border:1px solid var(--border-subtle); background:var(--input-bg); color:var(--text-primary); font-size:13px;"
+                               placeholder="#050509" maxlength="9">
+                    </div>
+                    <small style="color:#777; font-size:11px;">Texto sobre o gradiente dos botões primários. Use branco (#ffffff) para cores escuras.</small>
+                </div>
+
             </div>
 
             <!-- Preview de cores -->
             <div style="margin-top:14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                 <div style="font-size:12px; color:var(--text-secondary);">Pré-visualização:</div>
-                <div id="color_preview_btn" style="padding:7px 16px; border-radius:999px; font-size:13px; font-weight:600; color:#050509; cursor:default; background:linear-gradient(135deg, <?= htmlspecialchars($accentColor ?? '#e53935') ?>, <?= htmlspecialchars($accentSoftColor ?? '#ff6f60') ?>);">
+                <div id="color_preview_btn" style="padding:7px 16px; border-radius:999px; font-size:13px; font-weight:600; cursor:default; background:linear-gradient(135deg, <?= htmlspecialchars($accentColor ?? '#e53935') ?>, <?= htmlspecialchars($accentSoftColor ?? '#ff6f60') ?>); color:<?= htmlspecialchars($btnTextColor ?? '#050509') ?>;">
                     Botão primário
                 </div>
                 <div id="color_preview_dot" style="width:14px; height:14px; border-radius:50%; background:<?= htmlspecialchars($accentColor ?? '#e53935') ?>;"></div>
@@ -236,52 +253,43 @@
 
 <script>
 (function () {
-    var accentPicker = document.getElementById('accent_picker');
-    var accentText   = document.getElementById('accent_text');
-    var softPicker   = document.getElementById('soft_picker');
-    var softText     = document.getElementById('soft_text');
-    var previewBtn   = document.getElementById('color_preview_btn');
-    var previewDot   = document.getElementById('color_preview_dot');
-    var previewBadge = document.getElementById('color_preview_badge');
+    var accentPicker  = document.getElementById('accent_picker');
+    var accentText    = document.getElementById('accent_text');
+    var softPicker    = document.getElementById('soft_picker');
+    var softText      = document.getElementById('soft_text');
+    var btnTextPicker = document.getElementById('btn_text_picker');
+    var btnTextText   = document.getElementById('btn_text_text');
+    var previewBtn    = document.getElementById('color_preview_btn');
+    var previewDot    = document.getElementById('color_preview_dot');
+    var previewBadge  = document.getElementById('color_preview_badge');
 
     function isValidHex(v) {
         return /^#[0-9a-fA-F]{6}$/.test(v);
     }
 
     function updatePreview() {
-        var a = accentText ? accentText.value.trim() : '#e53935';
-        var s = softText   ? softText.value.trim()   : '#ff6f60';
+        var a = accentText   ? accentText.value.trim()   : '#e53935';
+        var s = softText     ? softText.value.trim()     : '#ff6f60';
+        var t = btnTextText  ? btnTextText.value.trim()  : '#050509';
         if (!isValidHex(a)) a = '#e53935';
         if (!isValidHex(s)) s = '#ff6f60';
-        if (previewBtn)   previewBtn.style.background   = 'linear-gradient(135deg,' + a + ',' + s + ')';
+        if (!isValidHex(t)) t = '#050509';
+        if (previewBtn)   { previewBtn.style.background = 'linear-gradient(135deg,' + a + ',' + s + ')'; previewBtn.style.color = t; }
         if (previewDot)   previewDot.style.background   = a;
         if (previewBadge) { previewBadge.style.borderColor = a; previewBadge.style.color = s; }
     }
 
-    if (accentPicker && accentText) {
-        accentPicker.addEventListener('input', function () {
-            accentText.value = this.value;
-            updatePreview();
-        });
-        accentText.addEventListener('input', function () {
-            if (isValidHex(this.value.trim())) {
-                accentPicker.value = this.value.trim();
-            }
+    function bindPair(picker, text) {
+        if (!picker || !text) return;
+        picker.addEventListener('input', function () { text.value = this.value; updatePreview(); });
+        text.addEventListener('input', function () {
+            if (isValidHex(this.value.trim())) picker.value = this.value.trim();
             updatePreview();
         });
     }
 
-    if (softPicker && softText) {
-        softPicker.addEventListener('input', function () {
-            softText.value = this.value;
-            updatePreview();
-        });
-        softText.addEventListener('input', function () {
-            if (isValidHex(this.value.trim())) {
-                softPicker.value = this.value.trim();
-            }
-            updatePreview();
-        });
-    }
+    bindPair(accentPicker, accentText);
+    bindPair(softPicker, softText);
+    bindPair(btnTextPicker, btnTextText);
 })();
 </script>

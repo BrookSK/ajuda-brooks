@@ -1,8 +1,3 @@
-<div id="test-popup" style="position:fixed; top:20px; right:20px; z-index:9999; background:#14361f; border:2px solid #2ecc71; border-radius:14px; padding:16px 22px; color:#c1ffda; font-size:14px; font-weight:600; box-shadow:0 8px 24px rgba(0,0,0,0.5); display:flex; align-items:center; gap:12px;">
-    <span style="font-size:20px;">✅</span>
-    <span>Layout main.php está sendo carregado corretamente!</span>
-    <button onclick="document.getElementById('test-popup').remove()" style="background:none; border:none; color:#c1ffda; font-size:18px; cursor:pointer; margin-left:8px; line-height:1;">×</button>
-</div>
 <div data-tour="home-root" style="max-width: 880px; margin: 0 auto; padding: 22px 14px 34px 14px;">
     <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap: 12px; margin-bottom: 22px;">
         <div style="display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px; border:1px solid rgba(229,57,53,0.25); background: rgba(229,57,53,0.10); color: var(--accent-soft); font-size: 12px;">
@@ -10,7 +5,7 @@
             <span>Nova versão disponível</span>
         </div>
         <h1 data-tour="home-title" style="font-size: 34px; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em;">
-            Bem-vindo ao <span style="color: var(--accent-soft);">Resenha 2.0</span>
+            Bem-vindo ao <span style="color: var(--accent-soft);"><?= htmlspecialchars($_brandSystemName) ?></span>
         </h1>
         <div style="color: var(--text-secondary); font-size: 14px; line-height: 1.5; max-width: 560px;">
             Seu ecossistema completo para designers que querem ir além<br>
@@ -132,10 +127,10 @@
         <?php foreach ($menuTiles as $tile): ?>
             <?php
                 $hot = !empty($tile['hot']);
-                $bg = $hot ? 'rgba(229,57,53,0.12)' : 'var(--surface-card)';
-                $border = $hot ? 'rgba(229,57,53,0.26)' : 'var(--border-subtle)';
-                $iconBg = $hot ? 'rgba(229,57,53,0.92)' : 'rgba(255,255,255,0.06)';
-                $iconColor = $hot ? '#050509' : 'var(--text-primary)';
+                $bg = $hot ? $_aRgba12 : 'var(--surface-card)';
+                $border = $hot ? $_aRgba35 : 'var(--border-subtle)';
+                $iconBg = $hot ? $_aRgba95 : 'rgba(255,255,255,0.06)';
+                $iconColor = $hot ? htmlspecialchars($_brandBtnTextColor) : 'var(--text-primary)';
                 $labelColor = $hot ? 'var(--accent)' : 'var(--text-primary)';
             ?>
             <a href="<?= htmlspecialchars((string)($tile['href'] ?? '#')) ?>" style="text-decoration:none;">
@@ -182,7 +177,7 @@
     <div data-tour="home-about" style="
         margin: 0 -14px 0 -14px;
         padding: 34px 14px;
-        background: radial-gradient(720px 320px at 50% 0%, rgba(229,57,53,0.10), transparent 55%),
+        background: radial-gradient(720px 320px at 50% 0%, <?= $_aRgba10 ?>, transparent 55%),
             linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
         border-top: 1px solid var(--border-subtle);
         border-bottom: 1px solid var(--border-subtle);
@@ -195,7 +190,7 @@
         ?>
 
         <div style="text-align:center; font-size: 15px; font-weight: 800; margin-bottom: 14px;">
-            Quem é o <span style="color:#ff6f60;">Tuquinha</span>?
+            Quem é o <span style="color: <?= $_brandAccentSoft ?>;"><?= htmlspecialchars($_brandAiName) ?></span>?
         </div>
 
         <div style="max-width: 520px; margin: 0 auto;">
@@ -204,7 +199,7 @@
                 border-radius: 16px;
                 border: 1px solid var(--border-subtle);
                 overflow: hidden;
-                background: linear-gradient(135deg, rgba(229,57,53,0.22), rgba(0,0,0,0.35));
+                background: linear-gradient(135deg, <?= $_aRgba22 ?>, rgba(0,0,0,0.35));
                 min-height: 220px;
                 box-shadow: var(--shadow-card-strong);
                 display:flex;
@@ -218,7 +213,7 @@
                         border-radius: 999px;
                         border: none;
                         cursor: pointer;
-                        background: rgba(229,57,53,0.95);
+                        background: <?= $_aRgba95 ?>;
                         box-shadow: var(--shadow-accent);
                         display:flex;
                         align-items:center;
@@ -232,14 +227,14 @@
             </div>
 
             <div style="margin-top: 10px; font-size: 11px; color: var(--text-secondary);">
-                Conheça a plataforma e o Tuquinha
+                Conheça a plataforma e o <?= htmlspecialchars($_brandAiName) ?>
             </div>
 
             <div style="margin-top: 14px; color: var(--text-secondary); font-size: 13px; line-height: 1.65;">
-                O Tuquinha é seu parceiro de jornada. Ele entende <strong style="color: var(--text-primary);">branding, vendas, gestão, redes sociais</strong> e tudo mais que você precisa para tocar seu negócio.
+                O <?= htmlspecialchars($_brandAiName) ?> é seu parceiro de jornada. Ele entende <strong style="color: var(--text-primary);">branding, vendas, gestão, redes sociais</strong> e tudo mais que você precisa para tocar seu negócio.
                 <br>
                 É como ter uma equipe inteira de especialistas, só que mais gente boa!
-                <span style="display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; background:rgba(229,57,53,0.14); border:1px solid rgba(229,57,53,0.22); color: var(--accent-soft); font-size:11px; margin-top:10px;">
+                <span style="display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; background:<?= $_aRgba15 ?>; border:1px solid <?= $_aRgba22 ?>; color: <?= $_brandAccentSoft ?>; font-size:11px; margin-top:10px;">
                     (e com um bico colorido)
                 </span>
             </div>
@@ -248,7 +243,7 @@
         <div id="tuqAboutModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.72); align-items:center; justify-content:center; padding:18px;">
             <div style="width:100%; max-width:860px; border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.10); background:#050509; box-shadow:0 18px 48px rgba(0,0,0,0.7);">
                 <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; background:#0b0b10; border-bottom:1px solid rgba(255,255,255,0.08);">
-                    <div style="font-size:12px; color:rgba(255,255,255,0.75); font-weight:650;">Quem é o Tuquinha</div>
+                    <div style="font-size:12px; color:rgba(255,255,255,0.75); font-weight:650;">Quem é o <?= htmlspecialchars($_brandAiName) ?></div>
                     <button type="button" id="tuqAboutModalClose" style="border:1px solid rgba(255,255,255,0.12); background:transparent; color:rgba(255,255,255,0.85); border-radius:999px; padding:6px 10px; cursor:pointer; font-size:12px;">Fechar</button>
                 </div>
                 <div style="position:relative; width:100%; padding-top:56.25%; background:#000;">
@@ -256,7 +251,7 @@
                         <?php if ($isDirectVideo): ?>
                             <video id="tuqAboutVideoEl" src="<?= htmlspecialchars($videoUrl) ?>" controls controlsList="nodownload" oncontextmenu="return false;" playsinline style="position:absolute; inset:0; width:100%; height:100%;"></video>
                         <?php else: ?>
-                            <iframe id="tuqAboutIframe" src="" data-src="<?= htmlspecialchars($videoUrl) ?>" title="Vídeo: Quem é o Tuquinha" style="position:absolute; inset:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                            <iframe id="tuqAboutIframe" src="" data-src="<?= htmlspecialchars($videoUrl) ?>" title="Vídeo: Quem é o <?= htmlspecialchars($_brandAiName) ?>" style="position:absolute; inset:0; width:100%; height:100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
                         <?php endif; ?>
                     <?php endif; ?>
                 </div>
@@ -317,8 +312,8 @@
                     padding: 10px 14px;
                     border-radius: 999px;
                     border: none;
-                    background: linear-gradient(135deg, #e53935, #ff6f60);
-                    color: #050509;
+                    background: linear-gradient(135deg, <?= htmlspecialchars($_brandAccentColor) ?>, <?= htmlspecialchars($_brandAccentSoft) ?>);
+                    color: <?= htmlspecialchars($_brandBtnTextColor) ?>;
                     font-weight: 650;
                     font-size: 13px;
                     text-decoration:none;
@@ -331,7 +326,7 @@
             <div data-tour="home-guide-method" style="background: var(--surface-card); border-radius: 14px; padding: 16px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-card);">
                 <div style="font-size: 16px; font-weight: 750; margin-bottom: 6px;">Metodologia</div>
                 <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.6; margin-bottom: 12px;">
-                    Um guia prático com a metodologia do Tuquinha e como aplicar no seu processo.
+                    Um guia prático com a metodologia do <?= htmlspecialchars($_brandAiName) ?> e como aplicar no seu processo.
                 </div>
                 <div style="height: 1px; background: rgba(255,255,255,0.08); margin: 10px 0 12px 0;"></div>
                 <a href="<?= htmlspecialchars($guideHref('/guia/metodologia')) ?>" target="_blank" rel="noopener" style="
@@ -342,8 +337,8 @@
                     padding: 10px 14px;
                     border-radius: 999px;
                     border: none;
-                    background: linear-gradient(135deg, #e53935, #ff6f60);
-                    color: #050509;
+                    background: linear-gradient(135deg, <?= htmlspecialchars($_brandAccentColor) ?>, <?= htmlspecialchars($_brandAccentSoft) ?>);
+                    color: <?= htmlspecialchars($_brandBtnTextColor) ?>;
                     font-weight: 650;
                     font-size: 13px;
                     text-decoration:none;
@@ -359,13 +354,13 @@
     <div id="pwa-install-banner" style="display:none; margin-bottom: 18px;">
         <div style="background:var(--surface-card); border-radius:14px; border:1px solid var(--border-subtle); padding:12px 14px; display:flex; align-items:center; gap:10px;">
             <div style="width:36px; height:36px; border-radius:12px; overflow:hidden; background:var(--surface-subtle); display:flex; align-items:center; justify-content:center;">
-                <img src="/public/favicon.png" alt="Tuquinha" style="width:100%; height:100%; display:block; object-fit:cover;">
+                <img src="<?= htmlspecialchars($_brandLogoPath ?: '/public/favicon.png') ?>" alt="<?= htmlspecialchars($_brandAiName) ?>" style="width:100%; height:100%; display:block; object-fit:cover;">
             </div>
             <div style="flex:1;">
-                <div style="font-size:13px; font-weight:600; margin-bottom:2px;">Leve o Tuquinha pro seu celular</div>
+                <div style="font-size:13px; font-weight:600; margin-bottom:2px;">Leve o <?= htmlspecialchars($_brandAiName) ?> pro seu celular</div>
                 <div style="font-size:12px; color:var(--text-secondary);">Instale o app na tela inicial e volte pro chat em 1 toque.</div>
             </div>
-            <button id="pwa-install-button" type="button" style="border:none; border-radius:999px; padding:8px 12px; font-size:12px; font-weight:600; cursor:pointer; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509;">
+            <button id="pwa-install-button" type="button" style="border:none; border-radius:999px; padding:8px 12px; font-size:12px; font-weight:600; cursor:pointer; background:linear-gradient(135deg,<?= htmlspecialchars($_brandAccentColor) ?>,<?= htmlspecialchars($_brandAccentSoft) ?>); color:<?= htmlspecialchars($_brandBtnTextColor) ?>">
                 Instalar app
             </button>
         </div>
@@ -374,11 +369,11 @@
     <div style="
         margin: 0 -14px;
         padding: 34px 14px;
-        background: radial-gradient(720px 340px at 50% 0%, rgba(229,57,53,0.10), transparent 60%);
+        background: radial-gradient(720px 340px at 50% 0%, <?= $_aRgba10 ?>, transparent 60%);
         border-top: 1px solid rgba(255,255,255,0.06);
     ">
         <div style="text-align:center; font-size: 14px; font-weight: 800; margin-bottom: 8px;">Pronto para começar?</div>
-        <div style="text-align:center; color: var(--text-secondary); font-size: 12px; margin-bottom: 14px;">O Tuquinha está esperando para te ajudar.</div>
+        <div style="text-align:center; color: var(--text-secondary); font-size: 12px; margin-bottom: 14px;">O <?= htmlspecialchars($_brandAiName) ?> está esperando para te ajudar.</div>
 
         <?php
             $homeCtaHref = $menuHref('/chat?new=1');
@@ -394,15 +389,15 @@
                 padding: 10px 18px;
                 border-radius: 999px;
                 border: none;
-                background: linear-gradient(135deg, #e53935, #ff6f60);
-                color: #050509;
+                background: linear-gradient(135deg, <?= htmlspecialchars($_brandAccentColor) ?>, <?= htmlspecialchars($_brandAccentSoft) ?>);
+                color: <?= htmlspecialchars($_brandBtnTextColor) ?>;
                 font-weight: 650;
                 font-size: 13px;
                 cursor: pointer;
-                box-shadow: 0 10px 26px rgba(229, 57, 53, 0.35);
+                box-shadow: var(--shadow-accent);
                 text-decoration: none;
             ">
-                <span>Começar um papo com o Tuquinha</span>
+                <span>Começar um papo com o <?= htmlspecialchars($_brandAiName) ?></span>
             </a>
         </div>
     </div>

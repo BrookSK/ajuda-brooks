@@ -1,3 +1,8 @@
+<div id="test-popup" style="position:fixed; top:20px; right:20px; z-index:9999; background:#14361f; border:2px solid #2ecc71; border-radius:14px; padding:16px 22px; color:#c1ffda; font-size:14px; font-weight:600; box-shadow:0 8px 24px rgba(0,0,0,0.5); display:flex; align-items:center; gap:12px;">
+    <span style="font-size:20px;">✅</span>
+    <span>Layout main.php está sendo carregado corretamente!</span>
+    <button onclick="document.getElementById('test-popup').remove()" style="background:none; border:none; color:#c1ffda; font-size:18px; cursor:pointer; margin-left:8px; line-height:1;">×</button>
+</div>
 <div data-tour="home-root" style="max-width: 880px; margin: 0 auto; padding: 22px 14px 34px 14px;">
     <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap: 12px; margin-bottom: 22px;">
         <div style="display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px; border:1px solid rgba(229,57,53,0.25); background: rgba(229,57,53,0.10); color: var(--accent-soft); font-size: 12px;">

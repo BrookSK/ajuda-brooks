@@ -23,13 +23,19 @@ try {
     }
 } catch (\Throwable $_brandErr) {}
 
-// Cor de texto nos botões primários
+// Cor de texto e estilo dos botões primários
 $_brandBtnTextColor = '#050509';
+$_brandBtnStyle     = 'gradient';
 try {
     if (class_exists('App\\Models\\Setting')) {
         $_brandBtnTextColor = (string)(\App\Models\Setting::get('brand_btn_text_color', '#050509') ?: '#050509');
+        $_brandBtnStyle     = (string)(\App\Models\Setting::get('brand_btn_style', 'gradient') ?: 'gradient');
     }
 } catch (\Throwable $_e) {}
+// Fundo do botão primário: gradiente ou sólido
+$_btnBg = $_brandBtnStyle === 'solid'
+    ? htmlspecialchars($_brandAccentColor)
+    : 'linear-gradient(135deg,' . htmlspecialchars($_brandAccentColor) . ',' . htmlspecialchars($_brandAccentSoft) . ')';
 
 // Helper: hex → rgba(r,g,b,alpha)
 if (!function_exists('_tuqRgba')) {
@@ -364,6 +370,40 @@ if (!empty($_SESSION['user_id'])) {
             letter-spacing: 0.12em;
             color: var(--text-secondary);
             margin-bottom: 6px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            padding: 2px 2px 2px 0;
+            border-radius: 4px;
+            transition: color 0.15s;
+        }
+        .sidebar-section-title:hover {
+            color: var(--text-primary);
+        }
+        .sidebar-section-title::after {
+            content: '\25BE';
+            font-size: 10px;
+            opacity: 0.6;
+            transition: transform 0.2s ease;
+            display: inline-block;
+            transform: rotate(0deg);
+            flex-shrink: 0;
+        }
+        .sidebar-section-title--collapsed::after {
+            transform: rotate(-90deg);
+        }
+        .sidebar-section-collapse {
+            overflow: hidden;
+            transition: max-height 0.22s ease, opacity 0.18s ease;
+            max-height: 2000px;
+            opacity: 1;
+        }
+        .sidebar-section-collapse--hidden {
+            max-height: 0 !important;
+            opacity: 0;
+            pointer-events: none;
         }
 
         .sidebar-button {
@@ -403,7 +443,7 @@ if (!empty($_SESSION['user_id'])) {
             background: transparent;
         }
         .sidebar-button.primary {
-            background: linear-gradient(135deg, <?= htmlspecialchars($_brandAccentColor) ?>, <?= htmlspecialchars($_brandAccentSoft) ?>);
+            background: <?= $_btnBg ?>;
             border-color: transparent;
             color: var(--btn-text);
             font-weight: 600;
@@ -414,7 +454,7 @@ if (!empty($_SESSION['user_id'])) {
             color: #111827;
         }
         body[data-theme="light"] .sidebar-button.primary {
-            background: linear-gradient(135deg, <?= htmlspecialchars($_brandAccentColor) ?>, <?= htmlspecialchars($_brandAccentSoft) ?>);
+            background: <?= $_btnBg ?>;
             border-color: transparent;
             color: var(--btn-text);
         }
@@ -1219,7 +1259,7 @@ if (!empty($_SESSION['user_id'])) {
         </div>
         <div class="sidebar-footer">
             <div class="sidebar-badge">
-                <span>Branding Vivo</span>
+                <span><?= htmlspecialchars($_brandSubtitle) ?></span>
             </div>
             <div>Mentor IA focado em designers de marca. Educação primeiro, execução depois.</div>
             <div style="margin-top: 8px; font-size: 10px; color: var(--text-secondary);">
@@ -1557,5 +1597,89 @@ if (!empty($_SESSION['user_id'])) {
         $tuqTourJsV = is_file($tuqTourJsPath) ? (string)filemtime($tuqTourJsPath) : (string)time();
     ?>
     <script src="/public/tuquinha-tour.js?v=<?= htmlspecialchars($tuqTourJsV) ?>"></script>
+    <script>
+    (function(){
+        var titles = document.querySelectorAll('.sidebar-section-title');
+        if (!titles.length) return;
+        titles.forEach(function(title) {
+            var key = 'sidebar_sec_' + (title.textContent || '').trim().replace(/\s+/g,'_');
+            // collect siblings until next section title
+            var items = [];
+            var el = title.nextElementSibling;
+            while (el && !el.classList.contains('sidebar-section-title')) {
+                items.push(el);
+                el = el.nextElementSibling;
+            }
+            if (!items.length) return;
+            // wrap items in a collapse container (inserted after title, items moved inside)
+            var wrap = document.createElement('div');
+            wrap.className = 'sidebar-section-collapse';
+            var parent = title.parentNode;
+            parent.insertBefore(wrap, items[0]);
+            items.forEach(function(item) { wrap.appendChild(item); });
+            // restore or apply saved state
+            var saved = localStorage.getItem(key);
+            // auto-expand if any child is the active page
+            var hasActive = wrap.querySelector('.sidebar-button--active');
+            var isOpen = saved === null ? true : saved === '1';
+            if (hasActive) isOpen = true;
+            function applyState(open, animate) {
+                if (open) {
+                    wrap.classList.remove('sidebar-section-collapse--hidden');
+                    title.classList.remove('sidebar-section-title--collapsed');
+                } else {
+                    if (!animate) wrap.style.transition = 'none';
+                    wrap.classList.add('sidebar-section-collapse--hidden');
+                    title.classList.add('sidebar-section-title--collapsed');
+                    if (!animate) { void wrap.offsetHeight; wrap.style.transition = ''; }
+                }
+            }
+            applyState(isOpen, false);
+            title.addEventListener('click', function() {
+                var open = !wrap.classList.contains('sidebar-section-collapse--hidden');
+                applyState(!open, true);
+                localStorage.setItem(key, open ? '0' : '1');
+            });
+        });
+    })();
+    </script>
+    <?php if ($_brandAccentColor !== '#e53935' || $_brandAccentSoft !== '#ff6f60'): ?>
+    <script>
+    (function(){
+        var A='<?= addslashes($_brandAccentColor) ?>';
+        var S='<?= addslashes($_brandAccentSoft) ?>';
+        var T='<?= addslashes($_brandBtnTextColor) ?>';
+        var BG='<?= addslashes($_btnBg) ?>';
+        function hexRgb(h){h=h.replace('#','');if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];return[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
+        var ar=hexRgb(A),sr=hexRgb(S);
+        var rA=/rgba?\(229,\s*57,\s*53(?:,\s*([0-9.]+))?\)/gi;
+        var rS=/rgba?\(255,\s*111,\s*96(?:,\s*([0-9.]+))?\)/gi;
+        document.querySelectorAll('[style]').forEach(function(el){
+            var s=el.getAttribute('style');
+            if(!s)return;
+            // gradient
+            s=s.replace(/linear-gradient\(135deg,\s*#e5(?:39|09)(?:35|14),\s*#ff6f60\)/gi,BG);
+            s=s.replace(/linear-gradient\(135deg,\s*#e53935,\s*#ff6f60\)/gi,BG);
+            // solid bg
+            s=s.replace(/(background(?:-color)?\s*:\s*)#e53935/gi,'$1'+A);
+            s=s.replace(/(background(?:-color)?\s*:\s*)#e50914/gi,'$1'+A);
+            // color links
+            s=s.replace(/((?:^|;)\s*color\s*:\s*)#ff6f60/gi,'$1'+S);
+            s=s.replace(/((?:^|;)\s*color\s*:\s*)#e53935/gi,'$1'+A);
+            // border
+            s=s.replace(/(border(?:-color)?\s*:[^;]*?)#e53935/gi,function(m,p){return p+A;});
+            s=s.replace(/(border(?:-color)?\s*:[^;]*?)#ff6f60/gi,function(m,p){return p+S;});
+            // soft bg
+            s=s.replace(/(background(?:-color)?\s*:\s*)#ff6f60/gi,'$1'+S);
+            // rgba accent
+            s=s.replace(/rgba\(229,\s*57,\s*53,\s*([0-9.]+)\)/gi,function(m,a){return 'rgba('+ar[0]+','+ar[1]+','+ar[2]+','+a+')';});
+            s=s.replace(/rgba\(229,\s*57,\s*53\)/gi,'rgba('+ar[0]+','+ar[1]+','+ar[2]+',1)');
+            // rgba soft
+            s=s.replace(/rgba\(255,\s*111,\s*96,\s*([0-9.]+)\)/gi,function(m,a){return 'rgba('+sr[0]+','+sr[1]+','+sr[2]+','+a+')';});
+            el.setAttribute('style',s);
+        });
+    })();
+    </script>
+    <?php endif; ?>
 </body>
 </html>

@@ -5,6 +5,7 @@
 /** @var string $accentColor */
 /** @var string $accentSoftColor */
 /** @var string $btnTextColor */
+/** @var string $btnStyle */
 /** @var string $logoPath */
 /** @var string $faviconPath */
 /** @var string $newsRssFeeds */
@@ -129,7 +130,32 @@
                                style="flex:1; padding:9px 11px; border-radius:8px; border:1px solid var(--border-subtle); background:var(--input-bg); color:var(--text-primary); font-size:13px;"
                                placeholder="#050509" maxlength="9">
                     </div>
-                    <small style="color:#777; font-size:11px;">Texto sobre o gradiente dos botões primários. Use branco (#ffffff) para cores escuras.</small>
+                    <small style="color:#777; font-size:11px;">Texto sobre o fundo dos botões primários. Use branco (#ffffff) para cores escuras.</small>
+                </div>
+
+                <div style="flex:1 1 100%; margin-top:4px;">
+                    <label style="font-size:12px; color:var(--text-secondary); display:block; margin-bottom:8px;">
+                        Estilo do fundo dos botões
+                    </label>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        <label id="btn_style_label_gradient" style="display:flex; align-items:center; gap:8px; padding:10px 16px; border-radius:10px; border:2px solid <?= ($btnStyle ?? 'gradient') === 'gradient' ? 'var(--accent)' : 'var(--border-subtle)' ?>; background:<?= ($btnStyle ?? 'gradient') === 'gradient' ? 'var(--surface-card)' : 'transparent' ?>; cursor:pointer; transition:border-color .15s;">
+                            <input type="radio" name="btn_style" id="btn_style_gradient" value="gradient"
+                                   <?= ($btnStyle ?? 'gradient') === 'gradient' ? 'checked' : '' ?>
+                                   style="accent-color:var(--accent);">
+                            <span style="font-size:13px; font-weight:600;">Gradiente</span>
+                            <span style="display:inline-block; width:60px; height:22px; border-radius:999px; background:linear-gradient(135deg,<?= htmlspecialchars($accentColor ?? '#e53935') ?>,<?= htmlspecialchars($accentSoftColor ?? '#ff6f60') ?>);"></span>
+                        </label>
+                        <label id="btn_style_label_solid" style="display:flex; align-items:center; gap:8px; padding:10px 16px; border-radius:10px; border:2px solid <?= ($btnStyle ?? 'gradient') === 'solid' ? 'var(--accent)' : 'var(--border-subtle)' ?>; background:<?= ($btnStyle ?? 'gradient') === 'solid' ? 'var(--surface-card)' : 'transparent' ?>; cursor:pointer; transition:border-color .15s;">
+                            <input type="radio" name="btn_style" id="btn_style_solid" value="solid"
+                                   <?= ($btnStyle ?? 'gradient') === 'solid' ? 'checked' : '' ?>
+                                   style="accent-color:var(--accent);">
+                            <span style="font-size:13px; font-weight:600;">Sólido</span>
+                            <span id="btn_style_solid_preview" style="display:inline-block; width:60px; height:22px; border-radius:999px; background:<?= htmlspecialchars($accentColor ?? '#e53935') ?>;"></span>
+                        </label>
+                    </div>
+                    <small style="color:#777; font-size:11px; margin-top:4px; display:block;">
+                        No modo <strong>Gradiente</strong> as duas cores são usadas. No modo <strong>Sólido</strong> apenas a cor primária é usada.
+                    </small>
                 </div>
 
             </div>
@@ -267,6 +293,16 @@
         return /^#[0-9a-fA-F]{6}$/.test(v);
     }
 
+    var styleGradientRadio  = document.getElementById('btn_style_gradient');
+    var styleSolidRadio     = document.getElementById('btn_style_solid');
+    var styleLabelGradient  = document.getElementById('btn_style_label_gradient');
+    var styleLabelSolid     = document.getElementById('btn_style_label_solid');
+    var solidSwatch         = document.getElementById('btn_style_solid_preview');
+
+    function isGradient() {
+        return !styleSolidRadio || !styleSolidRadio.checked;
+    }
+
     function updatePreview() {
         var a = accentText   ? accentText.value.trim()   : '#e53935';
         var s = softText     ? softText.value.trim()     : '#ff6f60';
@@ -274,9 +310,25 @@
         if (!isValidHex(a)) a = '#e53935';
         if (!isValidHex(s)) s = '#ff6f60';
         if (!isValidHex(t)) t = '#050509';
-        if (previewBtn)   { previewBtn.style.background = 'linear-gradient(135deg,' + a + ',' + s + ')'; previewBtn.style.color = t; }
+
+        var bg = isGradient() ? 'linear-gradient(135deg,' + a + ',' + s + ')' : a;
+
+        if (previewBtn)   { previewBtn.style.background = bg; previewBtn.style.color = t; }
         if (previewDot)   previewDot.style.background   = a;
         if (previewBadge) { previewBadge.style.borderColor = a; previewBadge.style.color = s; }
+        if (solidSwatch)  solidSwatch.style.background  = a;
+
+        var accent = 'var(--accent)';
+        var border = 'var(--border-subtle)';
+        var card   = 'var(--surface-card)';
+        if (styleLabelGradient) {
+            styleLabelGradient.style.borderColor = isGradient() ? accent : border;
+            styleLabelGradient.style.background  = isGradient() ? card   : 'transparent';
+        }
+        if (styleLabelSolid) {
+            styleLabelSolid.style.borderColor = !isGradient() ? accent : border;
+            styleLabelSolid.style.background  = !isGradient() ? card   : 'transparent';
+        }
     }
 
     function bindPair(picker, text) {
@@ -291,5 +343,8 @@
     bindPair(accentPicker, accentText);
     bindPair(softPicker, softText);
     bindPair(btnTextPicker, btnTextText);
+
+    if (styleGradientRadio) styleGradientRadio.addEventListener('change', updatePreview);
+    if (styleSolidRadio)    styleSolidRadio.addEventListener('change', updatePreview);
 })();
 </script>

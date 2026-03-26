@@ -22,14 +22,14 @@
             <label style="font-size:13px; color:#ddd; display:block; margin-bottom:4px;">Código de verificação</label>
             <input type="text" name="code" maxlength="6" required style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #272727; background:#050509; color:#f5f5f5; font-size:16px; letter-spacing: 0.3em; text-align:center;">
         </div>
-        <button type="submit" style="margin-top:6px; width:100%; border:none; border-radius:999px; padding:9px 14px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-weight:600; cursor:pointer;">
+        <button type="submit" style="margin-top:6px; width:100%; border:none; border-radius:999px; padding:9px 14px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-weight:600; cursor:pointer;">
             Confirmar e-mail
         </button>
     </form>
 
     <form action="/verificar-email/reenviar" method="post" style="margin-top:10px; font-size:13px; color:#b0b0b0;">
         <input type="hidden" name="email" value="<?= htmlspecialchars($email) ?>">
-        <button type="submit" style="border:none; background:none; padding:0; color:#ff6f60; cursor:pointer; text-decoration:underline; font-size:13px;">
+        <button type="submit" style="border:none; background:none; padding:0; color:<?= htmlspecialchars($_brandAccentSoft) ?>; cursor:pointer; text-decoration:underline; font-size:13px;">
             Reenviar código
         </button>
     </form>

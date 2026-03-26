@@ -312,7 +312,7 @@
                     padding: 10px 14px;
                     border-radius: 999px;
                     border: none;
-                    background: linear-gradient(135deg, <?= htmlspecialchars($_brandAccentColor) ?>, <?= htmlspecialchars($_brandAccentSoft) ?>);
+                    background: <?= $_btnBg ?>;
                     color: <?= htmlspecialchars($_brandBtnTextColor) ?>;
                     font-weight: 650;
                     font-size: 13px;
@@ -337,7 +337,7 @@
                     padding: 10px 14px;
                     border-radius: 999px;
                     border: none;
-                    background: linear-gradient(135deg, <?= htmlspecialchars($_brandAccentColor) ?>, <?= htmlspecialchars($_brandAccentSoft) ?>);
+                    background: <?= $_btnBg ?>;
                     color: <?= htmlspecialchars($_brandBtnTextColor) ?>;
                     font-weight: 650;
                     font-size: 13px;
@@ -360,7 +360,7 @@
                 <div style="font-size:13px; font-weight:600; margin-bottom:2px;">Leve o <?= htmlspecialchars($_brandAiName) ?> pro seu celular</div>
                 <div style="font-size:12px; color:var(--text-secondary);">Instale o app na tela inicial e volte pro chat em 1 toque.</div>
             </div>
-            <button id="pwa-install-button" type="button" style="border:none; border-radius:999px; padding:8px 12px; font-size:12px; font-weight:600; cursor:pointer; background:linear-gradient(135deg,<?= htmlspecialchars($_brandAccentColor) ?>,<?= htmlspecialchars($_brandAccentSoft) ?>); color:<?= htmlspecialchars($_brandBtnTextColor) ?>">
+            <button id="pwa-install-button" type="button" style="border:none; border-radius:999px; padding:8px 12px; font-size:12px; font-weight:600; cursor:pointer; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>">
                 Instalar app
             </button>
         </div>
@@ -389,7 +389,7 @@
                 padding: 10px 18px;
                 border-radius: 999px;
                 border: none;
-                background: linear-gradient(135deg, <?= htmlspecialchars($_brandAccentColor) ?>, <?= htmlspecialchars($_brandAccentSoft) ?>);
+                background: <?= $_btnBg ?>;
                 color: <?= htmlspecialchars($_brandBtnTextColor) ?>;
                 font-weight: 650;
                 font-size: 13px;

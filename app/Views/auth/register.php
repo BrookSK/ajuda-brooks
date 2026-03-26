@@ -5,7 +5,7 @@
         <div style="text-align:center; margin-bottom: 14px;">
             <div style="font-size: 18px; font-weight: 800;">Criar conta</div>
             <div style="color: rgba(255,255,255,0.60); font-size: 12px; margin-top: 6px; line-height: 1.45;">
-                Crie sua conta para assinar um plano e acessar o Resenha 2.0.
+                Crie sua conta para assinar um plano e acessar o <?= htmlspecialchars($_brandSystemName) ?>.
             </div>
         </div>
 
@@ -52,14 +52,14 @@
                 </div>
             </div>
 
-            <button type="submit" style="margin-top:4px; width:100%; border:none; border-radius:10px; padding:10px 14px; background:#e50914; color:#fff; font-weight:800; cursor:pointer;">
+            <button type="submit" style="margin-top:4px; width:100%; border:none; border-radius:10px; padding:10px 14px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-weight:800; cursor:pointer;">
                 Criar conta
             </button>
         </form>
 
         <div style="margin-top:12px; font-size:12px; color: rgba(255,255,255,0.60); text-align:center;">
             Já tem conta?
-            <a href="/login" style="color:#ff6f60; text-decoration:none; font-weight:800;">Entrar</a>
+            <a href="/login" style="color:<?= htmlspecialchars($_brandAccentSoft) ?>; text-decoration:none; font-weight:800;">Entrar</a>
         </div>
     </div>
 </div>

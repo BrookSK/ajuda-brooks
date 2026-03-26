@@ -5,7 +5,7 @@
         <div style="text-align:center; margin-bottom: 14px;">
             <div style="font-size: 18px; font-weight: 800;">Entrar na sua conta</div>
             <div style="color: rgba(255,255,255,0.60); font-size: 12px; margin-top: 6px; line-height: 1.45;">
-                Acesse para gerenciar seus planos e acessar o Resenha 2.0.
+                Acesse para gerenciar seus planos e acessar o <?= htmlspecialchars($_brandSystemName) ?>.
             </div>
         </div>
 
@@ -31,10 +31,10 @@
             </div>
 
             <div style="margin-top: 2px;">
-                <a href="/senha/esqueci" style="color:#ff6f60; text-decoration:none; font-size:12px; font-weight:700;">Esqueci minha senha</a>
+                <a href="/senha/esqueci" style="color:<?= htmlspecialchars($_brandAccentSoft) ?>; text-decoration:none; font-size:12px; font-weight:700;">Esqueci minha senha</a>
             </div>
 
-            <button type="submit" style="margin-top:4px; width:100%; border:none; border-radius:10px; padding:10px 14px; background:#e50914; color:#fff; font-weight:800; cursor:pointer;">
+            <button type="submit" style="margin-top:4px; width:100%; border:none; border-radius:10px; padding:10px 14px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-weight:800; cursor:pointer;">
                 Entrar
             </button>
         </form>
@@ -42,13 +42,13 @@
         <?php if (!empty($showVerifyLink)): ?>
             <div style="margin-top:10px; font-size:12px; color: rgba(255,255,255,0.60); text-align:center;">
                 Já recebeu o código de verificação?
-                <a href="/verificar-email" style="color:#ff6f60; text-decoration:none; font-weight:700;">Digitar código</a>
+                <a href="/verificar-email" style="color:<?= htmlspecialchars($_brandAccentSoft) ?>; text-decoration:none; font-weight:700;">Digitar código</a>
             </div>
         <?php endif; ?>
 
         <div style="margin-top:12px; font-size:12px; color: rgba(255,255,255,0.60); text-align:center;">
             Ainda não tem conta?
-            <a href="/registrar" style="color:#ff6f60; text-decoration:none; font-weight:800;">Criar conta</a>
+            <a href="/registrar" style="color:<?= htmlspecialchars($_brandAccentSoft) ?>; text-decoration:none; font-weight:800;">Criar conta</a>
         </div>
     </div>
 </div>

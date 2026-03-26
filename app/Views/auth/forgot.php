@@ -22,12 +22,12 @@
             <label style="font-size:13px; color:#ddd; display:block; margin-bottom:4px;">E-mail</label>
             <input type="email" name="email" required style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #272727; background:#050509; color:#f5f5f5; font-size:14px;">
         </div>
-        <button type="submit" style="margin-top:6px; width:100%; border:none; border-radius:999px; padding:9px 14px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-weight:600; cursor:pointer;">
+        <button type="submit" style="margin-top:6px; width:100%; border:none; border-radius:999px; padding:9px 14px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-weight:600; cursor:pointer;">
             Enviar link de redefinição
         </button>
     </form>
 
     <div style="margin-top:10px; font-size:13px; color:#b0b0b0;">
-        Lembrou da senha? <a href="/login" style="color:#ff6f60; text-decoration:none;">Voltar para login</a>
+        Lembrou da senha? <a href="/login" style="color:<?= htmlspecialchars($_brandAccentSoft) ?>; text-decoration:none;">Voltar para login</a>
     </div>
 </div>

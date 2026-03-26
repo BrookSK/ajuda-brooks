@@ -28,7 +28,7 @@ $moderatorsEmails = (string)($old['moderators_emails'] ?? '');
                 <h1 style="font-size:18px; margin-bottom:2px; color:var(--text-primary);">Criar nova comunidade</h1>
                 <p style="font-size:12px; color:var(--text-secondary); margin:0;">Monte um espaço para pessoas com os mesmos interesses, no estilo Orkut.</p>
             </div>
-            <a href="/comunidades" style="font-size:12px; color:#ff6f60; text-decoration:none;">Voltar para lista</a>
+            <a href="/comunidades" style="font-size:12px; color:var(--accent-soft); text-decoration:none;">Voltar para lista</a>
         </div>
 
         <form action="/comunidades/criar" method="post" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:10px; font-size:13px; color:var(--text-primary);">
@@ -84,33 +84,33 @@ $moderatorsEmails = (string)($old['moderators_emails'] ?? '');
                 <div style="flex:1 1 200px; min-width:0;">
                     <div style="font-size:12px; color:var(--text-secondary); margin-bottom:3px;">Tipo de comunidade</div>
                     <label style="font-size:12px; display:flex; align-items:center; gap:4px; color:var(--text-secondary); margin-bottom:2px;">
-                        <input type="radio" name="community_type" value="public" <?= $communityType !== 'private' ? 'checked' : '' ?> style="accent-color:#e53935;">
+                        <input type="radio" name="community_type" value="public" <?= $communityType !== 'private' ? 'checked' : '' ?> style="accent-color:<?= htmlspecialchars($_brandAccentColor) ?>;">
                         <span>Pública (qualquer um pode solicitar participar)</span>
                     </label>
                     <label style="font-size:12px; display:flex; align-items:center; gap:4px; color:var(--text-secondary);">
-                        <input type="radio" name="community_type" value="private" <?= $communityType === 'private' ? 'checked' : '' ?> style="accent-color:#e53935;">
+                        <input type="radio" name="community_type" value="private" <?= $communityType === 'private' ? 'checked' : '' ?> style="accent-color:<?= htmlspecialchars($_brandAccentColor) ?>;">
                         <span>Privada (apenas com convite)</span>
                     </label>
                 </div>
                 <div style="flex:1 1 220px; min-width:0;">
                     <div style="font-size:12px; color:var(--text-secondary); margin-bottom:3px;">Privacidade do conteúdo</div>
                     <label style="font-size:12px; display:flex; align-items:center; gap:4px; color:var(--text-secondary); margin-bottom:2px;">
-                        <input type="radio" name="posting_policy" value="any_member" <?= $postingPolicy !== 'owner_moderators' ? 'checked' : '' ?> style="accent-color:#e53935;">
+                        <input type="radio" name="posting_policy" value="any_member" <?= $postingPolicy !== 'owner_moderators' ? 'checked' : '' ?> style="accent-color:<?= htmlspecialchars($_brandAccentColor) ?>;">
                         <span>Qualquer membro pode postar</span>
                     </label>
                     <label style="font-size:12px; display:flex; align-items:center; gap:4px; color:var(--text-secondary);">
-                        <input type="radio" name="posting_policy" value="owner_moderators" <?= $postingPolicy === 'owner_moderators' ? 'checked' : '' ?> style="accent-color:#e53935;">
+                        <input type="radio" name="posting_policy" value="owner_moderators" <?= $postingPolicy === 'owner_moderators' ? 'checked' : '' ?> style="accent-color:<?= htmlspecialchars($_brandAccentColor) ?>;">
                         <span>Apenas dono e moderadores postam</span>
                     </label>
                 </div>
                 <div style="flex:1 1 200px; min-width:0;">
                     <div style="font-size:12px; color:var(--text-secondary); margin-bottom:3px;">Fórum</div>
                     <label style="font-size:12px; display:flex; align-items:center; gap:4px; color:var(--text-secondary); margin-bottom:2px;">
-                        <input type="radio" name="forum_type" value="non_anonymous" <?= $forumType !== 'anonymous' ? 'checked' : '' ?> style="accent-color:#e53935;">
+                        <input type="radio" name="forum_type" value="non_anonymous" <?= $forumType !== 'anonymous' ? 'checked' : '' ?> style="accent-color:<?= htmlspecialchars($_brandAccentColor) ?>;">
                         <span>Não-anônimo (mostra o nome)</span>
                     </label>
                     <label style="font-size:12px; display:flex; align-items:center; gap:4px; color:var(--text-secondary);">
-                        <input type="radio" name="forum_type" value="anonymous" <?= $forumType === 'anonymous' ? 'checked' : '' ?> style="accent-color:#e53935;">
+                        <input type="radio" name="forum_type" value="anonymous" <?= $forumType === 'anonymous' ? 'checked' : '' ?> style="accent-color:<?= htmlspecialchars($_brandAccentColor) ?>;">
                         <span>Anônimo (apenas para membros)</span>
                     </label>
                 </div>
@@ -124,7 +124,7 @@ $moderatorsEmails = (string)($old['moderators_emails'] ?? '');
 
             <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
                 <a href="/comunidades" style="font-size:12px; color:var(--text-secondary); text-decoration:none; padding:5px 10px; border-radius:999px; border:1px solid var(--border-subtle); background:var(--surface-subtle);">Cancelar</a>
-                <button type="submit" style="border:none; border-radius:999px; padding:6px 12px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-size:12px; font-weight:600; cursor:pointer;">Criar comunidade</button>
+                <button type="submit" style="border:none; border-radius:999px; padding:6px 12px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:12px; font-weight:600; cursor:pointer;">Criar comunidade</button>
             </div>
         </form>
     </section>

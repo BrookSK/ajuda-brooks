@@ -60,7 +60,7 @@ if (!function_exists('community_format_body')) {
             }
             $first = $part[0];
             if ($first === '@') {
-                $out .= '<span style="color:#ff6f60; font-weight:600;">' . htmlspecialchars($part, ENT_QUOTES, 'UTF-8') . '</span>';
+                $out .= '<span style="color:var(--accent-soft); font-weight:600;">' . htmlspecialchars($part, ENT_QUOTES, 'UTF-8') . '</span>';
             } elseif ($first === '#') {
                 $tagParam = urlencode($part);
                 $out .= '<a href="/comunidade?tag=' . $tagParam . '" style="color:#90caf9; font-weight:600; text-decoration:none;">' . htmlspecialchars($part, ENT_QUOTES, 'UTF-8') . '</a>';
@@ -82,7 +82,7 @@ if (!function_exists('community_format_body')) {
                         $name = trim((string)($user['preferred_name'] ?? $user['name'] ?? 'Usuário'));
                         $initial = mb_strtoupper(mb_substr($name, 0, 1));
                     ?>
-                    <div style="width:56px; height:56px; border-radius:50%; background:radial-gradient(circle at 30% 20%, #fff 0, #ffb74d 30%, #e53935 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:24px; color:#050509; box-shadow:0 0 18px rgba(229,57,53,0.7);">
+                    <div style="width:56px; height:56px; border-radius:50%; background:radial-gradient(circle at 30% 20%, #fff 0, <?= htmlspecialchars($_brandAccentSoft) ?> 30%, <?= htmlspecialchars($_brandAccentColor) ?> 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:24px; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; box-shadow:0 0 18px <?= _tuqRgba($_brandAccentColor, 0.7) ?>;">
                         <?= htmlspecialchars($initial) ?>
                     </div>
                     <div style="min-width:0;">
@@ -131,10 +131,10 @@ if (!function_exists('community_format_body')) {
                         ?>
                         <a href="/comunidade?tab=<?= urlencode($tabKey) ?>" style="
                             display:flex; align-items:center; gap:6px; padding:6px 8px; border-radius:999px;
-                            text-decoration:none; border:1px solid <?= $isActive ? '#ff6f60' : 'transparent' ?>;
+                            text-decoration:none; border:1px solid <?= $isActive ? htmlspecialchars($_brandAccentSoft) : 'transparent' ?>;
                             background:<?= $isActive ? '#111118' : 'transparent' ?>;
-                            color:<?= $isActive ? '#ffcc80' : '#f5f5f5' ?>;">
-                            <span style="width:8px; height:8px; border-radius:50%; border:2px solid #7cb342; background:<?= $isActive ? '#7cb342' : 'transparent' ?>;"></span>
+                            color:<?= $isActive ? htmlspecialchars($_brandAccentSoft) : '#f5f5f5' ?>;">
+                            <span style="width:8px; height:8px; border-radius:50%; border:2px solid <?= htmlspecialchars($_brandAccentSoft) ?>; background:<?= $isActive ? htmlspecialchars($_brandAccentSoft) : 'transparent' ?>;"></span>
                             <span><?= htmlspecialchars($tabLabel) ?></span>
                         </a>
                     <?php endforeach; ?>
@@ -197,7 +197,7 @@ if (!function_exists('community_format_body')) {
                         </div>
                     </div>
                     <div style="margin-top:10px; font-size:11px; color:#8d8d8d;">
-                        Quer editar esses dados? Vá em <a href="/conta" style="color:#ff6f60; text-decoration:none;">Minha conta</a>.
+                        Quer editar esses dados? Vá em <a href="/conta" style="color:var(--accent-soft); text-decoration:none;">Minha conta</a>.
                     </div>
                 </div>
             <?php elseif ($activeTab === 'amigos'): ?>
@@ -302,7 +302,7 @@ if (!function_exists('community_format_body')) {
                                 <div style="display:flex; justify-content:flex-end; margin-top:4px;">
                                     <button type="submit" style="
                                         border:none; border-radius:999px; padding:7px 14px;
-                                        background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509;
+                                        background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>;
                                         font-weight:600; font-size:12px; cursor:pointer;">
                                         Publicar scrap
                                     </button>
@@ -319,7 +319,7 @@ if (!function_exists('community_format_body')) {
                 <?php elseif ($usingTagFilter && !empty($tag)): ?>
                     <div style="margin-bottom:8px; font-size:12px; color:#b0b0b0;">
                         Filtrando por hashtag <strong>#<?= htmlspecialchars($tag, ENT_QUOTES, 'UTF-8') ?></strong>.
-                        <a href="/comunidade" style="color:#ff6f60; text-decoration:none; margin-left:4px;">Limpar filtro</a>
+                        <a href="/comunidade" style="color:var(--accent-soft); text-decoration:none; margin-left:4px;">Limpar filtro</a>
                     </div>
                 <?php endif; ?>
 
@@ -438,7 +438,7 @@ if (!function_exists('community_format_body')) {
                                         <a href="/comunidade#post-<?= $postId ?>" style="color:#b0b0b0; text-decoration:none;">Cancelar</a>
                                         <button type="submit" style="
                                             border:none; border-radius:999px; padding:5px 12px;
-                                            background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509;
+                                            background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>;
                                             font-weight:600; font-size:11px; cursor:pointer;">
                                             Salvar alterações
                                         </button>
@@ -453,7 +453,7 @@ if (!function_exists('community_format_body')) {
                             <div style="display:flex; align-items:center; gap:10px; font-size:11px; color:#b0b0b0; margin-top:4px;">
                                 <form action="/comunidade/curtir" method="post" style="display:inline;">
                                     <input type="hidden" name="post_id" value="<?= $postId ?>">
-                                    <button type="submit" style="background:none; border:none; color:<?= $isLiked ? '#ff6f60' : '#b0b0b0' ?>; cursor:pointer; padding:0;">
+                                    <button type="submit" style="background:none; border:none; color:<?= $isLiked ? 'var(--accent-soft)' : '#b0b0b0' ?>; cursor:pointer; padding:0;">
                                         ❤️ <?= $likes ?>
                                     </button>
                                 </form>

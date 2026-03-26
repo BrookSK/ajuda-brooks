@@ -71,8 +71,8 @@
         line-height: 1;
     }
     .course-filter-tab.is-active {
-        background: linear-gradient(135deg, #e53935, #ff6f60);
-        color: #050509;
+        background: <?= $_btnBg ?>;
+        color: <?= htmlspecialchars($_brandBtnTextColor) ?>;
     }
 </style>
 <?php $filter = isset($filter) ? (string)$filter : 'all'; ?>
@@ -151,7 +151,7 @@
                         <?php if ($image !== ''): ?>
                             <img src="<?= htmlspecialchars($image) ?>" alt="<?= htmlspecialchars($title) ?>" style="width:100%; height:100%; object-fit:cover; display:block;">
                         <?php else: ?>
-                            <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:24px; background:radial-gradient(circle at top left,#e53935 0,#050509 60%);">
+                            <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:24px; background:radial-gradient(circle at top left,<?= htmlspecialchars($_brandAccentColor) ?> 0,#050509 60%);">
                                 🎓
                             </div>
                         <?php endif; ?>

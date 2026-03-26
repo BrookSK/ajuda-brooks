@@ -20,9 +20,9 @@ $slug = (string)($community['slug'] ?? '');
     <section style="background:#111118; border-radius:16px; border:1px solid #272727; padding:10px 12px;">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
             <div style="font-size:13px; color:#b0b0b0;">
-                <a href="/comunidades" style="color:#ff6f60; text-decoration:none;">Comunidades</a>
+                <a href="/comunidades" style="color:var(--accent-soft); text-decoration:none;">Comunidades</a>
                 <span> / </span>
-                <a href="/comunidades/ver?slug=<?= urlencode($slug) ?>" style="color:#ff6f60; text-decoration:none;">
+                <a href="/comunidades/ver?slug=<?= urlencode($slug) ?>" style="color:var(--accent-soft); text-decoration:none;">
                     <?= htmlspecialchars($communityName, ENT_QUOTES, 'UTF-8') ?>
                 </a>
             </div>
@@ -47,7 +47,7 @@ $slug = (string)($community['slug'] ?? '');
                 $topicMediaKind = trim((string)($topic['media_kind'] ?? ''));
             ?>
             <span style="display:inline-flex; align-items:center; gap:6px;">
-                <span style="width:18px; height:18px; border-radius:50%; overflow:hidden; background:radial-gradient(circle at 30% 20%, #fff 0, #ff8a65 25%, #e53935 65%, #050509 100%); display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#050509; flex:0 0 18px;">
+                <span style="width:18px; height:18px; border-radius:50%; overflow:hidden; background:radial-gradient(circle at 30% 20%, #fff 0, <?= htmlspecialchars($_brandAccentSoft) ?> 25%, <?= htmlspecialchars($_brandAccentColor) ?> 65%, #050509 100%); display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; flex:0 0 18px;">
                     <?php if ($topicAuthorAvatar !== ''): ?>
                         <img src="<?= htmlspecialchars($topicAuthorAvatar, ENT_QUOTES, 'UTF-8') ?>" alt="" style="width:100%; height:100%; object-fit:cover; display:block;">
                     <?php else: ?>
@@ -78,7 +78,7 @@ $slug = (string)($community['slug'] ?? '');
                         <source src="<?= htmlspecialchars($topicMediaUrl, ENT_QUOTES, 'UTF-8') ?>" type="<?= htmlspecialchars($topicMediaMime !== '' ? $topicMediaMime : 'video/mp4', ENT_QUOTES, 'UTF-8') ?>">
                     </video>
                 <?php else: ?>
-                    <a href="<?= htmlspecialchars($topicMediaUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" style="color:#ff6f60; text-decoration:none;">Ver arquivo anexado</a>
+                    <a href="<?= htmlspecialchars($topicMediaUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" style="color:var(--accent-soft); text-decoration:none;">Ver arquivo anexado</a>
                 <?php endif; ?>
             </div>
         <?php endif; ?>
@@ -91,9 +91,9 @@ $slug = (string)($community['slug'] ?? '');
         </div>
 
         <?php if ($isMember): ?>
-            <div id="replyingTo" style="display:none; padding:6px 10px; background:#1a1a24; border-left:3px solid #ff6f60; border-radius:4px; margin-bottom:8px; font-size:12px; color:#b0b0b0;">
+            <div id="replyingTo" style="display:none; padding:6px 10px; background:#1a1a24; border-left:3px solid var(--accent-soft); border-radius:4px; margin-bottom:8px; font-size:12px; color:#b0b0b0;">
                 Respondendo a <strong id="replyingToName" style="color:#f5f5f5;"></strong>
-                <button onclick="cancelReply()" style="background:none; border:none; color:#ff6f60; cursor:pointer; margin-left:8px; font-size:11px;">✕ Cancelar</button>
+                <button onclick="cancelReply()" style="background:none; border:none; color:var(--accent-soft); cursor:pointer; margin-left:8px; font-size:11px;">✕ Cancelar</button>
             </div>
             <form id="mainReplyForm" action="/comunidades/topicos/responder" method="post" enctype="multipart/form-data" style="margin-bottom:10px; display:flex; flex-direction:column; gap:6px;">
                 <input type="hidden" name="topic_id" value="<?= (int)($topic['id'] ?? 0) ?>">
@@ -107,8 +107,8 @@ $slug = (string)($community['slug'] ?? '');
                         <input id="communityReplyMediaInput" type="file" name="media" accept="image/*,video/*" style="display:none;">
                         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                             <label for="communityReplyMediaInput" style="display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; border:1px solid #272727; background:#111118; color:#f5f5f5; font-size:12px; cursor:pointer; user-select:none;">
-                                <span style="width:18px; height:18px; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; background:rgba(255,111,96,0.12); border:1px solid rgba(255,111,96,0.28);">
-                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#ff6f60" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <span style="width:18px; height:18px; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; background:<?= _tuqRgba($_brandAccentSoft, 0.12) ?>; border:1px solid <?= _tuqRgba($_brandAccentSoft, 0.28) ?>;">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="<?= htmlspecialchars($_brandAccentSoft) ?>" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                         <path d="M21 15V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8" />
                                         <path d="M3 17l4-4 4 4 4-4 6 6" />
                                         <path d="M14 10a2 2 0 1 1-4 0 2 2 0 0 1 4 0z" />
@@ -156,14 +156,14 @@ $slug = (string)($community['slug'] ?? '');
                             }
                         }
                     ?>
-                    <div style="background:#050509; border-radius:12px; border:1px solid #272727; padding:10px 12px; <?= $parentPostId ? 'margin-left:40px; border-left:3px solid #ff6f60;' : '' ?>">
+                    <div style="background:#050509; border-radius:12px; border:1px solid #272727; padding:10px 12px; <?= $parentPostId ? 'margin-left:40px; border-left:3px solid var(--accent-soft);' : '' ?>">
                         <?php if ($parentPostId && $parentAuthor): ?>
                             <div style="font-size:11px; color:#b0b0b0; margin-bottom:8px; padding:4px 8px; background:#1a1a24; border-radius:4px;">
-                                ↳ Respondendo a <strong style="color:#ff6f60;"><?= htmlspecialchars($parentAuthor, ENT_QUOTES, 'UTF-8') ?></strong>
+                                ↳ Respondendo a <strong style="color:var(--accent-soft);"><?= htmlspecialchars($parentAuthor, ENT_QUOTES, 'UTF-8') ?></strong>
                             </div>
                         <?php endif; ?>
                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-                            <div style="width:36px; height:36px; border-radius:50%; overflow:hidden; background:radial-gradient(circle at 30% 20%, #fff 0, #ff8a65 25%, #e53935 65%, #050509 100%); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <div style="width:36px; height:36px; border-radius:50%; overflow:hidden; background:radial-gradient(circle at 30% 20%, #fff 0, <?= htmlspecialchars($_brandAccentSoft) ?> 25%, <?= htmlspecialchars($_brandAccentColor) ?> 65%, #050509 100%); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                                 <?php if ($postAuthorAvatar !== ''): ?>
                                     <img src="<?= htmlspecialchars($postAuthorAvatar, ENT_QUOTES, 'UTF-8') ?>" alt="" style="width:100%; height:100%; object-fit:cover;">
                                 <?php else: ?>
@@ -193,7 +193,7 @@ $slug = (string)($community['slug'] ?? '');
                                         <source src="<?= htmlspecialchars($postMediaUrl, ENT_QUOTES, 'UTF-8') ?>" type="<?= htmlspecialchars($postMediaMime !== '' ? $postMediaMime : 'video/mp4', ENT_QUOTES, 'UTF-8') ?>">
                                     </video>
                                 <?php else: ?>
-                                    <a href="<?= htmlspecialchars($postMediaUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" style="color:#ff6f60; text-decoration:none;">Ver arquivo anexado</a>
+                                    <a href="<?= htmlspecialchars($postMediaUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" style="color:var(--accent-soft); text-decoration:none;">Ver arquivo anexado</a>
                                 <?php endif; ?>
                             </div>
                         <?php endif; ?>
@@ -343,7 +343,7 @@ $slug = (string)($community['slug'] ?? '');
             selectedIndex = 0;
             dropdown.innerHTML = `<div style="padding: 6px 12px; font-size: 11px; color: #b0b0b0; border-bottom: 1px solid #272727; display: flex; justify-content: space-between; align-items: center;">
                     <span>Selecione a aula:</span>
-                    <button onclick="event.stopPropagation(); document.getElementById('lessonMentionDropdown').style.display='none';" style="background: none; border: none; color: #ff6f60; cursor: pointer; font-size: 11px;">← Voltar</button>
+                    <button onclick="event.stopPropagation(); document.getElementById('lessonMentionDropdown').style.display='none';" style="background: none; border: none; color: var(--accent-soft); cursor: pointer; font-size: 11px;">← Voltar</button>
                 </div>` +
                 lessons.map((lesson, idx) => 
                     `<div class="lesson-mention-item" data-lesson='${JSON.stringify(lesson)}' data-index="${idx}" style="padding: 8px 12px; cursor: pointer; font-size: 13px; color: #f5f5f5; ${idx === 0 ? 'background: #1a1a24;' : ''}">

@@ -52,7 +52,7 @@ if ($freeChatLimit <= 0) { $freeChatLimit = 400; }
 
             <div style="margin-bottom:12px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
                 <form action="/conta/refazer-tour" method="post" style="margin:0;">
-                    <button id="tuq-refazer-tour" type="submit" style="border:none; border-radius:999px; padding:8px 14px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-weight:650; cursor:pointer; font-size:13px;">
+                    <button id="tuq-refazer-tour" type="submit" style="border:none; border-radius:999px; padding:8px 14px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-weight:650; cursor:pointer; font-size:13px;">
                         Refazer tour
                     </button>
                 </form>
@@ -88,7 +88,7 @@ if ($freeChatLimit <= 0) { $freeChatLimit = 400; }
                 <?php if (!empty($plan['allow_personalities'])): ?>
                     <div style="font-size:11px; color:#8d8d8d; margin-top:6px;">
                         Quer escolher uma personalidade padrão para novos chats? Acesse
-                        <a href="/conta/personalidade" style="color:#ff6f60; text-decoration:none;">configurar personalidade do Tuquinha</a>.
+                        <a href="/conta/personalidade" style="color:var(--accent-soft); text-decoration:none;">configurar personalidade do Tuquinha</a>.
                     </div>
                 <?php endif; ?>
                 <div style="font-size:12px; color:#b0b0b0;">
@@ -96,7 +96,7 @@ if ($freeChatLimit <= 0) { $freeChatLimit = 400; }
                         <span style="color:#8bc34a; font-weight:500;">E-mail verificado em <?= htmlspecialchars(date('d/m/Y H:i', strtotime($user['email_verified_at']))) ?></span>
                     <?php else: ?>
                         <span style="color:#ffb74d; font-weight:500;">E-mail ainda não verificado.</span>
-                        <a href="/verificar-email" style="margin-left:6px; color:#ff6f60; text-decoration:none;">Verificar agora</a>
+                        <a href="/verificar-email" style="margin-left:6px; color:var(--accent-soft); text-decoration:none;">Verificar agora</a>
                     <?php endif; ?>
                 </div>
                 <div>
@@ -112,7 +112,7 @@ if ($freeChatLimit <= 0) { $freeChatLimit = 400; }
                         No plano Free o Tuquinha considera até <?= htmlspecialchars((string)$freeGlobalLimit) ?> caracteres das memórias/regras globais. Para textos maiores, apenas o início será usado.
                     </div>
                 <?php endif; ?>
-                <button type="submit" style="margin-top:6px; align-self:flex-start; border:none; border-radius:999px; padding:8px 14px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-weight:600; cursor:pointer; font-size:13px;">
+                <button type="submit" style="margin-top:6px; align-self:flex-start; border:none; border-radius:999px; padding:8px 14px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-weight:600; cursor:pointer; font-size:13px;">
                     Salvar dados
                 </button>
             </form>
@@ -157,7 +157,7 @@ if ($freeChatLimit <= 0) { $freeChatLimit = 400; }
             </div>
             <?php if ($hasPaidActivePlan): ?>
                 <div style="margin-top:8px;">
-                    <a href="/tokens/comprar" style="font-size:12px; color:#ff6f60; text-decoration:none;">Comprar mais tokens extras</a>
+                    <a href="/tokens/comprar" style="font-size:12px; color:var(--accent-soft); text-decoration:none;">Comprar mais tokens extras</a>
                 </div>
             <?php endif; ?>
         </div>
@@ -307,7 +307,7 @@ if ($freeChatLimit <= 0) { $freeChatLimit = 400; }
                 <p style="font-size:13px; color:#b0b0b0;">
                     Você ainda não tem uma assinatura ativa. Por enquanto está usando o plano Free padrão.
                 </p>
-                <a href="/planos" style="display:inline-flex; margin-top:8px; border-radius:999px; padding:8px 14px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-size:13px; font-weight:600; text-decoration:none;">
+                <a href="/planos" style="display:inline-flex; margin-top:8px; border-radius:999px; padding:8px 14px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:13px; font-weight:600; text-decoration:none;">
                     Ver planos disponíveis
                 </a>
             <?php endif; ?>
@@ -317,7 +317,7 @@ if ($freeChatLimit <= 0) { $freeChatLimit = 400; }
 
 <div style="max-width: 900px; margin: 16px auto 0 auto; font-size: 12px; color: #8d8d8d; text-align: right;">
     Precisa de ajuda com sua assinatura ou acesso?
-    <a href="/suporte" style="color: #ff6f60; text-decoration: none;">Fale com o suporte</a>.
+    <a href="/suporte" style="color: var(--accent-soft); text-decoration: none;">Fale com o suporte</a>.
 </div>
 
 <script>

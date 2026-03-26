@@ -154,9 +154,9 @@
                 gap:8px;
                 padding: 9px 14px;
                 border-radius: 999px;
-                border: 1px solid rgba(229,57,53,0.28);
-                background: rgba(229,57,53,0.12);
-                color: #ff6f60;
+                border: 1px solid <?= $_aRgba28 ?>;
+                background: <?= $_aRgba12 ?>;
+                color: var(--accent-soft);
                 font-weight: 700;
                 font-size: 12px;
                 text-decoration:none;
@@ -218,7 +218,7 @@
                     if (b.classList) {
                         b.classList.toggle('is-active', isActive);
                     }
-                    b.style.background = isActive ? 'linear-gradient(135deg,#e53935,#ff6f60)' : 'transparent';
+                    b.style.background = isActive ? '<?= addslashes($_btnBg) ?>' : 'transparent';
                     b.style.color = isActive ? activeText : inactiveText;
                 });
 
@@ -267,15 +267,15 @@
                 $cycleLabel = $prettyCycle($slug);
                 $priceNumber = number_format(((int)($plan['price_cents'] ?? 0)) / 100, 2, ',', '.');
 
-                $cardBorder = $isFeatured ? 'rgba(229,57,53,0.55)' : 'var(--border-subtle)';
-                $cardShadow = $isFeatured ? '0 0 0 1px rgba(229,57,53,0.25), ' . 'var(--shadow-card-strong)' : 'var(--shadow-card)';
-                $ctaBg = $isFeatured ? 'linear-gradient(135deg,#e53935,#ff6f60)' : 'var(--surface-subtle)';
-                $ctaColor = $isFeatured ? '#050509' : 'var(--text-primary)';
+                $cardBorder = $isFeatured ? _tuqRgba($_brandAccentColor, 0.55) : 'var(--border-subtle)';
+                $cardShadow = $isFeatured ? '0 0 0 1px ' . _tuqRgba($_brandAccentColor, 0.25) . ', var(--shadow-card-strong)' : 'var(--shadow-card)';
+                $ctaBg = $isFeatured ? $_btnBg : 'var(--surface-subtle)';
+                $ctaColor = $isFeatured ? htmlspecialchars($_brandBtnTextColor) : 'var(--text-primary)';
                 $ctaBorder = $isFeatured ? 'none' : '1px solid var(--border-subtle)';
 
                 if ($isCurrent) {
-                    $cardBorder = 'rgba(229,57,53,0.70)';
-                    $cardShadow = '0 0 0 2px rgba(229,57,53,0.22), ' . 'var(--shadow-card-strong)';
+                    $cardBorder = _tuqRgba($_brandAccentColor, 0.70);
+                    $cardShadow = '0 0 0 2px ' . _tuqRgba($_brandAccentColor, 0.22) . ', var(--shadow-card-strong)';
                 }
 
                 $planIcon = '⭐';
@@ -289,12 +289,12 @@
                     $planIcon = '🔥';
                 }
 
-                $iconBg = $isFeatured ? 'rgba(229,57,53,0.92)' : 'var(--surface-subtle)';
-                $iconColor = $isFeatured ? '#050509' : 'var(--text-primary)';
+                $iconBg = $isFeatured ? _tuqRgba($_brandAccentColor, 0.92) : 'var(--surface-subtle)';
+                $iconColor = $isFeatured ? htmlspecialchars($_brandBtnTextColor) : 'var(--text-primary)';
             ?>
             <div data-plan-cycle="<?= htmlspecialchars($cycleKey, ENT_QUOTES, 'UTF-8') ?>" style="
                 position: relative;
-                background: <?= $isCurrent ? 'rgba(229,57,53,0.08)' : 'var(--surface-card)' ?>;
+                background: <?= $isCurrent ? $_aRgba08 : 'var(--surface-card)' ?>;
                 border: 1px solid <?= $isFeatured ? $cardBorder : 'var(--border-subtle)' ?>;
                 border-radius: 16px;
                 padding: 18px 14px 14px 14px;
@@ -306,7 +306,7 @@
             ">
                 <?php if ($isFeatured): ?>
                     <div style="position:absolute; left:50%; top:-12px; transform:translateX(-50%);">
-                        <div style="background:#e53935; color:#050509; font-size:11px; font-weight:800; padding:5px 10px; border-radius:999px; box-shadow: 0 10px 24px rgba(229,57,53,0.28);">
+                        <div style="background:<?= htmlspecialchars($_brandAccentColor) ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:11px; font-weight:800; padding:5px 10px; border-radius:999px; box-shadow: 0 10px 24px <?= $_aRgba28 ?>;">
                             Mais popular
                         </div>
                     </div>
@@ -331,7 +331,7 @@
                         <div style="font-size: 13px; font-weight: 800;"><?= htmlspecialchars($name) ?></div>
                     </div>
                     <?php if ($isCurrent): ?>
-                        <div style="font-size:10px; padding:3px 9px; border-radius:999px; background:rgba(229,57,53,0.12); border:1px solid rgba(229,57,53,0.28); color: var(--accent); font-weight:900;">
+                        <div style="font-size:10px; padding:3px 9px; border-radius:999px; background:<?= $_aRgba12 ?>; border:1px solid <?= $_aRgba28 ?>; color: var(--accent); font-weight:900;">
                             Seu plano atual
                         </div>
                     <?php endif; ?>
@@ -341,7 +341,7 @@
                     <?php if ($isFree): ?>
                         <div style="font-size: 24px; font-weight: 900;">Grátis</div>
                     <?php else: ?>
-                        <div style="font-size: 18px; font-weight: 900; color: #e53935;">R$ <?= htmlspecialchars($priceNumber) ?></div>
+                        <div style="font-size: 18px; font-weight: 900; color: var(--accent);">R$ <?= htmlspecialchars($priceNumber) ?></div>
                         <div style="font-size: 11px; color: var(--text-secondary); padding-bottom: 2px;">/ <?= htmlspecialchars($cycleLabel) ?></div>
                     <?php endif; ?>
                 </div>
@@ -356,7 +356,7 @@
                     <ul style="list-style: none; padding-left: 0; margin: 0 0 12px 0; font-size: 12px; color: var(--text-secondary);">
                         <?php foreach ($benefits as $b): ?>
                             <li style="display: flex; gap: 8px; margin-bottom: 6px; align-items:flex-start;">
-                                <span style="color: #e53935; line-height: 1.2;">✔</span>
+                                <span style="color: var(--accent); line-height: 1.2;">✔</span>
                                 <span style="line-height: 1.35;"><?= htmlspecialchars($b) ?></span>
                             </li>
                         <?php endforeach; ?>

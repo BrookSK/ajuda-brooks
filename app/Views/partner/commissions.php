@@ -28,7 +28,7 @@ $minPayout = $minPayoutCents / 100;
                 <div style="font-size:12px; color:var(--text-secondary); margin-bottom:4px;">Mês</div>
                 <input type="number" min="1" max="12" name="month" value="<?= (int)$month ?>" style="width:110px; padding:8px 10px; border-radius:10px; border:1px solid var(--border-subtle); background:var(--surface-card); color:var(--text-primary);">
             </div>
-            <button type="submit" style="border:none; border-radius:999px; padding:8px 14px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-weight:800; cursor:pointer;">Filtrar</button>
+            <button type="submit" style="border:none; border-radius:999px; padding:8px 14px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-weight:800; cursor:pointer;">Filtrar</button>
         </form>
     </div>
 
@@ -175,7 +175,7 @@ $minPayout = $minPayoutCents / 100;
                         </div>
                     </div>
 
-                    <button type="submit" style="border:none; border-radius:999px; padding:9px 14px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-weight:900; cursor:pointer;">Salvar dados</button>
+                    <button type="submit" style="border:none; border-radius:999px; padding:9px 14px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-weight:900; cursor:pointer;">Salvar dados</button>
                     <div style="font-size:12px; color:var(--text-secondary); line-height:1.35;">
                         Dica: informe pelo menos a <strong>chave PIX</strong>. Esses dados ficam visíveis para o admin realizar o pagamento.
                     </div>

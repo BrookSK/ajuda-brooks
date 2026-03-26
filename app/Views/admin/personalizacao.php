@@ -6,6 +6,9 @@
 /** @var string $accentSoftColor */
 /** @var string $btnTextColor */
 /** @var string $btnStyle */
+/** @var string $btnBorderColor */
+/** @var int $btnBorderWidth */
+/** @var string $iconColor */
 /** @var string $logoPath */
 /** @var string $faviconPath */
 /** @var string $newsRssFeeds */
@@ -158,12 +161,80 @@
                     </small>
                 </div>
 
+                <!-- Borda dos botões -->
+                <div style="flex:1 1 100%; margin-top:4px; display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+                    <div style="flex:1; min-width:180px;">
+                        <label style="font-size:12px; color:var(--text-secondary); display:block; margin-bottom:6px;">
+                            Cor da borda dos botões
+                        </label>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <input type="color" id="btn_border_color_picker"
+                                   value="<?= htmlspecialchars(($btnBorderColor ?? 'transparent') === 'transparent' ? '#e53935' : ($btnBorderColor ?? '#e53935')) ?>"
+                                   style="width:44px; height:38px; padding:2px 3px; border-radius:8px; border:1px solid var(--border-subtle); background:var(--input-bg); cursor:pointer; flex:0 0 auto;">
+                            <input type="text" name="btn_border_color" id="btn_border_color_text"
+                                   value="<?= htmlspecialchars($btnBorderColor ?? 'transparent') ?>"
+                                   style="flex:1; padding:9px 11px; border-radius:8px; border:1px solid var(--border-subtle); background:var(--input-bg); color:var(--text-primary); font-size:13px;"
+                                   placeholder="transparent ou #hex" maxlength="20">
+                        </div>
+                        <small style="color:#777; font-size:11px;">Use <code>transparent</code> para sem borda.</small>
+                    </div>
+                    <div style="flex:0 0 140px;">
+                        <label style="font-size:12px; color:var(--text-secondary); display:block; margin-bottom:6px;">
+                            Espessura (px)
+                        </label>
+                        <input type="number" name="btn_border_width" id="btn_border_width"
+                               value="<?= (int)($btnBorderWidth ?? 0) ?>"
+                               min="0" max="10"
+                               style="width:100%; padding:9px 11px; border-radius:8px; border:1px solid var(--border-subtle); background:var(--input-bg); color:var(--text-primary); font-size:13px;">
+                        <small style="color:#777; font-size:11px;">0 = sem borda, máx 10px.</small>
+                    </div>
+                </div>
+
+                <!-- Cor dos ícones -->
+                <div style="flex:1 1 100%; margin-top:4px;">
+                    <label style="font-size:12px; color:var(--text-secondary); display:block; margin-bottom:6px;">
+                        Cor dos ícones do menu
+                    </label>
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                        <input type="color" id="icon_color_picker"
+                               value="<?= htmlspecialchars(!empty($iconColor) ? $iconColor : ($accentColor ?? '#e53935')) ?>"
+                               style="width:44px; height:38px; padding:2px 3px; border-radius:8px; border:1px solid var(--border-subtle); background:var(--input-bg); cursor:pointer; flex:0 0 auto;">
+                        <input type="text" name="icon_color" id="icon_color_text"
+                               value="<?= htmlspecialchars($iconColor ?? '') ?>"
+                               style="flex:1; min-width:140px; padding:9px 11px; border-radius:8px; border:1px solid var(--border-subtle); background:var(--input-bg); color:var(--text-primary); font-size:13px;"
+                               placeholder="Deixe vazio para herdar a cor primária" maxlength="9">
+                        <?php if (!empty($iconColor)): ?>
+                            <button type="button" id="icon_color_clear" style="border:none; border-radius:8px; padding:9px 12px; background:var(--surface-subtle); color:var(--text-secondary); font-size:12px; cursor:pointer;">Limpar (herdar)</button>
+                        <?php endif; ?>
+                    </div>
+                    <small style="color:#777; font-size:11px;">Controla o fundo e a cor do ícone em cada item do menu. Vazio = usa a cor primária.</small>
+                    <!-- Preview de ícone -->
+                    <div style="margin-top:8px; display:flex; align-items:center; gap:8px;">
+                        <div id="icon_preview_pill" style="
+                            width:32px; height:32px; border-radius:999px; display:flex; align-items:center; justify-content:center; font-size:16px;
+                            background:<?= !empty($iconColor) ? 'rgba(' . implode(',', array_map('hexdec', str_split(ltrim(!empty($iconColor) ? $iconColor : ($accentColor ?? '#e53935'), '#'), 2))) . ',0.15)' : _tuqRgba($accentColor ?? '#e53935', 0.15) ?>;
+                            color:<?= htmlspecialchars(!empty($iconColor) ? $iconColor : ($accentColor ?? '#e53935')) ?>;
+                        ">⭐</div>
+                        <div id="icon_preview_pill2" style="
+                            width:32px; height:32px; border-radius:999px; display:flex; align-items:center; justify-content:center; font-size:16px;
+                            background:<?= !empty($iconColor) ? 'rgba(' . implode(',', array_map('hexdec', str_split(ltrim(!empty($iconColor) ? $iconColor : ($accentColor ?? '#e53935'), '#'), 2))) . ',0.15)' : _tuqRgba($accentColor ?? '#e53935', 0.15) ?>;
+                            color:<?= htmlspecialchars(!empty($iconColor) ? $iconColor : ($accentColor ?? '#e53935')) ?>;
+                        ">🎨</div>
+                        <div id="icon_preview_pill3" style="
+                            width:32px; height:32px; border-radius:999px; display:flex; align-items:center; justify-content:center; font-size:16px;
+                            background:<?= !empty($iconColor) ? 'rgba(' . implode(',', array_map('hexdec', str_split(ltrim(!empty($iconColor) ? $iconColor : ($accentColor ?? '#e53935'), '#'), 2))) . ',0.15)' : _tuqRgba($accentColor ?? '#e53935', 0.15) ?>;
+                            color:<?= htmlspecialchars(!empty($iconColor) ? $iconColor : ($accentColor ?? '#e53935')) ?>;
+                        ">⚙</div>
+                        <span style="font-size:11px; color:var(--text-secondary);">Pré-visualização dos ícones</span>
+                    </div>
+                </div>
+
             </div>
 
             <!-- Preview de cores -->
             <div style="margin-top:14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                 <div style="font-size:12px; color:var(--text-secondary);">Pré-visualização:</div>
-                <div id="color_preview_btn" style="padding:7px 16px; border-radius:999px; font-size:13px; font-weight:600; cursor:default; background:linear-gradient(135deg, <?= htmlspecialchars($accentColor ?? '#e53935') ?>, <?= htmlspecialchars($accentSoftColor ?? '#ff6f60') ?>); color:<?= htmlspecialchars($btnTextColor ?? '#050509') ?>;">
+                <div id="color_preview_btn" style="padding:7px 16px; border-radius:999px; font-size:13px; font-weight:600; cursor:default; background:linear-gradient(135deg, <?= htmlspecialchars($accentColor ?? '#e53935') ?>, <?= htmlspecialchars($accentSoftColor ?? '#ff6f60') ?>); color:<?= htmlspecialchars($btnTextColor ?? '#050509') ?>; border-style:solid; border-color:<?= htmlspecialchars(($btnBorderColor ?? 'transparent') === 'transparent' ? 'transparent' : ($btnBorderColor ?? 'transparent')) ?>; border-width:<?= (int)($btnBorderWidth ?? 0) ?>px;">
                     Botão primário
                 </div>
                 <div id="color_preview_dot" style="width:14px; height:14px; border-radius:50%; background:<?= htmlspecialchars($accentColor ?? '#e53935') ?>;"></div>
@@ -283,8 +354,15 @@
     var accentText    = document.getElementById('accent_text');
     var softPicker    = document.getElementById('soft_picker');
     var softText      = document.getElementById('soft_text');
-    var btnTextPicker = document.getElementById('btn_text_picker');
-    var btnTextText   = document.getElementById('btn_text_text');
+    var btnTextPicker      = document.getElementById('btn_text_picker');
+    var btnTextText        = document.getElementById('btn_text_text');
+    var btnBorderColorPick = document.getElementById('btn_border_color_picker');
+    var btnBorderColorText = document.getElementById('btn_border_color_text');
+    var btnBorderWidthInp  = document.getElementById('btn_border_width');
+    var iconColorPick  = document.getElementById('icon_color_picker');
+    var iconColorText  = document.getElementById('icon_color_text');
+    var iconClearBtn   = document.getElementById('icon_color_clear');
+    var iconPills      = [document.getElementById('icon_preview_pill'), document.getElementById('icon_preview_pill2'), document.getElementById('icon_preview_pill3')];
     var previewBtn    = document.getElementById('color_preview_btn');
     var previewDot    = document.getElementById('color_preview_dot');
     var previewBadge  = document.getElementById('color_preview_badge');
@@ -304,19 +382,40 @@
     }
 
     function updatePreview() {
-        var a = accentText   ? accentText.value.trim()   : '#e53935';
-        var s = softText     ? softText.value.trim()     : '#ff6f60';
-        var t = btnTextText  ? btnTextText.value.trim()  : '#050509';
+        var a  = accentText        ? accentText.value.trim()        : '#e53935';
+        var s  = softText          ? softText.value.trim()          : '#ff6f60';
+        var t  = btnTextText       ? btnTextText.value.trim()       : '#050509';
+        var bc = btnBorderColorText ? btnBorderColorText.value.trim() : 'transparent';
+        var bw = btnBorderWidthInp  ? parseInt(btnBorderWidthInp.value, 10) || 0 : 0;
         if (!isValidHex(a)) a = '#e53935';
         if (!isValidHex(s)) s = '#ff6f60';
         if (!isValidHex(t)) t = '#050509';
+        if (bc !== 'transparent' && !isValidHex(bc)) bc = 'transparent';
 
         var bg = isGradient() ? 'linear-gradient(135deg,' + a + ',' + s + ')' : a;
 
-        if (previewBtn)   { previewBtn.style.background = bg; previewBtn.style.color = t; }
+        if (previewBtn) {
+            previewBtn.style.background   = bg;
+            previewBtn.style.color        = t;
+            previewBtn.style.borderStyle  = 'solid';
+            previewBtn.style.borderColor  = bc;
+            previewBtn.style.borderWidth  = bw + 'px';
+        }
         if (previewDot)   previewDot.style.background   = a;
         if (previewBadge) { previewBadge.style.borderColor = a; previewBadge.style.color = s; }
         if (solidSwatch)  solidSwatch.style.background  = a;
+
+        // Icon preview
+        var ic = iconColorText && iconColorText.value.trim() !== '' ? iconColorText.value.trim() : a;
+        if (!isValidHex(ic)) ic = a;
+        function hexToRgb(h) { h = h.replace('#',''); return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)]; }
+        var rgb = hexToRgb(ic);
+        var iconBg = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',0.15)';
+        iconPills.forEach(function(p) {
+            if (!p) return;
+            p.style.background = iconBg;
+            p.style.color = ic;
+        });
 
         var accent = 'var(--accent)';
         var border = 'var(--border-subtle)';
@@ -343,8 +442,31 @@
     bindPair(accentPicker, accentText);
     bindPair(softPicker, softText);
     bindPair(btnTextPicker, btnTextText);
+    bindPair(btnBorderColorPick, btnBorderColorText);
+
+    // Icon color — picker drives text, text can be empty (inherit)
+    if (iconColorPick) {
+        iconColorPick.addEventListener('input', function () {
+            if (iconColorText) iconColorText.value = this.value;
+            updatePreview();
+        });
+    }
+    if (iconColorText) {
+        iconColorText.addEventListener('input', function () {
+            var v = this.value.trim();
+            if (isValidHex(v) && iconColorPick) iconColorPick.value = v;
+            updatePreview();
+        });
+    }
+    if (iconClearBtn) {
+        iconClearBtn.addEventListener('click', function () {
+            if (iconColorText) iconColorText.value = '';
+            updatePreview();
+        });
+    }
 
     if (styleGradientRadio) styleGradientRadio.addEventListener('change', updatePreview);
     if (styleSolidRadio)    styleSolidRadio.addEventListener('change', updatePreview);
+    if (btnBorderWidthInp)  btnBorderWidthInp.addEventListener('input', updatePreview);
 })();
 </script>

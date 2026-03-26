@@ -21,7 +21,7 @@
                 <h1 style="font-size:18px; margin-bottom:2px; color:var(--text-primary);">Comunidades do Tuquinha</h1>
                 <span style="font-size:12px; color:var(--text-secondary);">Escolha onde quer se conectar</span>
             </div>
-            <a href="/comunidades/nova" style="border-radius:999px; padding:6px 12px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-size:12px; font-weight:600; text-decoration:none; white-space:nowrap;">Criar nova comunidade</a>
+            <a href="/comunidades/nova" style="border-radius:999px; padding:6px 12px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:12px; font-weight:600; text-decoration:none; white-space:nowrap;">Criar nova comunidade</a>
         </div>
 
         <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
@@ -49,7 +49,7 @@
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </select>
-                <button type="submit" style="border:none; border-radius:999px; padding:6px 10px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-size:12px; font-weight:650; cursor:pointer;">Buscar</button>
+                <button type="submit" style="border:none; border-radius:999px; padding:6px 10px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:12px; font-weight:650; cursor:pointer;">Buscar</button>
             </form>
         </div>
 
@@ -69,7 +69,7 @@
                     ?>
                     <div style="background:var(--surface-subtle); border-radius:14px; border:1px solid var(--border-subtle); padding:10px 12px; display:flex; flex-direction:column; gap:6px;">
                         <div style="display:flex; align-items:center; gap:8px;">
-                            <div style="width:36px; height:36px; border-radius:50%; background:radial-gradient(circle at 30% 20%, #fff 0, #ff8a65 25%, #e53935 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; color:#050509;">
+                            <div style="width:36px; height:36px; border-radius:50%; background:radial-gradient(circle at 30% 20%, #fff 0, <?= htmlspecialchars($_brandAccentSoft) ?> 25%, <?= htmlspecialchars($_brandAccentColor) ?> 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; color:<?= htmlspecialchars($_brandBtnTextColor) ?>;">
                                 <?php if ($imagePath !== ''): ?>
                                     <img src="<?= htmlspecialchars($imagePath, ENT_QUOTES, 'UTF-8') ?>" alt="Imagem da comunidade" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:50%;">
                                 <?php else: ?>
@@ -91,13 +91,13 @@
                             </div>
                         <?php endif; ?>
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
-                            <a href="/comunidades/ver?slug=<?= urlencode($slug) ?>" style="font-size:12px; color:#ff6f60; text-decoration:none;">Ver tópicos</a>
+                            <a href="/comunidades/ver?slug=<?= urlencode($slug) ?>" style="font-size:12px; color:var(--accent-soft); text-decoration:none;">Ver tópicos</a>
                             <form action="<?= $isMember ? '/comunidades/sair' : '/comunidades/entrar' ?>" method="post" style="margin:0;">
                                 <input type="hidden" name="community_id" value="<?= $cid ?>">
                                 <?php if ($isMember): ?>
                                     <button type="submit" style="border:none; border-radius:999px; padding:4px 8px; background:var(--surface-card); border:1px solid var(--border-subtle); color:var(--text-primary); font-size:11px; cursor:pointer;">Sair</button>
                                 <?php else: ?>
-                                    <button type="submit" style="border:none; border-radius:999px; padding:4px 8px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-size:11px; font-weight:600; cursor:pointer;">Participar</button>
+                                    <button type="submit" style="border:none; border-radius:999px; padding:4px 8px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:11px; font-weight:600; cursor:pointer;">Participar</button>
                                 <?php endif; ?>
                             </form>
                         </div>

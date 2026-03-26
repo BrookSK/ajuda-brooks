@@ -21,8 +21,8 @@
     </p>
     <a href="<?= htmlspecialchars($redirectUrl) ?>" target="_blank" rel="noopener noreferrer" style="
         display:inline-flex; align-items:center; justify-content:center;
-        padding:8px 18px; border-radius:999px; background:linear-gradient(135deg,#e53935,#ff6f60);
-        color:#050509; font-size:13px; font-weight:600; text-decoration:none; margin-bottom:10px;">
+        padding:8px 18px; border-radius:999px; background:<?= $_btnBg ?>;
+        color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:13px; font-weight:600; text-decoration:none; margin-bottom:10px;">
         Abrir pagamento
     </a>
     <div style="margin-top:8px;">

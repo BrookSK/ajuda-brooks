@@ -443,7 +443,7 @@ $accentColor = !empty($branding['accent_color']) ? $branding['accent_color'] : '
                             <?php if ($avatarPath !== ''): ?>
                                 <img src="<?= htmlspecialchars($avatarPath, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($friendName, ENT_QUOTES, 'UTF-8') ?>"/>
                             <?php else: ?>
-                                <div style="width: 68px; height: 68px; border-radius: 50%; background: radial-gradient(circle at 30% 20%, #fff 0, #ff8a65 25%, #e53935 65%, #050509 100%); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: #050509; border: 3px solid var(--surface-card); box-shadow: 0 2px 8px rgba(0,0,0,.10);">
+                                <div style="width: 68px; height: 68px; border-radius: 50%; background: radial-gradient(circle at 30% 20%, #fff 0, <?= htmlspecialchars($secondaryColor) ?> 25%, <?= htmlspecialchars($primaryColor) ?> 65%, #050509 100%); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: #050509; border: 3px solid var(--surface-card); box-shadow: 0 2px 8px rgba(0,0,0,.10);">
                                     <?= htmlspecialchars($initial, ENT_QUOTES, 'UTF-8') ?>
                                 </div>
                             <?php endif; ?>
@@ -500,7 +500,7 @@ $accentColor = !empty($branding['accent_color']) ? $branding['accent_color'] : '
                         <?php if ($avatarPath !== ''): ?>
                             <img src="<?= htmlspecialchars($avatarPath, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($otherName, ENT_QUOTES, 'UTF-8') ?>"/>
                         <?php else: ?>
-                            <div style="width: 44px; height: 44px; border-radius: 50%; background: radial-gradient(circle at 30% 20%, #fff 0, #ff8a65 25%, #e53935 65%, #050509 100%); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: #050509; flex-shrink: 0; border: 2.5px solid var(--surface-card);">
+                            <div style="width: 44px; height: 44px; border-radius: 50%; background: radial-gradient(circle at 30% 20%, #fff 0, <?= htmlspecialchars($secondaryColor) ?> 25%, <?= htmlspecialchars($primaryColor) ?> 65%, #050509 100%); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: #050509; flex-shrink: 0; border: 2.5px solid var(--surface-card);">
                                 <?= htmlspecialchars($initial, ENT_QUOTES, 'UTF-8') ?>
                             </div>
                         <?php endif; ?>

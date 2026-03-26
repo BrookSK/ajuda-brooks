@@ -276,7 +276,7 @@ function render_markdown_safe(string $text): string {
     align-items: center;
     gap: 8px;
 }
-.tuq-chat-md .tuq-copy-table-btn:hover { border-color: rgba(229,57,53,0.55); box-shadow: 0 0 0 2px rgba(229,57,53,0.12); }
+.tuq-chat-md .tuq-copy-table-btn:hover { border-color: <?= _tuqRgba($_brandAccentColor, 0.55) ?>; box-shadow: 0 0 0 2px <?= $_aRgba12 ?>; }
 .tuq-chat-md table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 520px; }
 .tuq-chat-md th, .tuq-chat-md td {
     border: 1px solid var(--border-subtle);
@@ -313,8 +313,8 @@ function render_markdown_safe(string $text): string {
      align-items: center !important;
      justify-content: center !important;
      gap: 6px !important;
-     background: #e53935 !important;
-     color: #000 !important;
+     background: <?= htmlspecialchars($_brandAccentColor) ?> !important;
+     color: <?= htmlspecialchars($_brandBtnTextColor) ?> !important;
  }
 
 @media (max-width: 640px) {
@@ -879,7 +879,7 @@ if (!empty($conversationId) && !empty($personaOptions) && is_array($personaOptio
         <div style="margin-top:10px; margin-bottom:6px; background:#111118; border:1px solid #272727; border-radius:12px; padding:10px 12px; font-size:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
             <div style="color:#b0b0b0;">
                 <span style="color:#f5f5f5; font-weight:600;">Projeto:</span>
-                <a href="/projetos/ver?id=<?= (int)$pId ?>" style="color:#ff6f60; text-decoration:none; font-weight:600;">
+                <a href="/projetos/ver?id=<?= (int)$pId ?>" style="color:var(--accent-soft); text-decoration:none; font-weight:600;">
                     <?= htmlspecialchars($pName) ?>
                 </a>
                 <span style="margin-left:8px; color:#8d8d8d;">Arquivos base: <?= (int)$withText ?>/<?= (int)$total ?> com texto</span>
@@ -1111,10 +1111,10 @@ if (!empty($conversationId) && !empty($personaOptions) && is_array($personaOptio
                                     </div>
                                     <div style="display:flex; gap:6px; align-items:center; flex-shrink:0;">
                                         <?php if ($isComingSoon): ?>
-                                            <span style="font-size:9px; text-transform:uppercase; letter-spacing:0.14em; border-radius:999px; padding:2px 7px; background:#201216; color:#ffcc80; border:1px solid #ff6f60;">Em breve</span>
+                                            <span style="font-size:9px; text-transform:uppercase; letter-spacing:0.14em; border-radius:999px; padding:2px 7px; background:#201216; color:#ffcc80; border:1px solid var(--accent-soft);">Em breve</span>
                                         <?php endif; ?>
                                         <?php if ($isDefault): ?>
-                                            <span style="font-size:9px; text-transform:uppercase; letter-spacing:0.14em; border-radius:999px; padding:2px 7px; background:#201216; color:#ffcc80; border:1px solid #ff6f60;">Principal</span>
+                                            <span style="font-size:9px; text-transform:uppercase; letter-spacing:0.14em; border-radius:999px; padding:2px 7px; background:#201216; color:#ffcc80; border:1px solid var(--accent-soft);">Principal</span>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -1297,7 +1297,7 @@ if (!empty($conversationId) && !empty($personaOptions) && is_array($personaOptio
                     <div style="font-size:11px; color:#8d8d8d; max-width:70%;">
                         Essas regras valem só para este histórico. Para algo permanente em toda a conta, configure em "Minha conta".
                     </div>
-                    <button type="submit" style="border:none; border-radius:999px; padding:5px 10px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-weight:600; font-size:11px; cursor:pointer;">
+                    <button type="submit" style="border:none; border-radius:999px; padding:5px 10px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-weight:600; font-size:11px; cursor:pointer;">
                         Salvar regras do chat
                     </button>
                 </div>
@@ -1310,7 +1310,7 @@ if (!empty($conversationId) && !empty($personaOptions) && is_array($personaOptio
             <?php if ($canShowBuyTokensCta): ?>
                 <a href="/tokens/comprar" style="
                     border:none; border-radius:999px; padding:6px 12px;
-                    background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509;
+                    background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>;
                     font-size:12px; font-weight:600; text-decoration:none; white-space:nowrap;">
                     Comprar mais tokens
                 </a>
@@ -1556,7 +1556,7 @@ if (!empty($conversationId) && !empty($personaOptions) && is_array($personaOptio
     <?php if (!empty($audioError)): ?>
         <div style="margin-top:8px; background:#311; border:1px solid #a33; color:#ffbaba; padding:8px 10px; border-radius:8px; font-size:13px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
             <span><?= htmlspecialchars($audioError) ?></span>
-            <button type="button" onclick="window.location.reload();" style="border:none; border-radius:999px; padding:6px 10px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-size:12px; font-weight:600; cursor:pointer;">
+            <button type="button" onclick="window.location.reload();" style="border:none; border-radius:999px; padding:6px 10px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:12px; font-weight:600; cursor:pointer;">
                 Recarregar chat
             </button>
         </div>
@@ -1578,7 +1578,7 @@ if (!empty($conversationId) && !empty($personaOptions) && is_array($personaOptio
                 <button type="button" id="btn-cancel-error-report" style="border:none; border-radius:999px; padding:5px 10px; background:transparent; color:#ffbaba; font-size:12px; cursor:pointer;">
                     Cancelar
                 </button>
-                <button type="button" id="btn-send-error-report" style="border:none; border-radius:999px; padding:6px 12px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-size:12px; font-weight:600; cursor:pointer;">
+                <button type="button" id="btn-send-error-report" style="border:none; border-radius:999px; padding:6px 12px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:12px; font-weight:600; cursor:pointer;">
                     Enviar relato
                 </button>
             </div>
@@ -1631,7 +1631,7 @@ if (!empty($conversationId) && !empty($personaOptions) && is_array($personaOptio
                             border-radius: 999px;
                             border: 1px solid var(--border-subtle);
                             background: var(--surface-subtle);
-                            color: #e53935;
+                            color: var(--accent);
                             display: flex;
                             align-items: center;
                             justify-content: center;
@@ -1647,9 +1647,9 @@ if (!empty($conversationId) && !empty($personaOptions) && is_array($personaOptio
                             align-items: flex-end;
                             gap: 3px;
                         ">
-                            <span style="flex:1; background:#e53935; height: 20%; border-radius: 999px; animation: wave 0.6s infinite ease-in-out alternate;"></span>
-                            <span style="flex:1; background:#ff6f60; height: 50%; border-radius: 999px; animation: wave 0.6s infinite ease-in-out alternate 0.2s;"></span>
-                            <span style="flex:1; background:#e53935; height: 35%; border-radius: 999px; animation: wave 0.6s infinite ease-in-out alternate 0.4s;"></span>
+                            <span style="flex:1; background:<?= htmlspecialchars($_brandAccentColor) ?>; height: 20%; border-radius: 999px; animation: wave 0.6s infinite ease-in-out alternate;"></span>
+                            <span style="flex:1; background:<?= htmlspecialchars($_brandAccentSoft) ?>; height: 50%; border-radius: 999px; animation: wave 0.6s infinite ease-in-out alternate 0.2s;"></span>
+                            <span style="flex:1; background:<?= htmlspecialchars($_brandAccentColor) ?>; height: 35%; border-radius: 999px; animation: wave 0.6s infinite ease-in-out alternate 0.4s;"></span>
                         </div>
                     <?php endif; ?>
 
@@ -1903,7 +1903,7 @@ if (!empty($conversationId) && !empty($personaOptions) && is_array($personaOptio
                 removeBtn.textContent = '×';
                 removeBtn.style.border = 'none';
                 removeBtn.style.background = 'transparent';
-                removeBtn.style.color = '#ff6f60';
+                removeBtn.style.color = '<?= addslashes($_brandAccentSoft) ?>';
                 removeBtn.style.cursor = 'pointer';
                 removeBtn.style.fontSize = '11px';
 

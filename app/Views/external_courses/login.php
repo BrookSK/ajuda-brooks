@@ -21,7 +21,13 @@ if ($slug !== '') {
 <div class="hint" style="margin-bottom:16px;">Entre com sua conta para continuar a compra de <b><?= htmlspecialchars($courseTitle, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></b></div>
 
 <?php if (!empty($error)): ?>
-    <div style="padding: 12px; background: rgba(229, 57, 53, 0.1); border: 1px solid #e53935; border-radius: 10px; margin-bottom: 16px; color: #ff6f60; font-size: 14px;">
+    <?php
+    $extLoginPrimary = trim((string)($branding['primary_color'] ?? ''));
+    if ($extLoginPrimary === '') { $extLoginPrimary = '#e53935'; }
+    $extLoginSecondary = trim((string)($branding['secondary_color'] ?? ''));
+    if ($extLoginSecondary === '') { $extLoginSecondary = '#ff6f60'; }
+?>
+    <div style="padding: 12px; background: <?= _tuqRgba($extLoginPrimary, 0.1) ?>; border: 1px solid <?= htmlspecialchars($extLoginPrimary) ?>; border-radius: 10px; margin-bottom: 16px; color: <?= htmlspecialchars($extLoginSecondary) ?>; font-size: 14px;">
         <?= htmlspecialchars($error, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>
     </div>
 <?php endif; ?>

@@ -69,18 +69,18 @@ $currentBoardTitle = $currentBoard ? (string)($currentBoard['title'] ?? 'Sem tí
         line-height: 1;
     }
     .kb-btn:focus {
-        outline: 2px solid rgba(229,57,53,0.35);
+        outline: 2px solid <?= $_aRgba35 ?>;
         outline-offset: 2px;
     }
     .kb-btn--primary {
         border: none;
-        background: linear-gradient(135deg,#e53935,#ff6f60);
-        color: #050509;
+        background: <?= $_btnBg ?>;
+        color: <?= htmlspecialchars($_brandBtnTextColor) ?>;
         font-weight: 700;
     }
     .kb-btn--danger {
-        border: 1px solid rgba(229,57,53,0.35);
-        background: rgba(229,57,53,0.10);
+        border: 1px solid <?= $_aRgba35 ?>;
+        background: <?= $_aRgba10 ?>;
         color: var(--accent);
     }
     .kb-sidebar-list {
@@ -137,8 +137,8 @@ $currentBoardTitle = $currentBoard ? (string)($currentBoard['title'] ?? 'Sem tí
         border-color: rgba(15,23,42,0.08);
     }
     .kb-board-item.is-active {
-        background: rgba(229,57,53,0.14);
-        border-color: rgba(229,57,53,0.25);
+        background: <?= _tuqRgba($_brandAccentColor, 0.14) ?>;
+        border-color: <?= _tuqRgba($_brandAccentColor, 0.25) ?>;
     }
     .kb-board-item-title {
         min-width: 0;
@@ -270,7 +270,7 @@ $currentBoardTitle = $currentBoard ? (string)($currentBoard['title'] ?? 'Sem tí
         background: rgba(15,23,42,0.04);
     }
     .kb-list.drag-over {
-        outline: 2px solid rgba(229,57,53,0.45);
+        outline: 2px solid <?= $_aRgba45 ?>;
         outline-offset: 2px;
     }
     .kb-list.kb-list--dragging {
@@ -282,13 +282,13 @@ $currentBoardTitle = $currentBoard ? (string)($currentBoard['title'] ?? 'Sem tí
         width: 290px;
         flex: 0 0 290px;
         border-radius: 12px;
-        border: 2px dashed rgba(229,57,53,0.35);
-        background: rgba(229,57,53,0.07);
+        border: 2px dashed <?= $_aRgba35 ?>;
+        background: <?= _tuqRgba($_brandAccentColor, 0.07) ?>;
         min-height: 80px;
     }
     body[data-theme="light"] .kb-list-placeholder {
-        border: 2px dashed rgba(229,57,53,0.32);
-        background: rgba(229,57,53,0.05);
+        border: 2px dashed <?= _tuqRgba($_brandAccentColor, 0.32) ?>;
+        background: <?= _tuqRgba($_brandAccentColor, 0.05) ?>;
     }
     .kb-list-head {
         display: flex;
@@ -342,13 +342,13 @@ $currentBoardTitle = $currentBoard ? (string)($currentBoard['title'] ?? 'Sem tí
     }
     .kb-card-placeholder {
         border-radius: 12px;
-        border: 2px dashed rgba(229,57,53,0.35);
-        background: rgba(229,57,53,0.07);
+        border: 2px dashed <?= $_aRgba35 ?>;
+        background: <?= _tuqRgba($_brandAccentColor, 0.07) ?>;
         height: 52px;
     }
     body[data-theme="light"] .kb-card-placeholder {
-        border: 2px dashed rgba(229,57,53,0.32);
-        background: rgba(229,57,53,0.05);
+        border: 2px dashed <?= _tuqRgba($_brandAccentColor, 0.32) ?>;
+        background: <?= _tuqRgba($_brandAccentColor, 0.05) ?>;
     }
     body[data-theme="light"] .kb-card {
         background: #ffffff;

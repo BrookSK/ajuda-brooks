@@ -84,7 +84,7 @@ $price = $isPaid ? number_format(max(0, $priceCents) / 100, 2, ',', '.') : '';
         </div>
 
         <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
-            <button type="submit" style="border:none; border-radius:999px; padding:10px 16px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-weight:900; cursor:pointer;">Salvar</button>
+            <button type="submit" style="border:none; border-radius:999px; padding:10px 16px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-weight:900; cursor:pointer;">Salvar</button>
             <a href="/profissional/cursos" style="border-radius:999px; padding:10px 16px; border:1px solid var(--border-subtle); background:var(--surface-subtle); color:var(--text-primary); font-weight:800; text-decoration:none;">Cancelar</a>
         </div>
     </form>

@@ -29,9 +29,17 @@ $_brandBtnStyle     = 'gradient';
 try {
     if (class_exists('App\\Models\\Setting')) {
         $_brandBtnTextColor = (string)(\App\Models\Setting::get('brand_btn_text_color', '#050509') ?: '#050509');
-        $_brandBtnStyle     = (string)(\App\Models\Setting::get('brand_btn_style', 'gradient') ?: 'gradient');
+        $_brandBtnStyle       = (string)(\App\Models\Setting::get('brand_btn_style', 'gradient') ?: 'gradient');
+        $_brandBtnBorderColor = (string)(\App\Models\Setting::get('brand_btn_border_color', 'transparent') ?: 'transparent');
+        $_brandBtnBorderWidth = (int)(\App\Models\Setting::get('brand_btn_border_width', '0') ?: '0');
+        $_brandIconColor      = (string)(\App\Models\Setting::get('brand_icon_color', '') ?: '');
     }
 } catch (\Throwable $_e) {}
+if (!isset($_brandBtnBorderColor)) { $_brandBtnBorderColor = 'transparent'; }
+if (!isset($_brandBtnBorderWidth)) { $_brandBtnBorderWidth = 0; }
+if (!isset($_brandIconColor))      { $_brandIconColor = ''; }
+// Se não definida, herda a cor de destaque
+$_iconColorResolved = $_brandIconColor !== '' ? $_brandIconColor : $_brandAccentColor;
 // Fundo do botão primário: gradiente ou sólido
 $_btnBg = $_brandBtnStyle === 'solid'
     ? htmlspecialchars($_brandAccentColor)
@@ -192,6 +200,11 @@ if (!empty($_SESSION['user_id'])) {
             --shadow-tile: 0 16px 34px rgba(0,0,0,0.38);
             --shadow-accent: 0 10px 26px <?= $_aRgba35 ?>;
             --btn-text: <?= htmlspecialchars($_brandBtnTextColor) ?>;
+            --btn-border-color: <?= htmlspecialchars($_brandBtnBorderColor) ?>;
+            --btn-border-width: <?= (int)$_brandBtnBorderWidth ?>px;
+            --icon-color: <?= htmlspecialchars($_iconColorResolved) ?>;
+            --icon-bg: <?= _tuqRgba($_iconColorResolved, 0.15) ?>;
+            --icon-bg-hover: <?= _tuqRgba($_iconColorResolved, 0.22) ?>;
         }
 
         /* Tema claro (hot / cold) controlado via atributo data-theme="light" no body */
@@ -405,6 +418,10 @@ if (!empty($_SESSION['user_id'])) {
             opacity: 0;
             pointer-events: none;
         }
+        .sidebar-section-collapse > * {
+            margin-top: 3px;
+            margin-bottom: 3px;
+        }
 
         .sidebar-button {
             width: 100%;
@@ -433,18 +450,24 @@ if (!empty($_SESSION['user_id'])) {
             width: 18px;
             height: 18px;
             border-radius: 999px;
-            background: <?= $_aRgba15 ?>;
+            background: var(--icon-bg);
+            color: var(--icon-color);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 14px;
+            transition: background 0.15s;
+        }
+        .sidebar-button:hover span.icon {
+            background: var(--icon-bg-hover);
         }
         body[data-theme="light"] .sidebar-button span.icon {
-            background: transparent;
+            background: var(--icon-bg);
         }
         .sidebar-button.primary {
             background: <?= $_btnBg ?>;
-            border-color: transparent;
+            border-color: var(--btn-border-color);
+            border-width: var(--btn-border-width);
             color: var(--btn-text);
             font-weight: 600;
         }
@@ -455,7 +478,8 @@ if (!empty($_SESSION['user_id'])) {
         }
         body[data-theme="light"] .sidebar-button.primary {
             background: <?= $_btnBg ?>;
-            border-color: transparent;
+            border-color: var(--btn-border-color);
+            border-width: var(--btn-border-width);
             color: var(--btn-text);
         }
         .sidebar-button:hover {
@@ -821,14 +845,14 @@ if (!empty($_SESSION['user_id'])) {
 
             .mobile-quick-nav a.is-primary {
                 border: none;
-                background: #e50914;
-                color: #ffffff;
+                background: <?= $_btnBg ?>;
+                color: <?= htmlspecialchars($_brandBtnTextColor) ?>;
                 font-weight: 800;
             }
 
             body[data-theme="light"] .mobile-quick-nav a.is-primary {
-                background: #e50914;
-                color: #ffffff;
+                background: <?= $_btnBg ?>;
+                color: <?= htmlspecialchars($_brandBtnTextColor) ?>;
             }
 
             .sidebar-close {
@@ -1621,7 +1645,7 @@ if (!empty($_SESSION['user_id'])) {
             var saved = localStorage.getItem(key);
             // auto-expand if any child is the active page
             var hasActive = wrap.querySelector('.sidebar-button--active');
-            var isOpen = saved === null ? true : saved === '1';
+            var isOpen = saved === null ? false : saved === '1';
             if (hasActive) isOpen = true;
             function applyState(open, animate) {
                 if (open) {

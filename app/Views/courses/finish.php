@@ -66,7 +66,7 @@ $badge = trim((string)($course['badge_image_path'] ?? ''));
             </div>
 
             <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;">
-                <button type="submit" onclick="return confirm('Tem certeza que deseja encerrar este curso? Depois disso você não poderá refazer nem rever as aulas.');" style="border:none; border-radius:999px; padding:9px 18px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-weight:700; font-size:13px; cursor:pointer;">
+                <button type="submit" onclick="return confirm('Tem certeza que deseja encerrar este curso? Depois disso você não poderá refazer nem rever as aulas.');" style="border:none; border-radius:999px; padding:9px 18px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-weight:700; font-size:13px; cursor:pointer;">
                     Confirmar e emitir certificado
                 </button>
                 <a href="/cursos/ver?id=<?= $courseId ?>" style="display:inline-flex; align-items:center; padding:9px 16px; border-radius:999px; border:1px solid var(--border-subtle); background:var(--surface-subtle); color:var(--text-primary); font-size:13px; text-decoration:none;">

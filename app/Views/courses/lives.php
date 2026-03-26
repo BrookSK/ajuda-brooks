@@ -12,7 +12,7 @@ $courseTitle = trim((string)($course['title'] ?? ''));
 ?>
 <div style="max-width: 960px; margin: 0 auto; padding: 12px 8px 20px 8px;">
     <div style="margin-bottom:10px;">
-        <a href="<?= CourseController::buildCourseUrl($course) ?>#lives" style="color:#ff6f60; font-size:12px; text-decoration:none;">&larr; Voltar para o curso</a>
+        <a href="<?= CourseController::buildCourseUrl($course) ?>#lives" style="color:var(--accent-soft); font-size:12px; text-decoration:none;">&larr; Voltar para o curso</a>
     </div>
 
     <h1 style="font-size: 20px; margin: 0 0 4px 0; font-weight: 650;">Lives do curso: <?= htmlspecialchars($courseTitle) ?></h1>
@@ -85,7 +85,7 @@ $courseTitle = trim((string)($course['title'] ?? ''));
                                         <input type="hidden" name="live_id" value="<?= $liveId ?>">
                                         <button type="submit" style="
                                             border:none; border-radius:999px; padding:5px 12px;
-                                            background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509;
+                                            background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>;
                                             font-weight:600; font-size:11px; cursor:pointer;">
                                             Quero participar
                                         </button>

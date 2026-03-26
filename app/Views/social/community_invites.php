@@ -19,14 +19,14 @@ $slug = (string)($community['slug'] ?? '');
     <section style="background:var(--surface-card); border-radius:16px; border:1px solid var(--border-subtle); padding:10px 12px;">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
             <div style="font-size:13px; color:var(--text-secondary);">
-                <a href="/comunidades" style="color:#ff6f60; text-decoration:none;">Comunidades</a>
+                <a href="/comunidades" style="color:var(--accent-soft); text-decoration:none;">Comunidades</a>
                 <span> / </span>
-                <a href="/comunidades/ver?slug=<?= urlencode($slug) ?>" style="color:#ff6f60; text-decoration:none;">
+                <a href="/comunidades/ver?slug=<?= urlencode($slug) ?>" style="color:var(--accent-soft); text-decoration:none;">
                     <?= htmlspecialchars($communityName, ENT_QUOTES, 'UTF-8') ?>
                 </a>
                 <span> / Convites</span>
             </div>
-            <a href="/comunidades/membros?slug=<?= urlencode($slug) ?>" style="font-size:12px; color:#ff6f60; text-decoration:none;">Voltar para membros</a>
+            <a href="/comunidades/membros?slug=<?= urlencode($slug) ?>" style="font-size:12px; color:var(--accent-soft); text-decoration:none;">Voltar para membros</a>
         </div>
     </section>
 
@@ -45,7 +45,7 @@ $slug = (string)($community['slug'] ?? '');
                 <input type="text" name="name" placeholder="Nome para personalizar o convite" style="margin-top:2px; width:100%; padding:6px 8px; border-radius:8px; border:1px solid var(--border-subtle); background:var(--input-bg); color:var(--text-primary); font-size:13px;">
             </label>
             <div style="display:flex; gap:8px; margin-top:4px;">
-                <button type="submit" style="border:none; border-radius:999px; padding:6px 12px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-size:12px; font-weight:600; cursor:pointer;">Enviar convite</button>
+                <button type="submit" style="border:none; border-radius:999px; padding:6px 12px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:12px; font-weight:600; cursor:pointer;">Enviar convite</button>
                 <a href="/comunidades/ver?slug=<?= urlencode($slug) ?>" style="font-size:12px; color:var(--text-secondary); text-decoration:none; align-self:center;">Cancelar</a>
             </div>
         </form>

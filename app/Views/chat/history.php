@@ -226,7 +226,7 @@
             <option value="1" <?= !empty($favoritesOnly) ? 'selected' : '' ?>>Favoritos</option>
         </select>
 
-        <button type="submit" style="border:none; border-radius:999px; padding:8px 14px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-weight:600; font-size:13px; cursor:pointer;">
+        <button type="submit" style="border:none; border-radius:999px; padding:8px 14px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-weight:600; font-size:13px; cursor:pointer;">
             Buscar
         </button>
     </form>

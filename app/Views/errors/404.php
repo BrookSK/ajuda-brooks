@@ -14,8 +14,8 @@
             gap:6px;
             padding:8px 16px;
             border-radius:999px;
-            background:linear-gradient(135deg,#e53935,#ff6f60);
-            color:#050509;
+            background:<?= $_btnBg ?>;
+            color:<?= htmlspecialchars($_brandBtnTextColor) ?>;
             font-weight:600;
             font-size:13px;
             text-decoration:none;
@@ -44,7 +44,7 @@
             border-radius:999px;
             border:1px solid #272727;
             background:#050509;
-            color:#ff6f60;
+            color:var(--accent-soft);
             font-size:13px;
             text-decoration:none;
         ">

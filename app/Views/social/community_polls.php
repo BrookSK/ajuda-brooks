@@ -21,14 +21,14 @@ $canClosePolls = !empty($canClosePolls);
     <section style="background:var(--surface-card); border-radius:16px; border:1px solid var(--border-subtle); padding:10px 12px;">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
             <div style="font-size:13px; color:var(--text-secondary);">
-                <a href="/comunidades" style="color:#ff6f60; text-decoration:none;">Comunidades</a>
+                <a href="/comunidades" style="color:var(--accent-soft); text-decoration:none;">Comunidades</a>
                 <span> / </span>
-                <a href="/comunidades/ver?slug=<?= urlencode($slug) ?>" style="color:#ff6f60; text-decoration:none;">
+                <a href="/comunidades/ver?slug=<?= urlencode($slug) ?>" style="color:var(--accent-soft); text-decoration:none;">
                     <?= htmlspecialchars($communityName, ENT_QUOTES, 'UTF-8') ?>
                 </a>
                 <span> / Enquetes</span>
             </div>
-            <a href="/comunidades/ver?slug=<?= urlencode($slug) ?>" style="font-size:12px; color:#ff6f60; text-decoration:none;">Voltar à comunidade</a>
+            <a href="/comunidades/ver?slug=<?= urlencode($slug) ?>" style="font-size:12px; color:var(--accent-soft); text-decoration:none;">Voltar à comunidade</a>
         </div>
     </section>
 
@@ -126,7 +126,7 @@ $canClosePolls = !empty($canClosePolls);
                                             </span>
                                         </span>
                                         <span style="display:block; width:100%; height:4px; border-radius:999px; background:var(--surface-card); overflow:hidden;">
-                                            <span style="display:block; height:100%; width:<?= max(0, min(100, $pct)) ?>%; background:linear-gradient(135deg,#e53935,#ff6f60);"></span>
+                                            <span style="display:block; height:100%; width:<?= max(0, min(100, $pct)) ?>%; background:<?= $_btnBg ?>;"></span>
                                         </span>
                                     </label>
                                 <?php endforeach; ?>
@@ -136,12 +136,12 @@ $canClosePolls = !empty($canClosePolls);
                                     border:none;
                                     border-radius:999px;
                                     padding:8px 14px;
-                                    background:linear-gradient(135deg,#e53935,#ff6f60);
-                                    color:#050509;
+                                    background:<?= $_btnBg ?>;
+                                    color:<?= htmlspecialchars($_brandBtnTextColor) ?>;
                                     font-size:12px;
                                     font-weight:700;
                                     cursor:pointer;
-                                    box-shadow: 0 10px 22px rgba(229,57,53,0.25);
+                                    box-shadow: 0 10px 22px <?= _tuqRgba($_brandAccentColor, 0.25) ?>;
                                 ">VOTAR</button>
                             </form>
                         <?php else: ?>

@@ -23,7 +23,7 @@ $onlyFavorites = !empty($onlyFavorites);
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
             <h1 style="font-size:18px;">Meus amigos</h1>
             <div style="display:flex; align-items:center; gap:10px;">
-                <a href="/amigos/adicionar" style="display:inline-block; font-size:12px; padding:6px 10px; border-radius:999px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; text-decoration:none; font-weight:700;">Adicionar amigo</a>
+                <a href="/amigos/adicionar" style="display:inline-block; font-size:12px; padding:6px 10px; border-radius:999px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; text-decoration:none; font-weight:700;">Adicionar amigo</a>
                 <span style="font-size:12px; color:#b0b0b0;"><?= (int)$friendsCount ?> amigo(s)</span>
             </div>
         </div>
@@ -34,9 +34,9 @@ $onlyFavorites = !empty($onlyFavorites);
                 <input type="checkbox" name="fav" value="1" <?= $onlyFavorites ? 'checked' : '' ?> onchange="this.form.submit()">
                 Somente favoritos
             </label>
-            <button type="submit" style="border:none; border-radius:999px; padding:8px 14px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-size:12px; font-weight:650; cursor:pointer;">Filtrar</button>
+            <button type="submit" style="border:none; border-radius:999px; padding:8px 14px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:12px; font-weight:650; cursor:pointer;">Filtrar</button>
             <?php if ($q !== '' || $onlyFavorites): ?>
-                <a href="/amigos" style="font-size:12px; color:#ff6f60; text-decoration:none;">Limpar</a>
+                <a href="/amigos" style="font-size:12px; color:var(--accent-soft); text-decoration:none;">Limpar</a>
             <?php endif; ?>
         </form>
         <?php if (empty($friends)): ?>
@@ -53,7 +53,7 @@ $onlyFavorites = !empty($onlyFavorites);
                     ?>
                     <div style="background:#050509; border-radius:12px; border:1px solid #272727; padding:8px 10px; display:flex; flex-direction:column; gap:6px;">
                         <a href="/perfil?user_id=<?= $friendId ?>" style="text-decoration:none; display:flex; align-items:center; gap:8px;">
-                            <div style="width:32px; height:32px; border-radius:50%; background:radial-gradient(circle at 30% 20%, #fff 0, #ff8a65 25%, #e53935 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; color:#050509;">
+                            <div style="width:32px; height:32px; border-radius:50%; background:radial-gradient(circle at 30% 20%, #fff 0, <?= htmlspecialchars($_brandAccentSoft) ?> 25%, <?= htmlspecialchars($_brandAccentColor) ?> 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; color:<?= htmlspecialchars($_brandBtnTextColor) ?>;">
                                 <?php if ($avatarPath !== ''): ?>
                                     <img src="<?= htmlspecialchars($avatarPath, ENT_QUOTES, 'UTF-8') ?>" alt="Avatar" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:50%;">
                                 <?php else: ?>
@@ -67,7 +67,7 @@ $onlyFavorites = !empty($onlyFavorites);
                             </div>
                         </a>
                         <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                            <a href="/social/chat?user_id=<?= $friendId ?>" style="display:inline-block; font-size:11px; padding:4px 8px; border-radius:999px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; text-decoration:none; font-weight:600;">
+                            <a href="/social/chat?user_id=<?= $friendId ?>" style="display:inline-block; font-size:11px; padding:4px 8px; border-radius:999px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; text-decoration:none; font-weight:600;">
                                 Conversar
                             </a>
                             <a href="/perfil?user_id=<?= $friendId ?>" style="display:inline-block; font-size:11px; padding:4px 8px; border-radius:999px; border:1px solid #272727; background:#111118; color:#f5f5f5; text-decoration:none; font-weight:600;">
@@ -105,7 +105,7 @@ $onlyFavorites = !empty($onlyFavorites);
                     ?>
                     <div style="background:#050509; border-radius:12px; border:1px solid #272727; padding:8px 10px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
                         <div style="display:flex; align-items:center; gap:8px;">
-                            <div style="width:32px; height:32px; border-radius:50%; background:radial-gradient(circle at 30% 20%, #fff 0, #ff8a65 25%, #e53935 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; color:#050509;">
+                            <div style="width:32px; height:32px; border-radius:50%; background:radial-gradient(circle at 30% 20%, #fff 0, <?= htmlspecialchars($_brandAccentSoft) ?> 25%, <?= htmlspecialchars($_brandAccentColor) ?> 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; color:<?= htmlspecialchars($_brandBtnTextColor) ?>;">
                                 <?php if ($avatarPath !== ''): ?>
                                     <img src="<?= htmlspecialchars($avatarPath, ENT_QUOTES, 'UTF-8') ?>" alt="Avatar" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:50%;">
                                 <?php else: ?>

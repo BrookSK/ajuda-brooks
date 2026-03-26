@@ -43,7 +43,7 @@ $initial = mb_strtoupper(mb_substr((string)$displayName, 0, 1, 'UTF-8'), 'UTF-8'
     <section style="background:var(--surface-card); border-radius:16px; border:1px solid var(--border-subtle); padding:12px 14px;">
         <div id="portfolioHeaderRow" style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
             <div style="display:flex; align-items:center; gap:10px; min-width:0;">
-                <div style="width:44px; height:44px; border-radius:12px; overflow:hidden; background:radial-gradient(circle at 30% 20%, #fff 0, #ff8a65 25%, #e53935 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; color:#050509;">
+                <div style="width:44px; height:44px; border-radius:12px; overflow:hidden; background:radial-gradient(circle at 30% 20%, #fff 0, <?= htmlspecialchars($_brandAccentSoft) ?> 25%, <?= htmlspecialchars($_brandAccentColor) ?> 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; color:<?= htmlspecialchars($_brandBtnTextColor) ?>;">
                     <?php if ($avatarPath !== ''): ?>
                         <img src="<?= htmlspecialchars($avatarPath, ENT_QUOTES, 'UTF-8') ?>" alt="Avatar" style="width:100%; height:100%; object-fit:cover; display:block;">
                     <?php else: ?>
@@ -59,9 +59,9 @@ $initial = mb_strtoupper(mb_substr((string)$displayName, 0, 1, 'UTF-8'), 'UTF-8'
             </div>
 
             <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-                <a href="/perfil?user_id=<?= (int)$targetId ?>" style="font-size:12px; color:#ff6f60; text-decoration:none;">Voltar ao perfil</a>
+                <a href="/perfil?user_id=<?= (int)$targetId ?>" style="font-size:12px; color:var(--accent-soft); text-decoration:none;">Voltar ao perfil</a>
                 <?php if (!empty($canManage) || $isOwn): ?>
-                    <a href="/perfil/portfolio/gerenciar?owner_user_id=<?= (int)$targetId ?>" style="border-radius:999px; padding:6px 12px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-size:12px; font-weight:650; text-decoration:none; white-space:nowrap;">Criar / Gerenciar</a>
+                    <a href="/perfil/portfolio/gerenciar?owner_user_id=<?= (int)$targetId ?>" style="border-radius:999px; padding:6px 12px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:12px; font-weight:650; text-decoration:none; white-space:nowrap;">Criar / Gerenciar</a>
                 <?php endif; ?>
             </div>
         </div>

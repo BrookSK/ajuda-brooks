@@ -6,7 +6,7 @@
 
     <form method="get" action="/admin/usuarios" style="margin-bottom: 14px; display:flex; gap:8px;">
         <input type="text" name="q" value="<?= htmlspecialchars($query) ?>" placeholder="Buscar por nome ou e-mail" style="flex:1; padding:6px 10px; border-radius:999px; border:1px solid var(--border-subtle); background:var(--surface-subtle); color:var(--text-primary); font-size:13px;">
-        <button type="submit" style="border:none; border-radius:999px; padding:6px 12px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-size:13px; font-weight:600; cursor:pointer;">Buscar</button>
+        <button type="submit" style="border:none; border-radius:999px; padding:6px 12px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:13px; font-weight:600; cursor:pointer;">Buscar</button>
     </form>
 
     <table style="width:100%; border-collapse:collapse; font-size:13px; background:var(--surface-card); border-radius:12px; overflow:hidden; border:1px solid var(--border-subtle);">

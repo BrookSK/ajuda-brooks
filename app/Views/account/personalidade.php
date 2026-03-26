@@ -209,7 +209,7 @@ $defaultTuquinhaDesc = \App\Models\Setting::get('default_tuquinha_description', 
                                     <?= htmlspecialchars($pname) ?>
                                 </div>
                                 <?php if ($isComingSoon): ?>
-                                    <span style="font-size:9px; text-transform:uppercase; letter-spacing:0.14em; border-radius:999px; padding:2px 7px; background:#201216; color:#ffcc80; border:1px solid #ff6f60; flex-shrink:0;">Em breve</span>
+                                    <span style="font-size:9px; text-transform:uppercase; letter-spacing:0.14em; border-radius:999px; padding:2px 7px; background:#201216; color:#ffcc80; border:1px solid var(--accent-soft); flex-shrink:0;">Em breve</span>
                                 <?php endif; ?>
                             </div>
                             <?php if ($parea !== ''): ?>
@@ -232,7 +232,7 @@ $defaultTuquinhaDesc = \App\Models\Setting::get('default_tuquinha_description', 
                 </div>
                 <button type="submit" style="
                     border:none; border-radius:999px; padding:8px 16px;
-                    background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509;
+                    background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>;
                     font-weight:600; font-size:13px; cursor:pointer;">
                     Salvar personalidade padrão
                 </button>

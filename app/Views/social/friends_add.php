@@ -91,8 +91,8 @@
         btn.style.border = 'none';
         btn.style.borderRadius = '999px';
         btn.style.padding = '7px 10px';
-        btn.style.background = 'linear-gradient(135deg,#e53935,#ff6f60)';
-        btn.style.color = '#050509';
+        btn.style.background = <?= json_encode($_btnBg) ?>;
+        btn.style.color = <?= json_encode(htmlspecialchars($_brandBtnTextColor)) ?>;
         btn.style.fontWeight = '700';
         btn.style.cursor = 'pointer';
         btn.addEventListener('click', function(){ sendRequest(userId, rightEl, btn); });

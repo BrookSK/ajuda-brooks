@@ -12,7 +12,7 @@ $courses = is_array($courses ?? null) ? $courses : [];
             <p style="margin:0; font-size:13px; color:var(--text-secondary);">Cadastre e gerencie os seus cursos.</p>
         </div>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <a href="/profissional/cursos/novo" style="border-radius:999px; padding:9px 14px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-weight:800; text-decoration:none; font-size:13px;">Novo curso</a>
+            <a href="/profissional/cursos/novo" style="border-radius:999px; padding:9px 14px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-weight:800; text-decoration:none; font-size:13px;">Novo curso</a>
             <a href="/profissional" style="border-radius:999px; padding:9px 14px; border:1px solid var(--border-subtle); background:var(--surface-subtle); color:var(--text-primary); font-weight:700; text-decoration:none; font-size:13px;">Voltar</a>
         </div>
     </div>

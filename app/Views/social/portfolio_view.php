@@ -112,7 +112,7 @@ foreach ($media as $m) {
         <div id="behanceHeaderInner">
         <div id="portfolioViewTop" style="display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap;">
             <div style="display:flex; align-items:center; gap:10px; min-width:0;">
-                <div style="width:44px; height:44px; border-radius:12px; overflow:hidden; background:radial-gradient(circle at 30% 20%, #fff 0, #ff8a65 25%, #e53935 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; color:#050509;">
+                <div style="width:44px; height:44px; border-radius:12px; overflow:hidden; background:radial-gradient(circle at 30% 20%, #fff 0, <?= htmlspecialchars($_brandAccentSoft) ?> 25%, <?= htmlspecialchars($_brandAccentColor) ?> 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; color:<?= htmlspecialchars($_brandBtnTextColor) ?>;">
                     <?php if ($avatarPath !== ''): ?>
                         <img src="<?= htmlspecialchars($avatarPath, ENT_QUOTES, 'UTF-8') ?>" alt="Avatar" style="width:100%; height:100%; object-fit:cover; display:block;">
                     <?php else: ?>
@@ -121,12 +121,12 @@ foreach ($media as $m) {
                 </div>
                 <div style="min-width:0;">
                     <div style="font-size:18px; font-weight:800; color:var(--text-primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?></div>
-                    <div style="font-size:12px; color:var(--text-secondary);">por <a href="/perfil?user_id=<?= $ownerId ?>" style="color:#ff6f60; text-decoration:none;"><?= htmlspecialchars($displayName, ENT_QUOTES, 'UTF-8') ?></a></div>
+                    <div style="font-size:12px; color:var(--text-secondary);">por <a href="/perfil?user_id=<?= $ownerId ?>" style="color:var(--accent-soft); text-decoration:none;"><?= htmlspecialchars($displayName, ENT_QUOTES, 'UTF-8') ?></a></div>
                 </div>
             </div>
 
             <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-                <a href="/perfil/portfolio?user_id=<?= $ownerId ?>" style="font-size:12px; color:#ff6f60; text-decoration:none;">Voltar ao portfólio</a>
+                <a href="/perfil/portfolio?user_id=<?= $ownerId ?>" style="font-size:12px; color:var(--accent-soft); text-decoration:none;">Voltar ao portfólio</a>
                 <?php if (!empty($canEdit) || $isOwner): ?>
                     <a href="/perfil/portfolio/gerenciar?owner_user_id=<?= (int)$ownerId ?>&edit_id=<?= (int)($item['id'] ?? 0) ?>" style="border-radius:999px; padding:6px 10px; border:1px solid var(--border-subtle); background:var(--surface-subtle); color:var(--text-primary); font-size:12px; text-decoration:none;">Editar</a>
                 <?php endif; ?>
@@ -135,7 +135,7 @@ foreach ($media as $m) {
                     <span id="portfolioLikeCount" style="margin-left:4px;"><?= (int)$likesCount ?></span>
                 </button>
                 <?php if ($externalUrl !== ''): ?>
-                    <a href="<?= htmlspecialchars($externalUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" style="border-radius:999px; padding:6px 10px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-size:12px; font-weight:650; text-decoration:none;">Abrir link</a>
+                    <a href="<?= htmlspecialchars($externalUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" style="border-radius:999px; padding:6px 10px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:12px; font-weight:650; text-decoration:none;">Abrir link</a>
                 <?php endif; ?>
                 <?php if ($projectId > 0): ?>
                     <a href="/projetos/ver?id=<?= $projectId ?>" style="border-radius:999px; padding:6px 10px; border:1px solid var(--border-subtle); background:var(--surface-subtle); color:var(--text-primary); font-size:12px; text-decoration:none;">Ver projeto</a>
@@ -205,7 +205,7 @@ foreach ($media as $m) {
                                 </video>
                             <?php else: ?>
                                 <div class="behanceBlockMedia" style="padding:12px;">
-                                    <a href="<?= htmlspecialchars($url, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" style="color:#ff6f60; text-decoration:none;">Abrir vídeo</a>
+                                    <a href="<?= htmlspecialchars($url, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" style="color:var(--accent-soft); text-decoration:none;">Abrir vídeo</a>
                                 </div>
                             <?php endif; ?>
                         <?php endif; ?>
@@ -219,7 +219,7 @@ foreach ($media as $m) {
                                 </div>
                             <?php else: ?>
                                 <div class="behanceBlockMedia" style="padding:12px;">
-                                    <a href="<?= htmlspecialchars($url, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" style="color:#ff6f60; text-decoration:none;">Ouvir áudio</a>
+                                    <a href="<?= htmlspecialchars($url, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" style="color:var(--accent-soft); text-decoration:none;">Ouvir áudio</a>
                                 </div>
                             <?php endif; ?>
                         <?php endif; ?>
@@ -252,7 +252,7 @@ foreach ($media as $m) {
             <div style="font-size:12px; color:var(--text-secondary); margin-bottom:10px;">Edite os detalhes no gerenciar ou abra o editor para mexer nos blocos.</div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
                 <a href="/perfil/portfolio/gerenciar?owner_user_id=<?= (int)$ownerId ?>&edit_id=<?= (int)($item['id'] ?? 0) ?>" style="border-radius:999px; padding:7px 12px; border:1px solid var(--border-subtle); background:var(--surface-subtle); color:var(--text-primary); font-size:12px; text-decoration:none;">Editar detalhes</a>
-                <a href="/perfil/portfolio/editor?id=<?= (int)($item['id'] ?? 0) ?>" style="border-radius:999px; padding:7px 12px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-size:12px; font-weight:800; text-decoration:none;">Editar blocos</a>
+                <a href="/perfil/portfolio/editor?id=<?= (int)($item['id'] ?? 0) ?>" style="border-radius:999px; padding:7px 12px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:12px; font-weight:800; text-decoration:none;">Editar blocos</a>
             </div>
         </section>
     <?php endif; ?>

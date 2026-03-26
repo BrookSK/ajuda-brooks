@@ -381,7 +381,7 @@
         <textarea id="projectMemoryInput" rows="8" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--border-subtle); background:var(--surface-subtle); color:var(--text-primary); font-size:13px; resize:vertical; outline:none;"><?= htmlspecialchars((string)($project['description'] ?? '')) ?></textarea>
         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
             <button type="button" id="cancelProjectMemory" style="border:1px solid var(--border-subtle); border-radius:10px; padding:8px 12px; background:var(--surface-subtle); color:var(--text-primary); font-weight:600; cursor:pointer;">Cancelar</button>
-            <button type="button" id="saveProjectMemory" style="border:none; border-radius:10px; padding:8px 12px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-weight:700; cursor:pointer;">Salvar</button>
+            <button type="button" id="saveProjectMemory" style="border:none; border-radius:10px; padding:8px 12px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-weight:700; cursor:pointer;">Salvar</button>
         </div>
     </div>
 </div>
@@ -392,7 +392,7 @@
         <input id="projectRenameInput" type="text" value="<?= htmlspecialchars((string)($project['name'] ?? '')) ?>" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--border-subtle); background:var(--surface-subtle); color:var(--text-primary); font-size:13px; outline:none;" />
         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
             <button type="button" id="cancelProjectRename" style="border:1px solid var(--border-subtle); border-radius:10px; padding:8px 12px; background:var(--surface-subtle); color:var(--text-primary); font-weight:600; cursor:pointer;">Cancelar</button>
-            <button type="button" id="saveProjectRename" style="border:none; border-radius:10px; padding:8px 12px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-weight:700; cursor:pointer;">Salvar</button>
+            <button type="button" id="saveProjectRename" style="border:none; border-radius:10px; padding:8px 12px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-weight:700; cursor:pointer;">Salvar</button>
         </div>
     </div>
 </div>
@@ -574,7 +574,7 @@
                                                 <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
                                                     <div title="<?= htmlspecialchars($pname) ?>" style="font-weight:700; font-size:13px; line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><?= htmlspecialchars($pname) ?></div>
                                                     <?php if ($isComingSoon): ?>
-                                                        <span style="font-size:9px; text-transform:uppercase; letter-spacing:0.12em; border-radius:999px; padding:2px 6px; background:#201216; color:#ffcc80; border:1px solid #ff6f60; white-space:nowrap; flex-shrink:0;">Em breve</span>
+                                                        <span style="font-size:9px; text-transform:uppercase; letter-spacing:0.12em; border-radius:999px; padding:2px 6px; background:#201216; color:#ffcc80; border:1px solid var(--accent-soft); white-space:nowrap; flex-shrink:0;">Em breve</span>
                                                     <?php endif; ?>
                                                 </div>
                                                 <?php if ($parea !== ''): ?>
@@ -752,11 +752,11 @@
                         <input type="file" name="file" id="filesUploadInput" multiple required style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid var(--border-subtle); background:var(--surface-subtle); color:var(--text-primary); font-size:13px;">
                     </div>
                     <div>
-                        <button type="button" id="filesUploadBtn" style="border:none; border-radius:999px; padding:9px 14px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-weight:600; font-size:13px; cursor:pointer;">Enviar</button>
+                        <button type="button" id="filesUploadBtn" style="border:none; border-radius:999px; padding:9px 14px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-weight:600; font-size:13px; cursor:pointer;">Enviar</button>
                     </div>
                 </div>
                 <div id="filesUploadProgress" style="display:none; font-size:12px; color:var(--text-secondary); padding:4px 0;"></div>
-                <div style="background:rgba(255, 111, 96, 0.06); border:1px solid rgba(255, 111, 96, 0.35); border-radius:12px; padding:10px 12px; font-size:12px; line-height:1.35; color:#ff6f60;">
+                <div style="background:<?= _tuqRgba($_brandAccentSoft, 0.06) ?>; border:1px solid <?= _tuqRgba($_brandAccentSoft, 0.35) ?>; border-radius:12px; padding:10px 12px; font-size:12px; line-height:1.35; color:var(--accent-soft);">
                     Arquivos de texto/código (txt, md, json, php, js, etc.) serão usados como contexto automaticamente.
                 </div>
                 <div style="background:#1a0c10; border:1px solid #a33; border-radius:12px; padding:10px 12px; font-size:12px; line-height:1.35; color:#ffbaba;">
@@ -902,7 +902,7 @@
                                 <option value="write">Escrita</option>
                                 <option value="admin">Administrador</option>
                             </select>
-                            <button type="button" id="sendInviteBtn" style="flex:0 0 auto; max-width:100%; border:none; border-radius:12px; padding:10px 12px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-weight:700; cursor:pointer;">Convidar</button>
+                            <button type="button" id="sendInviteBtn" style="flex:0 0 auto; max-width:100%; border:none; border-radius:12px; padding:10px 12px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-weight:700; cursor:pointer;">Convidar</button>
                         </div>
                         <div id="inviteFeedback" style="margin-top:8px; color:var(--text-secondary); font-size:12px; display:none;"></div>
 
@@ -1690,7 +1690,7 @@
             <textarea id="projectInstructionsTextarea" class="tuqAutoGrow" name="instructions" rows="8" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--border-subtle); background:var(--surface-subtle); color:var(--text-primary); font-size:13px; resize:vertical; outline:none;" spellcheck="false"><?= htmlspecialchars((string)($projectInstructions ?? '')) ?></textarea>
             <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
                 <button type="button" id="cancelProjectInstructions" style="border:1px solid var(--border-subtle); border-radius:10px; padding:8px 12px; background:var(--surface-subtle); color:var(--text-primary); font-weight:600; cursor:pointer;">Cancelar</button>
-                <button type="submit" id="saveProjectInstructions" style="border:none; border-radius:10px; padding:8px 12px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-weight:750; cursor:pointer;">Salvar instruções</button>
+                <button type="submit" id="saveProjectInstructions" style="border:none; border-radius:10px; padding:8px 12px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-weight:750; cursor:pointer;">Salvar instruções</button>
             </div>
         </form>
     </div>

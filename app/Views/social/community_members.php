@@ -19,14 +19,14 @@ $slug = (string)($community['slug'] ?? '');
     <section style="background:var(--surface-card); border-radius:16px; border:1px solid var(--border-subtle); padding:10px 12px;">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
             <div style="font-size:13px; color:var(--text-secondary);">
-                <a href="/comunidades" style="color:#ff6f60; text-decoration:none;">Comunidades</a>
+                <a href="/comunidades" style="color:var(--accent-soft); text-decoration:none;">Comunidades</a>
                 <span> / </span>
-                <a href="/comunidades/ver?slug=<?= urlencode($slug) ?>" style="color:#ff6f60; text-decoration:none;">
+                <a href="/comunidades/ver?slug=<?= urlencode($slug) ?>" style="color:var(--accent-soft); text-decoration:none;">
                     <?= htmlspecialchars($communityName, ENT_QUOTES, 'UTF-8') ?>
                 </a>
                 <span> / Membros</span>
             </div>
-            <a href="/comunidades/ver?slug=<?= urlencode($slug) ?>" style="font-size:12px; color:#ff6f60; text-decoration:none;">Voltar à comunidade</a>
+            <a href="/comunidades/ver?slug=<?= urlencode($slug) ?>" style="font-size:12px; color:var(--accent-soft); text-decoration:none;">Voltar à comunidade</a>
         </div>
     </section>
 
@@ -79,7 +79,7 @@ $slug = (string)($community['slug'] ?? '');
                     ?>
                     <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding:6px 8px; border-radius:10px; border:1px solid var(--border-subtle); background:var(--surface-subtle);">
                         <a href="/perfil?user_id=<?= $memberId ?>" style="flex:1 1 auto; display:flex; align-items:center; gap:8px; text-decoration:none;">
-                            <div style="width:28px; height:28px; border-radius:50%; overflow:hidden; background:radial-gradient(circle at 30% 20%, #fff 0, #ff8a65 25%, #e53935 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#050509; flex:0 0 28px;">
+                            <div style="width:28px; height:28px; border-radius:50%; overflow:hidden; background:radial-gradient(circle at 30% 20%, #fff 0, <?= htmlspecialchars($_brandAccentSoft) ?> 25%, <?= htmlspecialchars($_brandAccentColor) ?> 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; flex:0 0 28px;">
                                 <?php if ($avatar !== ''): ?>
                                     <img src="<?= htmlspecialchars($avatar, ENT_QUOTES, 'UTF-8') ?>" alt="" style="width:100%; height:100%; object-fit:cover; display:block;">
                                 <?php else: ?>
@@ -122,7 +122,7 @@ $slug = (string)($community['slug'] ?? '');
                                     <form action="/comunidades/membros/bloquear" method="post" style="margin:0;">
                                         <input type="hidden" name="community_id" value="<?= (int)($community['id'] ?? 0) ?>">
                                         <input type="hidden" name="user_id" value="<?= $memberId ?>">
-                                        <button type="submit" style="border:none; border-radius:999px; padding:3px 7px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-size:11px; cursor:pointer;">Bloquear</button>
+                                        <button type="submit" style="border:none; border-radius:999px; padding:3px 7px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:11px; cursor:pointer;">Bloquear</button>
                                     </form>
                                 <?php endif; ?>
                             </div>

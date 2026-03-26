@@ -86,7 +86,7 @@ if (!empty($user['email'])) {
     <div style="margin-top:12px;">
         <a href="/conta" style="font-size:13px; color:#b0b0b0; text-decoration:none; margin-right:10px;">Voltar para minha conta</a>
         <?php if ($hasPaidActivePlan): ?>
-            <a href="/tokens/comprar" style="font-size:13px; color:#ff6f60; text-decoration:none;">Comprar mais tokens extras</a>
+            <a href="/tokens/comprar" style="font-size:13px; color:var(--accent-soft); text-decoration:none;">Comprar mais tokens extras</a>
         <?php endif; ?>
     </div>
 </div>

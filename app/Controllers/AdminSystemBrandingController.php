@@ -27,6 +27,9 @@ class AdminSystemBrandingController extends Controller
         $accentSoftColor  = Setting::get('brand_accent_soft', '#ff6f60') ?: '#ff6f60';
         $btnTextColor     = Setting::get('brand_btn_text_color', '#050509') ?: '#050509';
         $btnStyle         = Setting::get('brand_btn_style', 'gradient') ?: 'gradient';
+        $btnBorderColor   = Setting::get('brand_btn_border_color', 'transparent') ?: 'transparent';
+        $btnBorderWidth   = (int)(Setting::get('brand_btn_border_width', '0') ?: '0');
+        $iconColor        = Setting::get('brand_icon_color', '') ?? '';
         $logoPath         = Setting::get('brand_logo_path', '') ?? '';
         $faviconPath      = Setting::get('brand_favicon_path', '') ?? '';
         $newsRssFeeds     = Setting::get('news_rss_feeds', "https://www.meioemensagem.com.br/feed\nhttps://www.meioemensagem.com.br/categoria/marketing/feed\nhttps://www.publicitarioscriativos.com/feed\nhttps://mundodomarketing.com.br/feed\nhttps://www.promoview.com.br/feed\nhttps://gkpb.com.br/feed") ?? '';
@@ -42,6 +45,9 @@ class AdminSystemBrandingController extends Controller
             'accentSoftColor' => $accentSoftColor,
             'btnTextColor'    => $btnTextColor,
             'btnStyle'        => $btnStyle,
+            'btnBorderColor'  => $btnBorderColor,
+            'btnBorderWidth'  => $btnBorderWidth,
+            'iconColor'       => $iconColor,
             'logoPath'        => $logoPath,
             'faviconPath'     => $faviconPath,
             'newsRssFeeds'    => $newsRssFeeds,
@@ -89,6 +95,18 @@ class AdminSystemBrandingController extends Controller
         $btnStyle = trim((string)($_POST['btn_style'] ?? 'gradient'));
         if (!in_array($btnStyle, ['gradient', 'solid'], true)) {
             $btnStyle = 'gradient';
+        }
+
+        $btnBorderColor = trim((string)($_POST['btn_border_color'] ?? 'transparent'));
+        if ($btnBorderColor !== 'transparent' && !preg_match('/^#[0-9a-fA-F]{3,8}$/', $btnBorderColor)) {
+            $btnBorderColor = 'transparent';
+        }
+
+        $btnBorderWidth = max(0, min(10, (int)($_POST['btn_border_width'] ?? 0)));
+
+        $iconColor = trim((string)($_POST['icon_color'] ?? ''));
+        if ($iconColor !== '' && !preg_match('/^#[0-9a-fA-F]{3,8}$/', $iconColor)) {
+            $iconColor = '';
         }
 
         $logoPath    = Setting::get('brand_logo_path', '') ?? '';
@@ -158,7 +176,10 @@ class AdminSystemBrandingController extends Controller
             'brand_accent_soft'    => $accentSoftColor,
             'brand_btn_text_color' => $btnTextColor,
             'brand_btn_style'      => $btnStyle,
-            'brand_logo_path'      => $logoPath,
+            'brand_btn_border_color' => $btnBorderColor,
+            'brand_btn_border_width' => (string)$btnBorderWidth,
+            'brand_icon_color'       => $iconColor,
+            'brand_logo_path'        => $logoPath,
             'brand_favicon_path'   => $faviconPath,
             'news_rss_feeds'       => $newsRssFeeds,
             'news_blocked_domains' => $blockedDomains,
@@ -178,6 +199,9 @@ class AdminSystemBrandingController extends Controller
             'accentSoftColor' => $accentSoftColor,
             'btnTextColor'    => $btnTextColor,
             'btnStyle'        => $btnStyle,
+            'btnBorderColor'  => $btnBorderColor,
+            'btnBorderWidth'  => $btnBorderWidth,
+            'iconColor'       => $iconColor,
             'logoPath'        => $logoPath,
             'faviconPath'     => $faviconPath,
             'newsRssFeeds'    => $newsRssFeeds,

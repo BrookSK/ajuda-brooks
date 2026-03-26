@@ -68,8 +68,8 @@ if (substr($slug, -11) === '-semestral') {
         gap: 8px;
         padding: 10px 18px;
         border-radius: 999px;
-        background: linear-gradient(135deg, #e53935, #ff6f60);
-        color: #050509;
+        background: <?= $_btnBg ?>;
+        color: <?= htmlspecialchars($_brandBtnTextColor) ?>;
         font-weight: 600;
         font-size: 14px;
         text-decoration: none;

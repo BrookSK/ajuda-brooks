@@ -14,7 +14,7 @@
 <div style="max-width: 800px; margin: 0 auto;">
     <h1 style="font-size: 22px; margin-bottom: 16px;">Detalhes do usuário</h1>
 
-    <a href="/admin/usuarios" style="font-size:12px; color:#ff6f60; text-decoration:none;">⟵ Voltar para lista</a>
+    <a href="/admin/usuarios" style="font-size:12px; color:var(--accent-soft); text-decoration:none;">⟵ Voltar para lista</a>
 
     <?php if (!empty($error)): ?>
         <div style="margin-top:12px; background:#311; border:1px solid #a33; color:#ffbaba; padding:8px 10px; border-radius:10px; font-size:13px;">
@@ -163,7 +163,7 @@
                     </option>
                 <?php endforeach; ?>
             </select>
-            <button type="submit" style="border:none; border-radius:999px; padding:6px 12px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-size:13px; font-weight:600; cursor:pointer;">
+            <button type="submit" style="border:none; border-radius:999px; padding:6px 12px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:13px; font-weight:600; cursor:pointer;">
                 Aplicar
             </button>
         </form>

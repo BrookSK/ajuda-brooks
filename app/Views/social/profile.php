@@ -67,7 +67,7 @@ $profileId = (int)($profileUser['id'] ?? 0);
         <?php if ($coverPath !== ''): ?>
             <img src="<?= htmlspecialchars($coverPath, ENT_QUOTES, 'UTF-8') ?>" alt="Capa do perfil" style="width:100%; height:100%; object-fit:cover; display:block;">
         <?php else: ?>
-            <div style="width:100%; height:100%; background:radial-gradient(circle at 20% 20%, rgba(255,111,96,0.35) 0, rgba(229,57,53,0.15) 30%, rgba(5,5,9,0.92) 100%);"></div>
+            <div style="width:100%; height:100%; background:radial-gradient(circle at 20% 20%, <?= _tuqRgba($_brandAccentSoft, 0.35) ?> 0, <?= $_aRgba15 ?> 30%, rgba(5,5,9,0.92) 100%);"></div>
         <?php endif; ?>
 
         <div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0.0) 0%, rgba(0,0,0,0.48) 100%);"></div>
@@ -81,7 +81,7 @@ $profileId = (int)($profileUser['id'] ?? 0);
 <div id="socialProfileLayout" style="max-width: 980px; margin: 0 auto; display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap;">
     <aside id="socialProfileAside" style="flex: 0 0 260px; background:var(--surface-card); border-radius:18px; border:1px solid var(--border-subtle); padding:14px; max-width:100%;">
         <div style="display:flex; flex-direction:column; align-items:center; gap:8px; margin-bottom:10px;">
-            <div style="width:96px; height:96px; border-radius:50%; overflow:hidden; background:radial-gradient(circle at 30% 20%, #fff 0, #ff8a65 25%, #e53935 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-size:40px; font-weight:700; color:#050509;">
+            <div style="width:96px; height:96px; border-radius:50%; overflow:hidden; background:radial-gradient(circle at 30% 20%, #fff 0, <?= htmlspecialchars($_brandAccentSoft) ?> 25%, <?= htmlspecialchars($_brandAccentColor) ?> 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-size:40px; font-weight:700; color:<?= htmlspecialchars($_brandBtnTextColor) ?>;">
                 <?php if ($avatarPath !== ''): ?>
                     <img src="<?= htmlspecialchars($avatarPath, ENT_QUOTES, 'UTF-8') ?>" alt="Avatar" style="width:100%; height:100%; object-fit:cover; display:block;">
                 <?php else: ?>
@@ -166,7 +166,7 @@ $profileId = (int)($profileUser['id'] ?? 0);
                         </button>
                     </form>
                     <a href="/social/chat?user_id=<?= (int)$profileId ?>" style="display:block; text-align:center; font-size:12px; color:#050509; text-decoration:none; margin-top:4px;">
-                        <span style="display:inline-block; padding:6px 12px; border-radius:999px; background:linear-gradient(135deg,#e53935,#ff6f60); font-weight:600;">Abrir chat privado</span>
+                        <span style="display:inline-block; padding:6px 12px; border-radius:999px; background:<?= $_btnBg ?>; font-weight:600;">Abrir chat privado</span>
                     </a>
                 <?php elseif ($friendStatus === 'pending' && $requestedById === $currentId): ?>
                     <div style="font-size:12px; color:#ffb74d; background:var(--surface-subtle); border-radius:10px; border:1px solid var(--border-subtle); padding:6px 8px; text-align:center;">
@@ -190,13 +190,13 @@ $profileId = (int)($profileUser['id'] ?? 0);
                 <?php else: ?>
                     <form action="/amigos/solicitar" method="post">
                         <input type="hidden" name="user_id" value="<?= (int)$profileId ?>">
-                        <button type="submit" style="width:100%; border:none; border-radius:999px; padding:7px 10px; font-size:13px; font-weight:600; cursor:pointer; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; margin-bottom:4px;">
+                        <button type="submit" style="width:100%; border:none; border-radius:999px; padding:7px 10px; font-size:13px; font-weight:600; cursor:pointer; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; margin-bottom:4px;">
                             Adicionar como amigo
                         </button>
                     </form>
                 <?php endif; ?>
 
-                <a href="#scraps" style="display:block; text-align:center; font-size:12px; color:#ff6f60; text-decoration:none;">Ir para os scraps</a>
+                <a href="#scraps" style="display:block; text-align:center; font-size:12px; color:var(--accent-soft); text-decoration:none;">Ir para os scraps</a>
             </div>
         <?php else: ?>
             <div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px; text-align:center;">
@@ -238,7 +238,7 @@ $profileId = (int)($profileUser['id'] ?? 0);
                     <?php if ($portfolioCover !== ''): ?>
                         <img src="<?= htmlspecialchars($portfolioCover, ENT_QUOTES, 'UTF-8') ?>" alt="" style="width:100%; height:100%; object-fit:cover; display:block;">
                     <?php else: ?>
-                        <div style="width:100%; height:100%; background:radial-gradient(circle at 20% 20%, rgba(255,111,96,0.25) 0, rgba(229,57,53,0.12) 35%, rgba(5,5,9,0.88) 100%);"></div>
+                        <div style="width:100%; height:100%; background:radial-gradient(circle at 20% 20%, <?= _tuqRgba($_brandAccentSoft, 0.25) ?> 0, <?= $_aRgba12 ?> 35%, rgba(5,5,9,0.88) 100%);"></div>
                     <?php endif; ?>
                 </div>
                 <?php if ($portfolioTitle !== ''): ?>
@@ -251,7 +251,7 @@ $profileId = (int)($profileUser['id'] ?? 0);
             </a>
 
             <a href="/perfil/portfolio?user_id=<?= (int)$profileId ?>" style="display:block; text-align:center; font-size:12px; color:#050509; text-decoration:none; margin-top:8px;">
-                <span style="display:inline-block; width:100%; padding:8px 12px; border-radius:999px; background:linear-gradient(135deg,#e53935,#ff6f60); font-weight:650;">Ver portfólio</span>
+                <span style="display:inline-block; width:100%; padding:8px 12px; border-radius:999px; background:<?= $_btnBg ?>; font-weight:650;">Ver portfólio</span>
             </a>
         </section>
 
@@ -415,16 +415,16 @@ $profileId = (int)($profileUser['id'] ?? 0);
             <h2 style="font-size:16px; margin-bottom:6px; color:var(--text-primary);">Redes sociais</h2>
             <div style="display:flex; flex-wrap:wrap; gap:6px; font-size:12px; color:var(--text-secondary);">
                 <?php if (!empty($profile['website'])): ?>
-                    <a href="<?= htmlspecialchars((string)$profile['website'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" style="background:var(--surface-subtle); border-radius:999px; padding:4px 8px; border:1px solid var(--border-subtle); color:#ff6f60;">Site pessoal</a>
+                    <a href="<?= htmlspecialchars((string)$profile['website'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" style="background:var(--surface-subtle); border-radius:999px; padding:4px 8px; border:1px solid var(--border-subtle); color:var(--accent-soft);">Site pessoal</a>
                 <?php endif; ?>
                 <?php if (!empty($profile['instagram'])): ?>
-                    <a href="<?= htmlspecialchars((string)$profile['instagram'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" style="background:var(--surface-subtle); border-radius:999px; padding:4px 8px; border:1px solid var(--border-subtle); color:#ff6f60;">Instagram</a>
+                    <a href="<?= htmlspecialchars((string)$profile['instagram'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" style="background:var(--surface-subtle); border-radius:999px; padding:4px 8px; border:1px solid var(--border-subtle); color:var(--accent-soft);">Instagram</a>
                 <?php endif; ?>
                 <?php if (!empty($profile['facebook'])): ?>
-                    <a href="<?= htmlspecialchars((string)$profile['facebook'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" style="background:var(--surface-subtle); border-radius:999px; padding:4px 8px; border:1px solid var(--border-subtle); color:#ff6f60;">Facebook</a>
+                    <a href="<?= htmlspecialchars((string)$profile['facebook'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" style="background:var(--surface-subtle); border-radius:999px; padding:4px 8px; border:1px solid var(--border-subtle); color:var(--accent-soft);">Facebook</a>
                 <?php endif; ?>
                 <?php if (!empty($profile['youtube'])): ?>
-                    <a href="<?= htmlspecialchars((string)$profile['youtube'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" style="background:var(--surface-subtle); border-radius:999px; padding:4px 8px; border:1px solid var(--border-subtle); color:#ff6f60;">YouTube</a>
+                    <a href="<?= htmlspecialchars((string)$profile['youtube'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" style="background:var(--surface-subtle); border-radius:999px; padding:4px 8px; border:1px solid var(--border-subtle); color:var(--accent-soft);">YouTube</a>
                 <?php endif; ?>
                 <?php if (empty($profile['website']) && empty($profile['instagram']) && empty($profile['facebook']) && empty($profile['youtube'])): ?>
                     <span>Nenhuma rede social cadastrada ainda.</span>
@@ -436,7 +436,7 @@ $profileId = (int)($profileUser['id'] ?? 0);
             <section id="socialProfileEditSection" style="display:none; background:var(--surface-card); border-radius:16px; border:1px solid var(--border-subtle); padding:12px 14px;">
                 <form action="/perfil/salvar" method="post" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:10px; font-size:13px; color:var(--text-primary);">
                     <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
-                        <div style="width:72px; height:72px; border-radius:50%; overflow:hidden; background:radial-gradient(circle at 30% 20%, #fff 0, #ff8a65 25%, #e53935 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:700; color:#050509;">
+                        <div style="width:72px; height:72px; border-radius:50%; overflow:hidden; background:radial-gradient(circle at 30% 20%, #fff 0, <?= htmlspecialchars($_brandAccentSoft) ?> 25%, <?= htmlspecialchars($_brandAccentColor) ?> 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:700; color:<?= htmlspecialchars($_brandBtnTextColor) ?>;">
                             <?php if ($avatarPath !== ''): ?>
                                 <img src="<?= htmlspecialchars($avatarPath, ENT_QUOTES, 'UTF-8') ?>" alt="Avatar" style="width:100%; height:100%; object-fit:cover; display:block;">
                             <?php else: ?>
@@ -489,11 +489,11 @@ $profileId = (int)($profileUser['id'] ?? 0);
                             <div style="font-size:12px; color:var(--text-secondary); margin-bottom:3px;">Privacidade do perfil</div>
                             <?php $privacy = (string)($profile['profile_privacy'] ?? 'public'); ?>
                             <label style="font-size:12px; display:flex; align-items:center; gap:4px; color:var(--text-secondary); margin-bottom:2px;">
-                                <input type="radio" name="profile_privacy" value="public" <?= $privacy !== 'private' ? 'checked' : '' ?> style="accent-color:#e53935;">
+                                <input type="radio" name="profile_privacy" value="public" <?= $privacy !== 'private' ? 'checked' : '' ?> style="accent-color:<?= htmlspecialchars($_brandAccentColor) ?>;"
                                 <span>Público</span>
                             </label>
                             <label style="font-size:12px; display:flex; align-items:center; gap:4px; color:var(--text-secondary);">
-                                <input type="radio" name="profile_privacy" value="private" <?= $privacy === 'private' ? 'checked' : '' ?> style="accent-color:#e53935;">
+                                <input type="radio" name="profile_privacy" value="private" <?= $privacy === 'private' ? 'checked' : '' ?> style="accent-color:<?= htmlspecialchars($_brandAccentColor) ?>;"
                                 <span>Privado (só você vê)</span>
                             </label>
                         </div>
@@ -618,7 +618,7 @@ $profileId = (int)($profileUser['id'] ?? 0);
                     </div>
 
                     <div style="display:flex; justify-content:flex-end;">
-                        <button type="submit" style="border:none; border-radius:999px; padding:6px 12px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-size:12px; font-weight:600; cursor:pointer;">Salvar perfil</button>
+                        <button type="submit" style="border:none; border-radius:999px; padding:6px 12px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:12px; font-weight:600; cursor:pointer;">Salvar perfil</button>
                     </div>
                 </form>
             </section>
@@ -668,7 +668,7 @@ $profileId = (int)($profileUser['id'] ?? 0);
                 <form action="/perfil/scrap" method="post" style="margin-bottom:10px; display:flex; flex-direction:column; gap:6px;">
                     <input type="hidden" name="to_user_id" value="<?= (int)$profileId ?>">
                     <textarea name="body" rows="3" placeholder="Escreva um scrap carinhoso, uma dúvida ou um oi nostálgico..." style="width:100%; padding:8px 10px; border-radius:10px; border:1px solid var(--border-subtle); background:var(--surface-subtle); color:var(--text-primary); font-size:13px; resize:vertical;"></textarea>
-                    <button type="submit" style="align-self:flex-end; border:none; border-radius:999px; padding:6px 12px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-weight:600; font-size:12px; cursor:pointer;">Enviar scrap</button>
+                    <button type="submit" style="align-self:flex-end; border:none; border-radius:999px; padding:6px 12px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-weight:600; font-size:12px; cursor:pointer;">Enviar scrap</button>
                 </form>
             <?php endif; ?>
 
@@ -696,7 +696,7 @@ $profileId = (int)($profileUser['id'] ?? 0);
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; font-size:12px; color:var(--text-secondary);">
                                 <div>
                                     <strong>
-                                        <a href="/perfil?user_id=<?= (int)($s['from_user_id'] ?? 0) ?>" style="color:#ff6f60; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                                        <a href="/perfil?user_id=<?= (int)($s['from_user_id'] ?? 0) ?>" style="color:var(--accent-soft); text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
                                             <span style="width:18px; height:18px; border-radius:50%; overflow:hidden; background:var(--surface-card); border:1px solid var(--border-subtle); display:inline-flex; align-items:center; justify-content:center; flex:0 0 18px;">
                                                 <?php if ($scrapFromAvatar !== ''): ?>
                                                     <img src="<?= htmlspecialchars($scrapFromAvatar, ENT_QUOTES, 'UTF-8') ?>" alt="" style="width:100%; height:100%; object-fit:cover; display:block;">
@@ -807,7 +807,7 @@ $profileId = (int)($profileUser['id'] ?? 0);
                     <input type="hidden" name="to_user_id" value="<?= (int)$profileId ?>">
                     <textarea name="body" rows="3" placeholder="Conte algo legal sobre essa pessoa, do jeitinho que só você sabe." style="width:100%; padding:6px 8px; border-radius:8px; border:1px solid var(--border-subtle); background:var(--surface-subtle); color:var(--text-primary); font-size:12px; resize:vertical;"></textarea>
                     <label style="font-size:11px; color:var(--text-secondary); display:flex; align-items:center; gap:4px;">
-                        <input type="checkbox" name="is_public" value="1" checked style="accent-color:#e53935;">
+                        <input type="checkbox" name="is_public" value="1" checked style="accent-color:<?= htmlspecialchars($_brandAccentColor) ?>;">
                         Tornar depoimento público se a pessoa aceitar
                     </label>
                     <button type="submit" style="align-self:flex-end; border:none; border-radius:999px; padding:5px 10px; background:var(--surface-subtle); border:1px solid var(--border-subtle); color:var(--text-primary); font-size:12px; cursor:pointer;">Enviar depoimento</button>
@@ -865,7 +865,7 @@ $profileId = (int)($profileUser['id'] ?? 0);
                     <?php foreach ($communities as $c): ?>
                         <?php $communityImage = trim((string)($c['cover_image_path'] ?? $c['image_path'] ?? '')); ?>
                         <a href="/comunidades/ver?slug=<?= urlencode((string)($c['slug'] ?? '')) ?>" style="display:flex; align-items:center; gap:6px; padding:4px 6px; border-radius:8px; border:1px solid var(--border-subtle); background:var(--surface-subtle); text-decoration:none;">
-                            <div style="width:18px; height:18px; border-radius:50%; overflow:hidden; background:#e53935; flex:0 0 18px;">
+                            <div style="width:18px; height:18px; border-radius:50%; overflow:hidden; background:var(--accent); flex:0 0 18px;">
                                 <?php if ($communityImage !== ''): ?>
                                     <img src="<?= htmlspecialchars($communityImage, ENT_QUOTES, 'UTF-8') ?>" alt="Imagem da comunidade" style="width:100%; height:100%; object-fit:cover; display:block;">
                                 <?php endif; ?>

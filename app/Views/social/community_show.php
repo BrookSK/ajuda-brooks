@@ -92,16 +92,16 @@ $canModerate = !empty($canModerate);
     <section style="background:var(--surface-card); border-radius:16px; border:1px solid var(--border-subtle); padding:10px 12px;">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
             <div style="font-size:13px; color:var(--text-secondary);">
-                <a href="/comunidades" style="color:#ff6f60; text-decoration:none;">Comunidades</a>
+                <a href="/comunidades" style="color:var(--accent-soft); text-decoration:none;">Comunidades</a>
                 <span> / </span>
                 <span><?= htmlspecialchars($communityName, ENT_QUOTES, 'UTF-8') ?></span>
             </div>
-            <a href="/comunidades" style="font-size:12px; color:#ff6f60; text-decoration:none;">Voltar para lista de comunidades</a>
+            <a href="/comunidades" style="font-size:12px; color:<?= htmlspecialchars($_brandAccentSoft) ?>; text-decoration:none;">Voltar para lista de comunidades</a>
         </div>
     </section>
 
     <section style="background:var(--surface-card); border-radius:16px; border:1px solid var(--border-subtle); overflow:hidden;">
-        <div style="width:100%; height:300px; background:radial-gradient(circle at 30% 20%, #fff 0, #ff8a65 25%, #e53935 65%, #050509 100%);">
+        <div style="width:100%; height:300px; background:radial-gradient(circle at 30% 20%, #fff 0, <?= htmlspecialchars($_brandAccentSoft) ?> 25%, <?= htmlspecialchars($_brandAccentColor) ?> 65%, #050509 100%)">
             <?php if ($coverImage !== ''): ?>
                 <img src="<?= htmlspecialchars($coverImage, ENT_QUOTES, 'UTF-8') ?>" alt="Capa da comunidade" style="width:100%; height:100%; object-fit:contain; display:block;">
             <?php else: ?>
@@ -115,7 +115,7 @@ $canModerate = !empty($canModerate);
     </section>
 
     <section style="background:var(--surface-card); border-radius:16px; border:1px solid var(--border-subtle); padding:12px 14px; display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap;">
-        <div style="width:64px; height:64px; border-radius:14px; overflow:hidden; background:radial-gradient(circle at 30% 20%, #fff 0, #ff8a65 25%, #e53935 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:800; color:#050509;">
+        <div style="width:64px; height:64px; border-radius:14px; overflow:hidden; background:radial-gradient(circle at 30% 20%, #fff 0, <?= htmlspecialchars($_brandAccentSoft) ?> 25%, <?= htmlspecialchars($_brandAccentColor) ?> 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:800; color:<?= htmlspecialchars($_brandBtnTextColor) ?>;">
             <?php if ($profileImage !== ''): ?>
                 <img src="<?= htmlspecialchars($profileImage, ENT_QUOTES, 'UTF-8') ?>" alt="Imagem de perfil da comunidade" style="width:100%; height:100%; object-fit:cover; display:block;">
             <?php else: ?>
@@ -179,14 +179,14 @@ $canModerate = !empty($canModerate);
 
             <div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
                 <?php if ($canModerate): ?>
-                    <a href="/comunidades/editar?slug=<?= urlencode($slug) ?>" style="font-size:12px; color:#ff6f60; text-decoration:none;">Editar comunidade</a>
+                    <a href="/comunidades/editar?slug=<?= urlencode($slug) ?>" style="font-size:12px; color:var(--accent-soft); text-decoration:none;">Editar comunidade</a>
                 <?php endif; ?>
                 <?php if ($isMember): ?>
                     <span style="font-size:12px; color:#8bc34a;">Você é membro desta comunidade.</span>
                 <?php else: ?>
                     <form action="/comunidades/entrar" method="post" style="margin:0;">
                         <input type="hidden" name="community_id" value="<?= (int)($community['id'] ?? 0) ?>">
-                        <button type="submit" style="border:none; border-radius:999px; padding:5px 10px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-size:12px; font-weight:600; cursor:pointer;">Participar da comunidade</button>
+                        <button type="submit" style="border:none; border-radius:999px; padding:5px 10px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:12px; font-weight:600; cursor:pointer;">Participar da comunidade</button>
                     </form>
                 <?php endif; ?>
                 <a href="#topics-section" style="font-size:12px; padding:4px 9px; border-radius:999px; border:1px solid var(--border-subtle); background:var(--surface-subtle); color:var(--text-primary); text-decoration:none;">Ver fóruns/tópicos</a>
@@ -226,7 +226,7 @@ $canModerate = !empty($canModerate);
                             <!-- Título -->
                             <div>
                                 <label for="topicTitle" style="display:block; font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:6px;">
-                                    Título do Tópico <span style="color:#ff6f60;">*</span>
+                                    Título do Tópico <span style="color:var(--accent-soft);">*</span>
                                 </label>
                                 <input 
                                     id="topicTitle" 
@@ -298,7 +298,7 @@ $canModerate = !empty($canModerate);
                                 <button type="button" id="cancelCreateTopicBtn" style="padding:10px 20px; border-radius:8px; border:1px solid var(--border-subtle); background:transparent; color:var(--text-primary); font-size:14px; font-weight:600; cursor:pointer;">
                                     Cancelar
                                 </button>
-                                <button type="submit" style="padding:10px 24px; border-radius:8px; border:none; background:linear-gradient(135deg,#e53935,#ff6f60); color:#fff; font-size:14px; font-weight:600; cursor:pointer;">
+                                <button type="submit" style="padding:10px 24px; border-radius:8px; border:none; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:14px; font-weight:600; cursor:pointer;">
                                     Publicar Tópico
                                 </button>
                             </div>
@@ -405,7 +405,7 @@ $canModerate = !empty($canModerate);
                                     <p style="font-size:12px; color:var(--text-secondary); margin:0 0 12px 0;">
                                         por <?= $topicAuthor ?>
                                     </p>
-                                    <a href="/comunidades/topicos/ver?topic_id=<?= $topicId ?>" style="display:block; width:100%; padding:10px; background:linear-gradient(135deg, #ff6f60 0%, #e53935 100%); border:none; border-radius:10px; color:#fff; font-size:14px; font-weight:600; text-align:center; text-decoration:none; cursor:pointer; transition:transform 0.2s;">
+                                    <a href="/comunidades/topicos/ver?topic_id=<?= $topicId ?>" style="display:block; width:100%; padding:10px; background:<?= $_btnBg ?>; border:none; border-radius:10px; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:14px; font-weight:600; text-align:center; text-decoration:none; cursor:pointer; transition:transform 0.2s;">
                                         Ver tópico
                                     </a>
                                 </div>
@@ -449,7 +449,7 @@ $canModerate = !empty($canModerate);
                         ?>
                         <a href="/perfil?user_id=<?= $memberId ?>" style="text-decoration:none;">
                             <div style="display:flex; align-items:center; gap:8px; padding:4px 6px; border-radius:10px; border:1px solid var(--border-subtle); background:var(--surface-subtle);">
-                                <div style="width:24px; height:24px; border-radius:50%; overflow:hidden; background:radial-gradient(circle at 30% 20%, #fff 0, #ff8a65 25%, #e53935 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#050509;">
+                                <div style="width:24px; height:24px; border-radius:50%; overflow:hidden; background:radial-gradient(circle at 30% 20%, #fff 0, <?= htmlspecialchars($_brandAccentSoft) ?> 25%, <?= htmlspecialchars($_brandAccentColor) ?> 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:<?= htmlspecialchars($_brandBtnTextColor) ?>;">
                                     <?php if ($avatar !== ''): ?>
                                         <img src="<?= htmlspecialchars($avatar, ENT_QUOTES, 'UTF-8') ?>" alt="" style="width:100%; height:100%; object-fit:cover; display:block;">
                                     <?php else: ?>

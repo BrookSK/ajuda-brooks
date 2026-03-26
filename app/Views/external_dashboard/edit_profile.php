@@ -380,7 +380,7 @@ $accentColor = !empty($branding['accent_color']) ? $branding['accent_color'] : '
                     <?php if ($avatarPath !== ''): ?>
                         <img src="<?= htmlspecialchars($avatarPath, ENT_QUOTES, 'UTF-8') ?>" alt="Avatar" id="avatar-img"/>
                     <?php else: ?>
-                        <div style="width:80px; height:80px; border-radius:50%; background:radial-gradient(circle at 30% 20%, #fff 0, #ff8a65 25%, #e53935 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:700; color:#050509; border: 3px solid var(--surface-card); box-shadow: 0 2px 10px rgba(0,0,0,.12);">
+                        <div style="width:80px; height:80px; border-radius:50%; background:radial-gradient(circle at 30% 20%, #fff 0, <?= htmlspecialchars($secondaryColor) ?> 25%, <?= htmlspecialchars($primaryColor) ?> 65%, #050509 100%); display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:700; color:#050509; border: 3px solid var(--surface-card); box-shadow: 0 2px 10px rgba(0,0,0,.12);">
                             <?= htmlspecialchars($initial, ENT_QUOTES, 'UTF-8') ?>
                         </div>
                     <?php endif; ?>

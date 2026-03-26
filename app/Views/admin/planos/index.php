@@ -11,8 +11,8 @@
         <a href="/admin/planos/novo" style="
             display:inline-flex; align-items:center; gap:6px;
             border-radius:999px; padding:7px 12px;
-            background:linear-gradient(135deg,#e53935,#ff6f60);
-            color:#050509; font-size:13px; font-weight:600; text-decoration:none;">
+            background:<?= $_btnBg ?>;
+            color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:13px; font-weight:600; text-decoration:none;">
             <span>+ Novo plano</span>
         </a>
     </div>
@@ -91,7 +91,7 @@
                         </td>
                         <td style="padding:8px 10px; text-align:right; white-space:nowrap;">
                             <a href="/admin/planos/editar?id=<?= (int)$plan['id'] ?>" style="
-                                margin-right:6px; color:#ff6f60; text-decoration:none;">Editar</a>
+                                margin-right:6px; color:var(--accent-soft); text-decoration:none;">Editar</a>
                             <a href="/admin/planos/ativar?id=<?= (int)$plan['id'] ?>&v=<?= $active ? '0' : '1' ?>" style="
                                 color:#b0b0b0; text-decoration:none; font-size:12px;">
                                 <?= $active ? 'Desativar' : 'Ativar' ?>

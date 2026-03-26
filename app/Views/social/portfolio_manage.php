@@ -47,8 +47,8 @@ $editStatus = $isEditing ? (string)($editItem['status'] ?? 'draft') : 'draft';
                 <div style="font-size:12px; color:var(--text-secondary);">Crie e gerencie seus portfólios para aparecer no seu perfil.</div>
             </div>
             <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-                <a href="/perfil/portfolio" style="font-size:12px; color:#ff6f60; text-decoration:none;">Ver público</a>
-                <a href="/perfil/portfolio" style="font-size:12px; color:#ff6f60; text-decoration:none;">Voltar ao portfólio</a>
+                <a href="/perfil/portfolio" style="font-size:12px; color:var(--accent-soft); text-decoration:none;">Ver público</a>
+                <a href="/perfil/portfolio" style="font-size:12px; color:var(--accent-soft); text-decoration:none;">Voltar ao portfólio</a>
             </div>
         </div>
     </section>
@@ -79,7 +79,7 @@ $editStatus = $isEditing ? (string)($editItem['status'] ?? 'draft') : 'draft';
                     <option value="read">Leitura</option>
                     <option value="edit">Edição</option>
                 </select>
-                <button type="button" id="sendPortfolioInviteBtn" style="border:none; border-radius:999px; padding:10px 14px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-size:12px; font-weight:750; cursor:pointer;">Convidar</button>
+                <button type="button" id="sendPortfolioInviteBtn" style="border:none; border-radius:999px; padding:10px 14px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:12px; font-weight:750; cursor:pointer;">Convidar</button>
             </div>
             <div id="portfolioInviteFeedback" style="display:none; margin-top:8px; font-size:12px;"></div>
 
@@ -320,7 +320,7 @@ $editStatus = $isEditing ? (string)($editItem['status'] ?? 'draft') : 'draft';
                         </form>
                     <?php endif; ?>
                 <?php endif; ?>
-                <button type="submit" style="border:none; border-radius:999px; padding:7px 12px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-size:12px; font-weight:650; cursor:pointer;"><?= $isEditing ? 'Salvar' : 'Criar' ?></button>
+                <button type="submit" style="border:none; border-radius:999px; padding:7px 12px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:12px; font-weight:650; cursor:pointer;"><?= $isEditing ? 'Salvar' : 'Criar' ?></button>
             </div>
         </form>
     </section>
@@ -329,7 +329,7 @@ $editStatus = $isEditing ? (string)($editItem['status'] ?? 'draft') : 'draft';
         <section style="background:var(--surface-card); border-radius:16px; border:1px solid var(--border-subtle); padding:12px 14px;">
             <h2 style="font-size:16px; margin-bottom:8px;">Blocos do projeto</h2>
             <div style="font-size:12px; color:var(--text-secondary); margin-bottom:10px;">Abra o editor para montar o projeto com blocos (texto, imagem, grade, vídeo...).</div>
-            <a href="/perfil/portfolio/editor?id=<?= (int)$editItemId ?>" style="display:inline-block; border-radius:999px; padding:8px 12px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-size:12px; font-weight:800; text-decoration:none;">Abrir editor de blocos</a>
+            <a href="/perfil/portfolio/editor?id=<?= (int)$editItemId ?>" style="display:inline-block; border-radius:999px; padding:8px 12px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-size:12px; font-weight:800; text-decoration:none;">Abrir editor de blocos</a>
         </section>
     <?php endif; ?>
 </div>

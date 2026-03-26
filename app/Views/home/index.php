@@ -1,6 +1,6 @@
 <div data-tour="home-root" style="max-width: 880px; margin: 0 auto; padding: 22px 14px 34px 14px;">
     <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap: 12px; margin-bottom: 22px;">
-        <div style="display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px; border:1px solid rgba(229,57,53,0.25); background: rgba(229,57,53,0.10); color: var(--accent-soft); font-size: 12px;">
+        <div style="display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px; border:1px solid <?= _tuqRgba($_brandAccentColor, 0.25) ?>; background: <?= _tuqRgba($_brandAccentColor, 0.10) ?>; color: var(--accent-soft); font-size: 12px;">
             <span style="opacity:0.9;">✦</span>
             <span>Nova versão disponível</span>
         </div>

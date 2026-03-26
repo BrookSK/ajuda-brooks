@@ -103,7 +103,7 @@ if (!empty($breadcrumb)) {
         line-height: 1;
     }
     .notion-btn:focus {
-        outline: 2px solid rgba(229,57,53,0.35);
+        outline: 2px solid <?= $_aRgba35 ?>;
         outline-offset: 2px;
     }
     .notion-toggle-sidebar {
@@ -205,8 +205,8 @@ if (!empty($breadcrumb)) {
         justify-content: center;
     }
     .tuq-emoji-btn:hover {
-        border-color: rgba(229,57,53,0.55);
-        box-shadow: 0 0 0 2px rgba(229,57,53,0.12);
+        border-color: <?= _tuqRgba($_brandAccentColor, 0.55) ?>;
+        box-shadow: 0 0 0 2px <?= $_aRgba12 ?>;
     }
     .tuq-emoji-search {
         width: 100%;
@@ -268,11 +268,11 @@ if (!empty($breadcrumb)) {
         color: var(--text-primary);
     }
     .notion-editor-wrap ::selection {
-        background: rgba(229,57,53,0.35);
+        background: <?= $_aRgba35 ?>;
         color: #ffffff;
     }
     body[data-theme="light"] .notion-editor-wrap ::selection {
-        background: rgba(229,57,53,0.25);
+        background: <?= _tuqRgba($_brandAccentColor, 0.25) ?>;
         color: #0f172a;
     }
 
@@ -668,7 +668,7 @@ if (!empty($breadcrumb)) {
     .notion-editor-wrap .ce-inline-tool--active,
     .notion-editor-wrap .ce-toolbox__button--active,
     .notion-editor-wrap .ce-popover__item--active {
-        background: rgba(229,57,53,0.16) !important;
+        background: <?= $_aRgba16 ?> !important;
         color: var(--text-primary) !important;
     }
 
@@ -1115,7 +1115,7 @@ if (!empty($breadcrumb)) {
             <div style="display:flex; gap:8px; align-items:center; justify-content:flex-end;">
                 <button type="button" class="notion-btn notion-toggle-sidebar" id="notion-toggle-sidebar" title="Minimizar painel">❮</button>
                 <div style="position:relative;">
-                <button type="button" id="btn-new-page" style="border:none; border-radius:10px; padding:6px 10px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-weight:700; font-size:12px; cursor:pointer;">+ Nova</button>
+                <button type="button" id="btn-new-page" style="border:none; border-radius:10px; padding:6px 10px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-weight:700; font-size:12px; cursor:pointer;">+ Nova</button>
                 <div id="new-page-menu" style="
                     position:absolute;
                     right:0;
@@ -1171,8 +1171,8 @@ if (!empty($breadcrumb)) {
                         padding:8px 10px; border-radius:10px;
                         padding-left: <?= (int)$padLeft ?>px;
                         text-decoration:none;
-                        background:<?= $active ? 'rgba(229,57,53,0.14)' : 'transparent' ?>;
-                        border:1px solid <?= $active ? 'rgba(229,57,53,0.25)' : 'transparent' ?>;
+                        background:<?= $active ? _tuqRgba($_brandAccentColor, 0.14) : 'transparent' ?>;
+                        border:1px solid <?= $active ? _tuqRgba($_brandAccentColor, 0.25) : 'transparent' ?>;
                         color:var(--text-primary);
                         font-size:13px;">
                         <span style="width:20px; text-align:center; opacity:0.9;"><?= $picon !== '' ? htmlspecialchars($picon) : '📄' ?></span>
@@ -1230,8 +1230,8 @@ if (!empty($breadcrumb)) {
                         border:1px solid var(--border-subtle); border-radius:999px; padding:7px 12px;
                         background:var(--surface-subtle); color:var(--text-primary); font-size:12px; cursor:pointer;">Compartilhar</button>
                     <button type="button" id="btn-delete" style="
-                        border:1px solid rgba(229,57,53,0.35); border-radius:999px; padding:7px 12px;
-                        background:rgba(229,57,53,0.10); color:var(--accent); font-size:12px; cursor:pointer;">Excluir</button>
+                        border:1px solid <?= _tuqRgba($_brandAccentColor, 0.35) ?>; border-radius:999px; padding:7px 12px;
+                        background:<?= _tuqRgba($_brandAccentColor, 0.10) ?>; color:var(--accent); font-size:12px; cursor:pointer;">Excluir</button>
                 <?php endif; ?>
             </div>
         </div>
@@ -1277,7 +1277,7 @@ if (!empty($breadcrumb)) {
                     </div>
                     <button type="button" id="btn-share-add" style="
                         border:none; border-radius:10px; padding:9px 14px;
-                        background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-weight:700; font-size:12px; cursor:pointer;">Adicionar</button>
+                        background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-weight:700; font-size:12px; cursor:pointer;">Adicionar</button>
                 </div>
 
                 <div style="margin-top:10px;">
@@ -1884,7 +1884,7 @@ if (!empty($breadcrumb)) {
                 a.style.cssText = 'display:flex; align-items:center; gap:10px; width:100%; padding:12px 12px; border-radius:12px; border:1px solid var(--border-subtle); background: var(--surface-subtle); color: var(--text-primary); text-decoration:none;';
 
                 var iconBox = document.createElement('div');
-                iconBox.style.cssText = 'width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:rgba(229,57,53,0.10); border:1px solid rgba(229,57,53,0.20);';
+                iconBox.style.cssText = 'width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:' + <?= json_encode(_tuqRgba($_brandAccentColor, 0.10)) ?> + '; border:1px solid ' + <?= json_encode(_tuqRgba($_brandAccentColor, 0.20)) ?> + ';';
                 iconBox.innerHTML = '<span style="font-size:16px;">' + esc(icon) + '</span>';
 
                 var text = document.createElement('div');

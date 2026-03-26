@@ -16,13 +16,13 @@
     <div style="background:#111118; border-radius:14px; padding:14px; border:1px solid #272727; display:flex; flex-direction:column; gap:10px;">
         <div>
             <strong style="font-size:14px;">WhatsApp</strong><br>
-            <a href="https://wa.me/<?= htmlspecialchars($supportWhatsapp, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" style="color:#ff6f60; text-decoration:none; font-size:14px;">
+            <a href="https://wa.me/<?= htmlspecialchars($supportWhatsapp, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" style="color:var(--accent-soft); text-decoration:none; font-size:14px;">
                 <?= htmlspecialchars($whatsLabel, ENT_QUOTES, 'UTF-8') ?>
             </a>
         </div>
         <div>
             <strong style="font-size:14px;">E-mail</strong><br>
-            <a href="mailto:<?= htmlspecialchars($supportEmail, ENT_QUOTES, 'UTF-8') ?>" style="color:#ff6f60; text-decoration:none; font-size:14px;">
+            <a href="mailto:<?= htmlspecialchars($supportEmail, ENT_QUOTES, 'UTF-8') ?>" style="color:var(--accent-soft); text-decoration:none; font-size:14px;">
                 <?= htmlspecialchars($supportEmail, ENT_QUOTES, 'UTF-8') ?>
             </a>
         </div>

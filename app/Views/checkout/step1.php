@@ -46,7 +46,7 @@ $prefillState = $savedCustomer['state'] ?? ($currentUser['billing_state'] ?? '')
     </p>
 
     <?php if (!empty($error)): ?>
-        <div style="background: #3b1a1a; border-radius: 10px; padding: 10px 12px; color: #ffb3b3; font-size: 13px; margin-bottom: 14px; border: 1px solid #ff6f60;">
+        <div style="background: #3b1a1a; border-radius: 10px; padding: 10px 12px; color: #ffb3b3; font-size: 13px; margin-bottom: 14px; border: 1px solid var(--accent-soft);">
             <?= htmlspecialchars($error) ?>
         </div>
     <?php endif; ?>
@@ -114,8 +114,8 @@ $prefillState = $savedCustomer['state'] ?? ($currentUser['billing_state'] ?? '')
                 border: none;
                 border-radius: 999px;
                 padding: 10px 20px;
-                background: linear-gradient(135deg, #e53935, #ff6f60);
-                color: #050509;
+                background: <?= $_btnBg ?>;
+                color: <?= htmlspecialchars($_brandBtnTextColor) ?>;
                 font-weight: 600;
                 font-size: 14px;
                 cursor: pointer;

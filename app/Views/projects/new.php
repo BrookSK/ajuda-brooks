@@ -20,7 +20,7 @@
 
         <div style="display:flex; justify-content:flex-end; gap:10px;">
             <a href="/projetos" style="border:1px solid var(--border-subtle); border-radius:999px; padding:9px 14px; background:var(--surface-card); color:var(--text-primary); font-weight:600; font-size:13px; text-decoration:none;">Cancelar</a>
-            <button type="submit" style="border:none; border-radius:999px; padding:9px 14px; background:linear-gradient(135deg,#e53935,#ff6f60); color:#050509; font-weight:600; font-size:13px; cursor:pointer;">Criar projeto</button>
+            <button type="submit" style="border:none; border-radius:999px; padding:9px 14px; background:<?= $_btnBg ?>; color:<?= htmlspecialchars($_brandBtnTextColor) ?>; font-weight:600; font-size:13px; cursor:pointer;">Criar projeto</button>
         </div>
     </form>
 </div>

@@ -65,6 +65,7 @@ $_aRgba15 = _tuqRgba($_brandAccentColor, 0.15);
 $_aRgba16 = _tuqRgba($_brandAccentColor, 0.16);
 $_aRgba18 = _tuqRgba($_brandAccentColor, 0.18);
 $_aRgba22 = _tuqRgba($_brandAccentColor, 0.22);
+$_aRgba28 = _tuqRgba($_brandAccentColor, 0.28);
 $_aRgba35 = _tuqRgba($_brandAccentColor, 0.35);
 $_aRgba45 = _tuqRgba($_brandAccentColor, 0.45);
 $_aRgba80 = _tuqRgba($_brandAccentColor, 0.80);

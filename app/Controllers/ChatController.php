@@ -2029,9 +2029,12 @@ class ChatController extends Controller
                     // Dispara processamento assíncrono (fire-and-forget)
                     if ($jobId > 0) {
                         $cronToken = trim((string)Setting::get('news_cron_token', ''));
-                        $appUrl    = rtrim((string)Setting::get('app_public_url', ''), '/');
-                        if ($cronToken !== '' && $appUrl !== '') {
-                            $cronUrl = $appUrl . '/cron/learning/process?token=' . urlencode($cronToken) . '&batch=3';
+                        if ($cronToken !== '') {
+                            // Usa o host atual do request para garantir que o cron bata no servidor correto,
+                            // independente do valor de app_public_url.
+                            $scheme  = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                            $host    = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
+                            $cronUrl = $scheme . '://' . $host . '/cron/learning/process?token=' . urlencode($cronToken) . '&batch=3';
                             @\App\Services\AsyncHttpService::fireAndForget($cronUrl);
                         }
                     }

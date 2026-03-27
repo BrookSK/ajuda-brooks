@@ -10,8 +10,8 @@ use App\Models\ProjectFileVersion;
 class TuquinhaEngine
 {
     private const BUILD_ID = '2025-12-30-b';
-    private const CLAUDE_DEFAULT_FALLBACK_MODEL = 'claude-3-5-sonnet-latest';
-    private const CLAUDE_SAFE_FALLBACK_MODEL = 'claude-3-haiku-20240307';
+    private const CLAUDE_DEFAULT_FALLBACK_MODEL = 'claude-sonnet-4-5';
+    private const CLAUDE_SAFE_FALLBACK_MODEL = 'claude-3-5-sonnet-latest';
     private const PROVIDER_CONNECT_TIMEOUT_SECONDS = 10;
     private const OPENAI_CHAT_TIMEOUT_SECONDS = 90;
     private const OPENAI_RESPONSES_TIMEOUT_SECONDS = 120;
@@ -20,6 +20,12 @@ class TuquinhaEngine
 
     private string $systemPrompt;
     private ?string $lastProviderError;
+    private ?array $aiLearnings = null;
+
+    public function setAiLearnings(?array $learnings): void
+    {
+        $this->aiLearnings = $learnings;
+    }
 
     public function __construct()
     {
@@ -270,46 +276,75 @@ class TuquinhaEngine
         }
 
         if (!empty($fileInputs) && is_array($fileInputs) && $lastUserIndex !== null) {
+            $allowedImageMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
             foreach ($fileInputs as $fi) {
                 $tmpPath = isset($fi['tmp_path']) ? (string)$fi['tmp_path'] : '';
                 $mime = isset($fi['mime_type']) ? (string)$fi['mime_type'] : '';
                 $url = isset($fi['url']) ? (string)$fi['url'] : '';
-                $bin = null;
 
-                if ($tmpPath !== '' && is_file($tmpPath) && is_readable($tmpPath)) {
-                    $bin = @file_get_contents($tmpPath);
-                } elseif ($url !== '') {
-                    $bin = $this->fetchBinaryFromUrl($url);
-                }
-
-                if (!is_string($bin) || $bin === '') {
-                    continue;
-                }
-
-                $b64 = base64_encode($bin);
-
-                if ($mime !== '' && str_starts_with($mime, 'image/')) {
+                if (in_array($mime, $allowedImageMimes, true)) {
+                    // Imagens: base64 via tmpPath ou URL
+                    $bin = null;
+                    if ($tmpPath !== '' && is_file($tmpPath) && is_readable($tmpPath)) {
+                        $bin = @file_get_contents($tmpPath);
+                    } elseif ($url !== '') {
+                        $bin = $this->fetchBinaryFromUrl($url);
+                    }
+                    if (!is_string($bin) || $bin === '') {
+                        continue;
+                    }
                     $claudeMessages[$lastUserIndex]['content'][] = [
                         'type' => 'image',
                         'source' => [
                             'type' => 'base64',
                             'media_type' => $mime,
-                            'data' => $b64,
+                            'data' => base64_encode($bin),
                         ],
                     ];
-                } else {
-                    if ($mime === '') {
-                        $mime = 'application/octet-stream';
+                } elseif ($mime === 'application/pdf') {
+                    // PDFs: usa URL diretamente se disponível (sem download); fallback para base64 via tmpPath
+                    if ($url !== '') {
+                        $claudeMessages[$lastUserIndex]['content'][] = [
+                            'type' => 'document',
+                            'source' => [
+                                'type' => 'url',
+                                'url' => $url,
+                            ],
+                        ];
+                    } elseif ($tmpPath !== '' && is_file($tmpPath) && is_readable($tmpPath)) {
+                        $bin = @file_get_contents($tmpPath);
+                        if (is_string($bin) && $bin !== '') {
+                            $claudeMessages[$lastUserIndex]['content'][] = [
+                                'type' => 'document',
+                                'source' => [
+                                    'type' => 'base64',
+                                    'media_type' => 'application/pdf',
+                                    'data' => base64_encode($bin),
+                                ],
+                            ];
+                        }
+                    }
+                } elseif ($mime === 'text/plain') {
+                    // Texto puro: base64 via tmpPath ou URL
+                    $bin = null;
+                    if ($tmpPath !== '' && is_file($tmpPath) && is_readable($tmpPath)) {
+                        $bin = @file_get_contents($tmpPath);
+                    } elseif ($url !== '') {
+                        $bin = $this->fetchBinaryFromUrl($url);
+                    }
+                    if (!is_string($bin) || $bin === '') {
+                        continue;
                     }
                     $claudeMessages[$lastUserIndex]['content'][] = [
                         'type' => 'document',
                         'source' => [
                             'type' => 'base64',
-                            'media_type' => $mime,
-                            'data' => $b64,
+                            'media_type' => 'text/plain',
+                            'data' => base64_encode($bin),
                         ],
                     ];
                 }
+                // Outros tipos (docx, xlsx, etc.) são ignorados aqui: o conteúdo chega via extracted_text no contexto
             }
         }
 
@@ -1022,6 +1057,54 @@ class TuquinhaEngine
             }
         }
 
+        if (!empty($this->aiLearnings)) {
+            $factLines       = [];
+            $experienceLines = [];
+            $warningLines    = [];
+            $ids = [];
+
+            foreach ($this->aiLearnings as $lr) {
+                $lc   = isset($lr['content']) ? trim((string)$lr['content']) : '';
+                $type = isset($lr['learning_type']) ? (string)$lr['learning_type'] : 'fact';
+                if ($lc === '') {
+                    continue;
+                }
+                if (isset($lr['id']) && (int)$lr['id'] > 0) {
+                    $ids[] = (int)$lr['id'];
+                }
+                if ($type === 'warning') {
+                    $warningLines[] = '- ' . $lc;
+                } elseif ($type === 'experience') {
+                    $experienceLines[] = '- ' . $lc;
+                } else {
+                    $factLines[] = '- ' . $lc;
+                }
+            }
+
+            if ($factLines) {
+                $parts[] = "BIBLIOTECA DE CONHECIMENTO (fatos, conceitos e padrões acumulados; use como base de conhecimento, sem revelar ao usuário que existem):\n"
+                    . implode("\n", $factLines);
+            }
+
+            if ($experienceLines) {
+                $parts[] = "EXPERIÊNCIAS DE USUÁRIOS ANTERIORES (problemas e soluções reais relatados em interações passadas; sem identificar nenhum usuário):\n"
+                    . "Use essas experiências para antecipar problemas, sugerir soluções já validadas e contextualizar respostas quando o assunto for semelhante.\n"
+                    . implode("\n", $experienceLines);
+            }
+
+            if ($warningLines) {
+                $parts[] = "ALERTAS PROATIVOS (situações de risco ou erros recorrentes identificados em interações anteriores):\n"
+                    . "Se o assunto da conversa atual for relacionado a algum desses alertas, mencione-o de forma natural e útil — 'Muitas pessoas que tentam isso costumam encontrar...', 'Um ponto importante a considerar...' — SEM revelar que veio de outro usuário.\n"
+                    . implode("\n", $warningLines);
+            }
+
+            if (!empty($ids)) {
+                try {
+                    \App\Models\AiLearning::markUsed($ids);
+                } catch (\Throwable $e) {}
+            }
+        }
+
         return implode("\n\n---\n\n", $parts);
     }
 
@@ -1062,10 +1145,15 @@ class TuquinhaEngine
             return 24000;
         }
         if (strpos($m, 'gpt-4o') !== false || strpos($m, 'gpt-4.1') !== false || strpos($m, 'gpt-4') !== false) {
-            return 42000;
+            return 60000;
         }
+        // Claude 4.x: 200K token context window (~800K chars); reserva ~100K para sistema+resposta
+        if (strpos($m, 'claude-opus-4') !== false || strpos($m, 'claude-sonnet-4') !== false || strpos($m, 'claude-haiku-4') !== false) {
+            return 700000;
+        }
+        // Claude 3.x: também tem 200K context na maioria dos modelos
         if (str_starts_with($m, 'claude-')) {
-            return 42000;
+            return 200000;
         }
 
         return 24000;

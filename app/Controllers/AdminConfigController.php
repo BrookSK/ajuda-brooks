@@ -40,6 +40,11 @@ class AdminConfigController extends Controller
         $transcriptionModel = Setting::get('openai_transcription_model', 'whisper-1');
         $systemPrompt = Setting::get('tuquinha_system_prompt', TuquinhaEngine::getDefaultPrompt());
         $systemPromptExtra = Setting::get('tuquinha_system_prompt_extra', '');
+        $aiLearningPrompt = Setting::get('ai_learning_prompt', '');
+        $aiLearningMaxCount = (int)Setting::get('ai_learning_max_count', '200');
+        if ($aiLearningMaxCount < 10) {
+            $aiLearningMaxCount = 10;
+        }
         $historyRetentionDays = (int)Setting::get('chat_history_retention_days', '90');
         if ($historyRetentionDays <= 0) {
             $historyRetentionDays = 90;
@@ -164,6 +169,14 @@ class AdminConfigController extends Controller
         $transcriptionModel = trim($_POST['transcription_model'] ?? '');
         $systemPrompt = trim($_POST['system_prompt'] ?? '');
         $systemPromptExtra = trim($_POST['system_prompt_extra'] ?? '');
+        $aiLearningPrompt = trim($_POST['ai_learning_prompt'] ?? '');
+        $aiLearningMaxCount = (int)($_POST['ai_learning_max_count'] ?? 200);
+        if ($aiLearningMaxCount < 10) {
+            $aiLearningMaxCount = 10;
+        }
+        if ($aiLearningMaxCount > 2000) {
+            $aiLearningMaxCount = 2000;
+        }
         $historyRetentionDays = (int)($_POST['history_retention_days'] ?? 90);
         if ($historyRetentionDays <= 0) {
             $historyRetentionDays = 90;
@@ -280,6 +293,8 @@ class AdminConfigController extends Controller
             'openai_transcription_model' => $transcriptionModel !== '' ? $transcriptionModel : 'whisper-1',
             'tuquinha_system_prompt' => $systemPrompt !== '' ? $systemPrompt : TuquinhaEngine::getDefaultPrompt(),
             'tuquinha_system_prompt_extra' => $systemPromptExtra,
+            'ai_learning_prompt' => $aiLearningPrompt,
+            'ai_learning_max_count' => (string)$aiLearningMaxCount,
             'chat_history_retention_days' => (string)$historyRetentionDays,
             'free_memory_global_chars' => (string)$freeGlobalLimit,
             'free_memory_chat_chars' => (string)$freeChatLimit,
@@ -342,6 +357,8 @@ class AdminConfigController extends Controller
             'transcriptionModel' => $settingsToSave['openai_transcription_model'],
             'systemPrompt' => $settingsToSave['tuquinha_system_prompt'],
             'systemPromptExtra' => $settingsToSave['tuquinha_system_prompt_extra'],
+            'aiLearningPrompt' => $aiLearningPrompt,
+            'aiLearningMaxCount' => $aiLearningMaxCount,
             'historyRetentionDays' => $historyRetentionDays,
             'freeGlobalLimit' => $freeGlobalLimit,
             'freeChatLimit' => $freeChatLimit,
@@ -395,6 +412,11 @@ class AdminConfigController extends Controller
         $transcriptionModel = Setting::get('openai_transcription_model', 'whisper-1');
         $systemPrompt = Setting::get('tuquinha_system_prompt', TuquinhaEngine::getDefaultPrompt());
         $systemPromptExtra = Setting::get('tuquinha_system_prompt_extra', '');
+        $aiLearningPrompt = Setting::get('ai_learning_prompt', '');
+        $aiLearningMaxCount = (int)Setting::get('ai_learning_max_count', '200');
+        if ($aiLearningMaxCount < 10) {
+            $aiLearningMaxCount = 10;
+        }
         $historyRetentionDays = (int)Setting::get('chat_history_retention_days', '90');
         if ($historyRetentionDays <= 0) {
             $historyRetentionDays = 90;
@@ -473,6 +495,8 @@ class AdminConfigController extends Controller
             'transcriptionModel' => $transcriptionModel,
             'systemPrompt' => $systemPrompt,
             'systemPromptExtra' => $systemPromptExtra,
+            'aiLearningPrompt' => $aiLearningPrompt,
+            'aiLearningMaxCount' => $aiLearningMaxCount,
             'historyRetentionDays' => $historyRetentionDays,
             'freeGlobalLimit' => $freeGlobalLimit,
             'freeChatLimit' => $freeChatLimit,

@@ -20,6 +20,9 @@ use App\Models\ProjectFileVersion;
 use App\Models\Project;
 use App\Models\ProjectMemoryItem;
 use App\Models\ChatJob;
+use App\Models\AiLearning;
+use App\Models\AiPromptSuggestion;
+use App\Models\LearningJob;
 
 class ChatController extends Controller
 {
@@ -1354,6 +1357,10 @@ class ChatController extends Controller
                     }
                 }
 
+                $baseFileTextBudgetUsed = 0;
+                $baseFileTextBudgetMax = 600000;
+                $baseFileMaxCharsPerFile = 20000;
+                $autoPdfFileInputsForModel = [];
                 foreach ($baseFiles as $bf) {
                     $fid = (int)($bf['id'] ?? 0);
                     $ver = $latestByFileId[$fid] ?? null;
@@ -1363,10 +1370,32 @@ class ChatController extends Controller
                         continue;
                     }
                     $projectContextFilesUsed[] = $path;
+                    $label = trim($displayName) !== '' ? $displayName : $path;
                     $url = is_array($ver) ? (string)($ver['storage_url'] ?? '') : '';
-                    if ($url !== '') {
-                        $label = trim($displayName) !== '' ? $displayName : $path;
-                        $parts[] = "ARQUIVO BASE DO PROJETO: {$label}\nURL: {$url}";
+                    $extractedText = is_array($ver) ? trim((string)($ver['extracted_text'] ?? '')) : '';
+
+                    if ($extractedText !== '' && $baseFileTextBudgetUsed < $baseFileTextBudgetMax) {
+                        $remaining = $baseFileTextBudgetMax - $baseFileTextBudgetUsed;
+                        $limit = min($baseFileMaxCharsPerFile, $remaining);
+                        if (mb_strlen($extractedText, 'UTF-8') > $limit) {
+                            $extractedText = mb_substr($extractedText, 0, $limit, 'UTF-8') . "\n[...truncado...]";
+                        }
+                        $baseFileTextBudgetUsed += mb_strlen($extractedText, 'UTF-8');
+                        $parts[] = "CONTEÚDO DO ARQUIVO BASE: {$label}\n\n" . $extractedText;
+                    } elseif ($url !== '') {
+                        $mime = trim((string)($bf['mime_type'] ?? ''));
+                        if ($mime === 'application/pdf') {
+                            $autoPdfFileInputsForModel[] = [
+                                'project_file_version_id' => is_array($ver) ? (int)($ver['id'] ?? 0) : 0,
+                                'openai_file_id' => '',
+                                'name' => $label,
+                                'mime_type' => 'application/pdf',
+                                'url' => $url,
+                            ];
+                            $parts[] = "ARQUIVO BASE DO PROJETO (PDF — anexado para análise direta): {$label}";
+                        } else {
+                            $parts[] = "ARQUIVO BASE DO PROJETO: {$label}\nURL: {$url}";
+                        }
                     }
                 }
 
@@ -1807,17 +1836,28 @@ class ChatController extends Controller
 
             $engine = new TuquinhaEngine();
             $historyForEngine = $history;
-            if (is_string($attachmentsMessage) && $attachmentsMessage !== '') {
-                array_unshift($historyForEngine, [
-                    'role' => 'user',
-                    'content' => $attachmentsMessage,
-                ]);
-            }
-            if (is_string($projectContextMessage) && $projectContextMessage !== '') {
-                array_unshift($historyForEngine, [
-                    'role' => 'user',
-                    'content' => $projectContextMessage,
-                ]);
+
+            // Injeta contexto do projeto e anexos concatenando no último user message (não array_unshift).
+            // Isso protege o contexto do projeto do trim de histórico, que remove do início do array.
+            $lastHistIdx = count($historyForEngine) - 1;
+            if ($lastHistIdx >= 0 && ($historyForEngine[$lastHistIdx]['role'] ?? '') === 'user') {
+                $ctxPrefix = '';
+                if (is_string($projectContextMessage) && $projectContextMessage !== '') {
+                    $ctxPrefix .= $projectContextMessage . "\n\n";
+                }
+                if (is_string($attachmentsMessage) && $attachmentsMessage !== '') {
+                    $ctxPrefix .= $attachmentsMessage . "\n\n";
+                }
+                if ($ctxPrefix !== '') {
+                    $historyForEngine[$lastHistIdx]['content'] = $ctxPrefix . $historyForEngine[$lastHistIdx]['content'];
+                }
+            } else {
+                if (is_string($attachmentsMessage) && $attachmentsMessage !== '') {
+                    array_unshift($historyForEngine, ['role' => 'user', 'content' => $attachmentsMessage]);
+                }
+                if (is_string($projectContextMessage) && $projectContextMessage !== '') {
+                    array_unshift($historyForEngine, ['role' => 'user', 'content' => $projectContextMessage]);
+                }
             }
 
             $existingAttachments = Attachment::allByConversation((int)$conversation->id);
@@ -1858,6 +1898,17 @@ class ChatController extends Controller
             if (!empty($persistentProjectInputsByVersionId)) {
                 $persistentFileInputs = array_merge($persistentFileInputs, array_values($persistentProjectInputsByVersionId));
             }
+            // Adiciona PDFs base sem extracted_text (auto-anexados), evitando duplicatas já cobertas por menção explícita
+            if (!empty($autoPdfFileInputsForModel)) {
+                $alreadyCoveredVids = array_keys($persistentProjectInputsByVersionId);
+                foreach ($autoPdfFileInputsForModel as $afi) {
+                    $vid = isset($afi['project_file_version_id']) ? (int)$afi['project_file_version_id'] : 0;
+                    if ($vid > 0 && in_array($vid, $alreadyCoveredVids, true)) {
+                        continue;
+                    }
+                    $persistentFileInputs[] = $afi;
+                }
+            }
 
             $hasPdf = false;
             foreach ($persistentFileInputs as $fi) {
@@ -1892,6 +1943,19 @@ class ChatController extends Controller
                             . "PEDIDO ORIGINAL DO USUÁRIO (para intenção):\n" . (string)$message;
                         break;
                     }
+                }
+            }
+
+            // Injeta aprendizados relevantes para a mensagem atual (recuperação semântica por categoria/keywords)
+            if ((string)Setting::get('ai_learning_enabled', '1') !== '0') {
+                try {
+                    $learningPersonaIdForLoad = $personaData ? (int)($personaData['id'] ?? 0) : null;
+                    $engineLearnings = AiLearning::allRelevantForMessage((string)$message, $learningPersonaIdForLoad);
+                    if (!empty($engineLearnings)) {
+                        $engine->setAiLearnings($engineLearnings);
+                    }
+                } catch (\Throwable $le) {
+                    error_log('[AiLearning] Carga falhou: ' . $le->getMessage());
                 }
             }
 
@@ -1938,6 +2002,37 @@ class ChatController extends Controller
                     'conversation_id' => $conversation->id,
                     'plan_slug' => $planForContext['slug'] ?? null,
                 ]);
+            }
+
+            // I1 — Extração assíncrona: enfileira job em vez de chamar Claude inline
+            if (
+                (string)Setting::get('ai_learning_enabled', '1') !== '0'
+                && $assistantReply !== ''
+                && mb_strlen($assistantReply, 'UTF-8') >= 120
+                && mb_strlen((string)$message, 'UTF-8') >= 20
+            ) {
+                try {
+                    $learningPersonaId = $personaData ? (int)($personaData['id'] ?? 0) : 0;
+                    $jobId = LearningJob::enqueue(
+                        (int)$conversation->id,
+                        (string)$message,
+                        $assistantReply,
+                        $learningPersonaId > 0 ? $learningPersonaId : null,
+                        $_SESSION['chat_model'] ?? null
+                    );
+
+                    // Dispara processamento assíncrono (fire-and-forget)
+                    if ($jobId > 0) {
+                        $cronToken = trim((string)Setting::get('news_cron_token', ''));
+                        $appUrl    = rtrim((string)Setting::get('app_public_url', ''), '/');
+                        if ($cronToken !== '' && $appUrl !== '') {
+                            $cronUrl = $appUrl . '/cron/learning/process?token=' . urlencode($cronToken) . '&batch=3';
+                            @\App\Services\AsyncHttpService::fireAndForget($cronUrl);
+                        }
+                    }
+                } catch (\Throwable $le) {
+                    error_log('[LearningJob] Enqueue falhou: ' . $le->getMessage());
+                }
             }
 
             if ($isAjax) {

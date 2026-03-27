@@ -1258,6 +1258,34 @@ if (!empty($_SESSION['user_id'])) {
                         <span class="icon" aria-hidden="true"><?php echo $renderMenuIcon('admin_personalities', '🎭'); ?></span>
                         <span>Personalidades do <?= htmlspecialchars($_brandAiName) ?></span>
                     </a>
+                    <a href="/admin/ia-logs" class="sidebar-button<?= $isActiveNav('/admin/ia-logs') ? ' sidebar-button--active' : '' ?>" style="margin-top: 6px;">
+                        <span class="icon" aria-hidden="true">📡</span>
+                        <span>Logs de Aprendizado<?php
+                            try {
+                                $pdo = \App\Core\Database::getConnection();
+                                $s = $pdo->query("SELECT COUNT(*) FROM ai_learnings WHERE deleted_at IS NULL AND created_at >= NOW() - INTERVAL 1 HOUR");
+                                $recent = $s ? (int)$s->fetchColumn() : 0;
+                                if ($recent > 0) {
+                                    echo ' <span style="background:#818cf8;color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;">' . $recent . '</span>';
+                                }
+                            } catch (\Throwable $e) {}
+                        ?></span>
+                    </a>
+                    <a href="/admin/ia-aprendizados" class="sidebar-button<?= $isActiveNav('/admin/ia-aprendizados') ? ' sidebar-button--active' : '' ?>" style="margin-top: 6px;">
+                        <span class="icon" aria-hidden="true">🧠</span>
+                        <span>Aprendizados da IA</span>
+                    </a>
+                    <a href="/admin/ia-sugestoes-prompt" class="sidebar-button<?= $isActiveNav('/admin/ia-sugestoes-prompt') ? ' sidebar-button--active' : '' ?>" style="margin-top: 6px;">
+                        <span class="icon" aria-hidden="true">💡</span>
+                        <span>Sugestões de Prompt<?php
+                            try {
+                                $pendingSuggCount = \App\Models\AiPromptSuggestion::countPending();
+                                if ($pendingSuggCount > 0) {
+                                    echo ' <span style="background:#fbbf24;color:#000;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;">' . $pendingSuggCount . '</span>';
+                                }
+                            } catch (\Throwable $e) {}
+                        ?></span>
+                    </a>
                     <a href="/admin/usuarios" class="sidebar-button" style="margin-top: 6px;">
                         <span class="icon" aria-hidden="true"><?php echo $renderMenuIcon('admin_users', '👥'); ?></span>
                         <span>Usuários</span>

@@ -48,6 +48,8 @@ $knownModels = [
     'gpt-4o-mini',
     'gpt-4o',
     'gpt-4.1',
+    'claude-opus-4-6',
+    'claude-sonnet-4-5',
     'claude-3-5-sonnet-latest',
     'claude-3-haiku-20240307',
 ];
@@ -90,7 +92,7 @@ $knownModels = [
                 width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #272727;
                 background: #050509; color: #f5f5f5; font-size: 13px;
             " placeholder="sk-ant-...">
-            <small style="color:#777; font-size:11px;">Opcional. Necessária apenas se você quiser liberar modelos Claude (claude-3-*) nos planos e no chat.</small>
+            <small style="color:#777; font-size:11px;">Opcional. Necessária apenas se você quiser liberar modelos Claude (claude-opus-4-6, claude-sonnet-4-5, claude-3-5-sonnet-latest etc.) nos planos e no chat.</small>
         </div>
 
         <div style="margin-top: 8px; padding:10px 12px; border-radius:10px; border:1px solid #272727; background:#0a0a10;">
@@ -382,6 +384,37 @@ $knownModels = [
                 background: #050509; color: #f5f5f5; font-size: 13px; resize: vertical;
             "><?= htmlspecialchars($systemPromptExtra) ?></textarea>
             <small style="color:#777; font-size:11px;">Use este campo para complementar o comportamento base, por exemplo com regras específicas para certos tipos de projeto, limites ou orientações internas.</small>
+        </div>
+
+        <div style="padding:14px; border-radius:10px; border:1px solid #1e2a1e; background:#07100a;">
+            <div style="font-size:13px; color:#4ade80; font-weight:600; margin-bottom:10px;">🧠 Aprendizado Contínuo da IA</div>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <div>
+                    <label style="font-size: 12px; color: #b0b0b0;">Foco do aprendizado (instrui a IA sobre o que deve aprender e guardar)</label>
+                    <textarea name="ai_learning_prompt" rows="5" style="
+                        width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #1e2a1e;
+                        background: #050509; color: #f5f5f5; font-size: 13px; resize: vertical;
+                    "><?= htmlspecialchars($aiLearningPrompt ?? '') ?></textarea>
+                    <small style="color:#777; font-size:11px;">
+                        Deixe vazio para usar o padrão genérico. Exemplo para uma plataforma de costura:<br>
+                        <em>"Aprenda marcas de linhas, tecidos, máquinas e técnicas de costura mencionadas pelos usuários. Registre preferências de materiais e estilos de resposta que geraram satisfação."</em><br>
+                        Os aprendizados são <strong>compartilhados entre todos os usuários</strong> — informações de um usuário podem beneficiar outros.
+                    </small>
+                </div>
+                <div style="display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap;">
+                    <div style="flex:0 0 180px;">
+                        <label style="font-size: 12px; color: #b0b0b0;">Limite máximo de aprendizados ativos</label>
+                        <input name="ai_learning_max_count" type="number" min="10" max="2000" value="<?= (int)($aiLearningMaxCount ?? 200) ?>" style="
+                            width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #1e2a1e;
+                            background: #050509; color: #f5f5f5; font-size: 13px;
+                        ">
+                        <small style="color:#777; font-size:11px;">Quando ultrapassar esse número, os menos usados e mais antigos são removidos automaticamente. Padrão: 200.</small>
+                    </div>
+                    <div style="flex:1; padding-top:20px;">
+                        <a href="/admin/ia-aprendizados" style="color:#4ade80; font-size:12px;">Ver aprendizados acumulados →</a>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div>

@@ -38,6 +38,9 @@ class CronLearningController extends Controller
             return;
         }
 
+        // Sem limite de tempo: o processo roda em background e pode demorar com Claude
+        @set_time_limit(0);
+
         LearningJob::resetStuck(15);
 
         $batchSize = max(1, min(20, (int)($_GET['batch'] ?? 5)));
@@ -55,6 +58,9 @@ class CronLearningController extends Controller
         $processed     = 0;
         $savedTotal    = 0;
 
+        // Modelo rápido para extração — não usa o modelo do chat (pode ser Claude 4.x lento)
+        $extractionModel = 'claude-3-5-sonnet-latest';
+
         foreach ($jobs as $job) {
             $jobId = (int)($job['id'] ?? 0);
             if ($jobId <= 0) {
@@ -66,7 +72,6 @@ class CronLearningController extends Controller
             try {
                 $conversationId = (int)($job['conversation_id'] ?? 0);
                 $personaId      = (int)($job['persona_id'] ?? 0);
-                $model          = (string)($job['model'] ?? '');
                 $userMsg        = (string)($job['user_message'] ?? '');
                 $assistantReply = (string)($job['assistant_reply'] ?? '');
 
@@ -95,7 +100,7 @@ class CronLearningController extends Controller
                 $engine  = new TuquinhaEngine();
                 $result  = $engine->generateResponseWithContext(
                     [['role' => 'user', 'content' => $instruction]],
-                    $model !== '' ? $model : null,
+                    $extractionModel,
                     null, null, null, null
                 );
                 $text = is_array($result)

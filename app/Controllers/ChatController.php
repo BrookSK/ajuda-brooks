@@ -1236,6 +1236,11 @@ class ChatController extends Controller
                         'total_tokens_used' => 0,
                     ]);
 
+                    // Libera o lock de sessão para que os requests de polling não fiquem bloqueados
+                    @session_write_close();
+                    // Permite que o processo background rode sem limite de tempo do PHP
+                    @set_time_limit(0);
+
                     if (function_exists('fastcgi_finish_request')) {
                         @fastcgi_finish_request();
                     } else {

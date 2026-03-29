@@ -6,6 +6,7 @@ use App\Core\Controller;
 use App\Models\Personality;
 use App\Models\Plan;
 use App\Models\Setting;
+use App\Services\MediaStorageService;
 
 class AdminPersonalityController extends Controller
 {
@@ -164,8 +165,13 @@ class AdminPersonalityController extends Controller
                     exit;
                 }
 
-                // Caminho web para uso nos cards de personalidade
-                $imagePath = '/public/uploads/personalities/' . $fileName;
+                // Tenta enviar para storage remoto; se configurado, usa a URL remota
+                $remoteUrl = MediaStorageService::uploadFile($targetPath, $fileName, $type);
+                if ($remoteUrl !== null) {
+                    $imagePath = $remoteUrl;
+                } else {
+                    $imagePath = '/public/uploads/personalities/' . $fileName;
+                }
             }
         }
 

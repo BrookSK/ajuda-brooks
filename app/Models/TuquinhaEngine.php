@@ -322,7 +322,7 @@ class TuquinhaEngine
                         $pdfTmpFile  = tempnam(sys_get_temp_dir(), 'tuq_pdf_') . '.pdf';
                         $pdfTxtFile  = tempnam(sys_get_temp_dir(), 'tuq_ptxt_');
                         if (@file_put_contents($pdfTmpFile, $pdfBin) !== false) {
-                            @shell_exec('pdftotext -layout ' . escapeshellarg($pdfTmpFile) . ' ' . escapeshellarg($pdfTxtFile) . ' 2>&1');
+                            @shell_exec('timeout 30 pdftotext -layout ' . escapeshellarg($pdfTmpFile) . ' ' . escapeshellarg($pdfTxtFile) . ' 2>&1');
                             if (is_file($pdfTxtFile) && @filesize($pdfTxtFile) > 0) {
                                 $t = @file_get_contents($pdfTxtFile);
                                 if (is_string($t) && trim($t) !== '') {
@@ -813,7 +813,9 @@ class TuquinhaEngine
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_TIMEOUT => 60,
+            CURLOPT_TIMEOUT        => 15,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_SSL_VERIFYPEER => false,
         ]);
         $bin = curl_exec($ch);
         if ($bin === false) {

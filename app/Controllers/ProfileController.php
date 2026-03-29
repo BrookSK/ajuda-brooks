@@ -11,6 +11,7 @@ use App\Models\UserFriend;
 use App\Models\CommunityMember;
 use App\Models\UserCourseBadge;
 use App\Models\SocialPortfolioItem;
+use App\Services\MediaStorageService;
 
 class ProfileController extends Controller
 {
@@ -263,7 +264,8 @@ class ProfileController extends Controller
                     exit;
                 }
 
-                $avatarPath = '/public/uploads/avatars/' . $fileName;
+                $remoteAvatar = MediaStorageService::uploadFile($targetPath, $fileName, $type);
+                $avatarPath = $remoteAvatar !== null ? $remoteAvatar : '/public/uploads/avatars/' . $fileName;
             }
         }
 
@@ -314,7 +316,8 @@ class ProfileController extends Controller
                     exit;
                 }
 
-                $coverPath = '/public/uploads/profile_covers/' . $fileName;
+                $remoteCover = MediaStorageService::uploadFile($targetPath, $fileName, $type);
+                $coverPath = $remoteCover !== null ? $remoteCover : '/public/uploads/profile_covers/' . $fileName;
             }
         }
 

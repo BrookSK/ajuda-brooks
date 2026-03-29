@@ -34,8 +34,10 @@ class AdminAiLearningsController extends Controller
         $enabled        = (string)Setting::get('ai_learning_enabled', '1') !== '0';
         $pendingJobs    = LearningJob::countPending();
         $cronToken      = trim((string)Setting::get('news_cron_token', ''));
-        $appUrl         = rtrim((string)Setting::get('app_public_url', ''), '/');
-        $cronBaseUrl    = ($cronToken !== '' && $appUrl !== '') ? $appUrl : '';
+        // Usa o host atual do request para garantir que os botões sempre apontem para este servidor
+        $scheme         = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host           = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
+        $cronBaseUrl    = $cronToken !== '' ? $scheme . '://' . $host : '';
         $cronTokenParam = $cronToken !== '' ? '&token=' . urlencode($cronToken) : '';
 
         $this->view('admin/ai_learnings/index', [

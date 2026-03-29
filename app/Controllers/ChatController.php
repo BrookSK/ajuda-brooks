@@ -1408,7 +1408,7 @@ class ChatController extends Controller
                             $tmpPdfDl  = tempnam(sys_get_temp_dir(), 'tuq_bpdf_') . '.pdf';
                             $tmpTxtDl  = tempnam(sys_get_temp_dir(), 'tuq_btxt_');
                             if (@file_put_contents($tmpPdfDl, $pdfBinDl) !== false) {
-                                @shell_exec('timeout 30 pdftotext -layout ' . escapeshellarg($tmpPdfDl) . ' ' . escapeshellarg($tmpTxtDl) . ' 2>&1');
+                                @\shell_exec('timeout 30 pdftotext -layout ' . escapeshellarg($tmpPdfDl) . ' ' . escapeshellarg($tmpTxtDl) . ' 2>&1');
                                 if (is_file($tmpTxtDl) && @filesize($tmpTxtDl) > 0) {
                                     $t = @file_get_contents($tmpTxtDl);
                                     if (is_string($t) && trim($t) !== '') {

@@ -1363,35 +1363,77 @@ class ChatController extends Controller
                 }
 
                 $baseFileTextBudgetUsed = 0;
-                $baseFileTextBudgetMax = 600000;
-                $baseFileMaxCharsPerFile = 20000;
+                $baseFileTextBudgetMax = 700000;
                 $autoPdfFileInputsForModel = [];
+                $baseFileCount = max(1, count($baseFiles));
+                $baseFileIndex  = 0;
                 foreach ($baseFiles as $bf) {
                     $fid = (int)($bf['id'] ?? 0);
                     $ver = $latestByFileId[$fid] ?? null;
                     $path = (string)($bf['path'] ?? '');
                     $displayName = (string)($bf['name'] ?? '');
                     if ($path === '') {
+                        $baseFileIndex++;
                         continue;
                     }
                     $projectContextFilesUsed[] = $path;
                     $label = trim($displayName) !== '' ? $displayName : $path;
                     $url = is_array($ver) ? (string)($ver['storage_url'] ?? '') : '';
+                    $verId = is_array($ver) ? (int)($ver['id'] ?? 0) : 0;
                     $extractedText = is_array($ver) ? trim((string)($ver['extracted_text'] ?? '')) : '';
+                    $mime = trim((string)($bf['mime_type'] ?? ''));
+
+                    // Para PDFs sem texto extraído: tenta extrair via pdftotext agora e salva no banco
+                    if ($extractedText === '' && $mime === 'application/pdf' && $url !== '') {
+                        $pdfBinDl = null;
+                        $chDl = curl_init($url);
+                        if ($chDl !== false) {
+                            curl_setopt_array($chDl, [
+                                CURLOPT_RETURNTRANSFER => true,
+                                CURLOPT_FOLLOWLOCATION => true,
+                                CURLOPT_TIMEOUT        => 60,
+                                CURLOPT_SSL_VERIFYPEER => false,
+                            ]);
+                            $pdfBinDl = curl_exec($chDl);
+                            curl_close($chDl);
+                        }
+                        if (is_string($pdfBinDl) && $pdfBinDl !== '') {
+                            $tmpPdfDl  = tempnam(sys_get_temp_dir(), 'tuq_bpdf_') . '.pdf';
+                            $tmpTxtDl  = tempnam(sys_get_temp_dir(), 'tuq_btxt_');
+                            if (@file_put_contents($tmpPdfDl, $pdfBinDl) !== false) {
+                                @shell_exec('pdftotext -layout ' . escapeshellarg($tmpPdfDl) . ' ' . escapeshellarg($tmpTxtDl) . ' 2>&1');
+                                if (is_file($tmpTxtDl) && @filesize($tmpTxtDl) > 0) {
+                                    $t = @file_get_contents($tmpTxtDl);
+                                    if (is_string($t) && trim($t) !== '') {
+                                        $extractedText = trim($t);
+                                        // Salva no banco para não precisar extrair novamente
+                                        if ($verId > 0) {
+                                            try {
+                                                \App\Models\ProjectFileVersion::updateExtractedText($verId, $extractedText);
+                                            } catch (\Throwable $e) {}
+                                        }
+                                    }
+                                }
+                            }
+                            @unlink($tmpPdfDl);
+                            @unlink($tmpTxtDl);
+                        }
+                    }
 
                     if ($extractedText !== '' && $baseFileTextBudgetUsed < $baseFileTextBudgetMax) {
-                        $remaining = $baseFileTextBudgetMax - $baseFileTextBudgetUsed;
-                        $limit = min($baseFileMaxCharsPerFile, $remaining);
+                        $remaining       = $baseFileTextBudgetMax - $baseFileTextBudgetUsed;
+                        $filesLeft       = max(1, $baseFileCount - $baseFileIndex);
+                        // Limite dinâmico: distribui o budget restante igualmente entre os arquivos restantes
+                        $limit           = (int)($remaining / $filesLeft);
                         if (mb_strlen($extractedText, 'UTF-8') > $limit) {
                             $extractedText = mb_substr($extractedText, 0, $limit, 'UTF-8') . "\n[...truncado...]";
                         }
                         $baseFileTextBudgetUsed += mb_strlen($extractedText, 'UTF-8');
                         $parts[] = "CONTEÚDO DO ARQUIVO BASE: {$label}\n\n" . $extractedText;
                     } elseif ($url !== '') {
-                        $mime = trim((string)($bf['mime_type'] ?? ''));
                         if ($mime === 'application/pdf') {
                             $autoPdfFileInputsForModel[] = [
-                                'project_file_version_id' => is_array($ver) ? (int)($ver['id'] ?? 0) : 0,
+                                'project_file_version_id' => $verId,
                                 'openai_file_id' => '',
                                 'name' => $label,
                                 'mime_type' => 'application/pdf',
@@ -1402,6 +1444,7 @@ class ChatController extends Controller
                             $parts[] = "ARQUIVO BASE DO PROJETO: {$label}\nURL: {$url}";
                         }
                     }
+                    $baseFileIndex++;
                 }
 
                 // Menções explícitas a arquivos no texto do usuário

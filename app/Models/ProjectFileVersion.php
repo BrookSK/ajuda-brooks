@@ -90,6 +90,16 @@ class ProjectFileVersion
         return $map;
     }
 
+    public static function updateExtractedText(int $versionId, string $text): void
+    {
+        if ($versionId <= 0 || $text === '') {
+            return;
+        }
+        $pdo = Database::getConnection();
+        $pdo->prepare('UPDATE project_file_versions SET extracted_text = :t WHERE id = :id LIMIT 1')
+            ->execute(['t' => $text, 'id' => $versionId]);
+    }
+
     public static function deleteAllForFile(int $projectFileId): void
     {
         if ($projectFileId <= 0) {

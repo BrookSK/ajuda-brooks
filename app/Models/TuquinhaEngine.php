@@ -302,28 +302,62 @@ class TuquinhaEngine
                         ],
                     ];
                 } elseif ($mime === 'application/pdf') {
-                    // PDFs: usa URL diretamente se disponível (sem download); fallback para base64 via tmpPath
-                    if ($url !== '') {
-                        $claudeMessages[$lastUserIndex]['content'][] = [
-                            'type' => 'document',
-                            'source' => [
-                                'type' => 'url',
-                                'url' => $url,
-                            ],
-                        ];
-                    } elseif ($tmpPath !== '' && is_file($tmpPath) && is_readable($tmpPath)) {
-                        $bin = @file_get_contents($tmpPath);
-                        if (is_string($bin) && $bin !== '') {
+                    // PDFs: resolve binário primeiro para validar nº de páginas (limite Anthropic = 100 pág.)
+                    $pdfBin = null;
+                    if ($tmpPath !== '' && is_file($tmpPath) && is_readable($tmpPath)) {
+                        $pdfBin = @file_get_contents($tmpPath);
+                    } elseif ($url !== '') {
+                        $pdfBin = $this->fetchBinaryFromUrl($url);
+                    }
+                    if (!is_string($pdfBin) || $pdfBin === '') {
+                        continue;
+                    }
+                    // Detecta nº de páginas pelo /Count do nó raiz /Pages (funciona mesmo com XRef streams)
+                    preg_match_all('/\/Count\s+(\d+)/', $pdfBin, $pdfCountM);
+                    $pdfPages = !empty($pdfCountM[1]) ? max(array_map('intval', $pdfCountM[1])) : 0;
+                    if ($pdfPages > 100) {
+                        // PDF > 100 páginas: extrai texto completo via pdftotext para enviar tudo
+                        $pdfName = isset($fi['name']) ? (string)$fi['name'] : 'arquivo PDF';
+                        $extractedPdfText = null;
+                        $pdfTmpFile  = tempnam(sys_get_temp_dir(), 'tuq_pdf_') . '.pdf';
+                        $pdfTxtFile  = tempnam(sys_get_temp_dir(), 'tuq_ptxt_');
+                        if (@file_put_contents($pdfTmpFile, $pdfBin) !== false) {
+                            @shell_exec('pdftotext -layout ' . escapeshellarg($pdfTmpFile) . ' ' . escapeshellarg($pdfTxtFile) . ' 2>&1');
+                            if (is_file($pdfTxtFile) && @filesize($pdfTxtFile) > 0) {
+                                $t = @file_get_contents($pdfTxtFile);
+                                if (is_string($t) && trim($t) !== '') {
+                                    $extractedPdfText = trim($t);
+                                    if (mb_strlen($extractedPdfText, 'UTF-8') > 300000) {
+                                        $extractedPdfText = mb_substr($extractedPdfText, 0, 300000, 'UTF-8') . "\n[...texto truncado após 300 000 chars...]";
+                                    }
+                                }
+                            }
+                        }
+                        @unlink($pdfTmpFile);
+                        @unlink($pdfTxtFile);
+
+                        if ($extractedPdfText !== null) {
                             $claudeMessages[$lastUserIndex]['content'][] = [
-                                'type' => 'document',
-                                'source' => [
-                                    'type' => 'base64',
-                                    'media_type' => 'application/pdf',
-                                    'data' => base64_encode($bin),
-                                ],
+                                'type' => 'text',
+                                'text' => "CONTEÚDO EXTRAÍDO DO PDF \"" . $pdfName . "\" (" . $pdfPages . " páginas):\n\n" . $extractedPdfText,
+                            ];
+                        } else {
+                            // pdftotext não disponível — avisa o usuário
+                            $claudeMessages[$lastUserIndex]['content'][] = [
+                                'type' => 'text',
+                                'text' => '[Arquivo "' . htmlspecialchars($pdfName, ENT_QUOTES, 'UTF-8') . '" não pôde ser processado: contém ' . $pdfPages . ' páginas (limite da API é 100). O servidor não possui pdftotext instalado para extrair o texto completo. Divida o PDF em partes menores.]',
                             ];
                         }
+                        continue;
                     }
+                    $claudeMessages[$lastUserIndex]['content'][] = [
+                        'type' => 'document',
+                        'source' => [
+                            'type' => 'base64',
+                            'media_type' => 'application/pdf',
+                            'data' => base64_encode($pdfBin),
+                        ],
+                    ];
                 } elseif ($mime === 'text/plain') {
                     // Texto puro: base64 via tmpPath ou URL
                     $bin = null;

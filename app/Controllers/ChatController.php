@@ -1250,6 +1250,8 @@ class ChatController extends Controller
                 }
             }
 
+            try { // --- background processing guard: marca job como error se qualquer exceção escapar ---
+
             $projectContextFilesUsed = [];
             $projectContextMessage = null;
             $projectFileInputsForModel = [];
@@ -1261,51 +1263,55 @@ class ChatController extends Controller
                     if ($enabled !== '0') {
                         $normalizedMsg = trim((string)$message);
                         if (mb_strlen($normalizedMsg, 'UTF-8') >= 25) {
-                            $engineForMemory = new TuquinhaEngine();
-                            $instruction = "Extraia APENAS fatos estáveis e úteis sobre o PROJETO (não sobre emoções momentâneas). "
-                                . "Retorne APENAS JSON válido, sem texto extra, no formato: {\"items\":[{\"content\":\"...\"}]} . "
-                                . "Regras: (1) cada item deve ser curto (até 180 chars), (2) sem perguntas, (3) sem dados sensíveis (senha, cartão, cpf), "
-                                . "(4) só inclua se for algo que ajudaria o assistente em conversas futuras (ex: tipo do projeto, público, stack, regras). "
-                                . "Se não houver nada relevante, retorne {\"items\":[]}.";
+                            try {
+                                $engineForMemory = new TuquinhaEngine();
+                                $instruction = "Extraia APENAS fatos estáveis e úteis sobre o PROJETO (não sobre emoções momentâneas). "
+                                    . "Retorne APENAS JSON válido, sem texto extra, no formato: {\"items\":[{\"content\":\"...\"}]} . "
+                                    . "Regras: (1) cada item deve ser curto (até 180 chars), (2) sem perguntas, (3) sem dados sensíveis (senha, cartão, cpf), "
+                                    . "(4) só inclua se for algo que ajudaria o assistente em conversas futuras (ex: tipo do projeto, público, stack, regras). "
+                                    . "Se não houver nada relevante, retorne {\"items\":[]}.";
 
-                            $memoryResult = $engineForMemory->generateResponseWithContext(
-                                [
-                                    ['role' => 'user', 'content' => $instruction . "\n\nMENSAGEM DO USUÁRIO:\n" . $normalizedMsg],
-                                ],
-                                $_SESSION['chat_model'] ?? null,
-                                null,
-                                null,
-                                null
-                            );
+                                $memoryResult = $engineForMemory->generateResponseWithContext(
+                                    [
+                                        ['role' => 'user', 'content' => $instruction . "\n\nMENSAGEM DO USUÁRIO:\n" . $normalizedMsg],
+                                    ],
+                                    'claude-3-5-haiku-latest',
+                                    null,
+                                    null,
+                                    null
+                                );
 
-                            $memoryText = is_array($memoryResult) ? (string)($memoryResult['content'] ?? '') : (string)$memoryResult;
-                            $memoryText = trim((string)$memoryText);
+                                $memoryText = is_array($memoryResult) ? (string)($memoryResult['content'] ?? '') : (string)$memoryResult;
+                                $memoryText = trim((string)$memoryText);
 
-                            if ($memoryText !== '' && $memoryText[0] === '{') {
-                                $json = json_decode($memoryText, true);
-                                if (is_array($json) && isset($json['items']) && is_array($json['items'])) {
-                                    foreach ($json['items'] as $it) {
-                                        $content = is_array($it) ? (string)($it['content'] ?? '') : '';
-                                        $content = trim(str_replace(["\r\n", "\r"], "\n", $content));
-                                        if ($content === '') {
-                                            continue;
-                                        }
-                                        if (mb_strlen($content, 'UTF-8') > 180) {
-                                            $content = mb_substr($content, 0, 180, 'UTF-8');
-                                            $content = rtrim($content);
-                                        }
-                                        if (strpos($content, '?') !== false) {
-                                            continue;
-                                        }
-                                        $lc = mb_strtolower($content, 'UTF-8');
-                                        if (strpos($lc, 'senha') !== false || strpos($lc, 'cartão') !== false || strpos($lc, 'cpf') !== false) {
-                                            continue;
-                                        }
-                                        if (!ProjectMemoryItem::existsSimilar($projectId, $content)) {
-                                            ProjectMemoryItem::create($projectId, $userId, (int)$conversation->id, $normalizedMsg, $content);
+                                if ($memoryText !== '' && $memoryText[0] === '{') {
+                                    $json = json_decode($memoryText, true);
+                                    if (is_array($json) && isset($json['items']) && is_array($json['items'])) {
+                                        foreach ($json['items'] as $it) {
+                                            $content = is_array($it) ? (string)($it['content'] ?? '') : '';
+                                            $content = trim(str_replace(["\r\n", "\r"], "\n", $content));
+                                            if ($content === '') {
+                                                continue;
+                                            }
+                                            if (mb_strlen($content, 'UTF-8') > 180) {
+                                                $content = mb_substr($content, 0, 180, 'UTF-8');
+                                                $content = rtrim($content);
+                                            }
+                                            if (strpos($content, '?') !== false) {
+                                                continue;
+                                            }
+                                            $lc = mb_strtolower($content, 'UTF-8');
+                                            if (strpos($lc, 'senha') !== false || strpos($lc, 'cartão') !== false || strpos($lc, 'cpf') !== false) {
+                                                continue;
+                                            }
+                                            if (!ProjectMemoryItem::existsSimilar($projectId, $content)) {
+                                                ProjectMemoryItem::create($projectId, $userId, (int)$conversation->id, $normalizedMsg, $content);
+                                            }
                                         }
                                     }
                                 }
+                            } catch (\Throwable $memErr) {
+                                error_log('[AutoMemory] Falhou silenciosamente: ' . $memErr->getMessage());
                             }
                         }
                     }
@@ -2087,6 +2093,16 @@ class ChatController extends Controller
                 }
             }
 
+            } catch (\Throwable $bgErr) {
+                error_log('[ChatBackground] Erro não tratado: ' . $bgErr->getMessage() . ' em ' . $bgErr->getFile() . ':' . $bgErr->getLine());
+                if ($asyncJobId) {
+                    ChatJob::markError((int)$asyncJobId, 'background_error=' . mb_substr($bgErr->getMessage(), 0, 500, 'UTF-8'));
+                }
+                if ($isAjax && $asyncJobId) {
+                    exit;
+                }
+            } // --- fim do background processing guard ---
+
             if ($isAjax) {
                 if ($asyncJobId) {
                     exit;
@@ -2158,6 +2174,24 @@ class ChatController extends Controller
         }
 
         $status = (string)($job['status'] ?? 'pending');
+
+        // Se o job ficar preso em pending/running por mais de 3 minutos, marca como timeout
+        if ($status === 'pending' || $status === 'running') {
+            $createdAt = (string)($job['created_at'] ?? '');
+            if ($createdAt !== '') {
+                $age = time() - strtotime($createdAt);
+                if ($age > 180) {
+                    ChatJob::markError((int)$jobId, 'timeout: processamento excedeu 3 minutos');
+                    echo json_encode([
+                        'success' => false,
+                        'status'  => 'error',
+                        'error'   => 'A resposta demorou demais para ser gerada. Tente novamente.',
+                    ]);
+                    return;
+                }
+            }
+        }
+
         if ($status === 'done') {
             $assistantMessageId = (int)($job['assistant_message_id'] ?? 0);
             $msg = Message::findById($assistantMessageId);

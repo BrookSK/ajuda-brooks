@@ -5,16 +5,16 @@ const APP_ENV = 'dev';
 
 $dbConfigs = [
     'dev' => [
-        'host' => 'localhost',
-        'port' => 3306,
+        'host' => '127.0.0.1',
+        'port' => 3307,
         'database' => 'db_7_agente_ia_ajuda_brooks', // altere aqui
         'username' => 'Agente-IA-Ajuda-Brooks',         // altere aqui
         'password' => '67NPU@*ciffjwbh7',             // altere aqui
         'charset'  => 'utf8mb4',
     ],
     'prod' => [
-        'host' => 'localhost',
-        'port' => 3306,
+        'host' => '127.0.0.1',
+        'port' => 3307,
         'database' => 'db_7_agente_ia_ajuda_brooks', // altere aqui
         'username' => 'Agente-IA-Ajuda-Brooks',     // altere aqui
         'password' => '67NPU@*ciffjwbh7', // altere aqui

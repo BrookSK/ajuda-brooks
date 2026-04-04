@@ -473,7 +473,7 @@ class MobileController extends Controller
     }
 
     /**
-     * Gera áudio via ElevenLabs (AJAX).
+     * Gera áudio via ElevenLabs com streaming direto pro browser.
      */
     public function textToSpeech(): void
     {
@@ -487,17 +487,22 @@ class MobileController extends Controller
         }
 
         $elevenlabs = new ElevenLabsService();
-        $audio = $elevenlabs->textToSpeech($text);
 
-        if (!$audio) {
-            header('Content-Type: application/json');
-            echo json_encode(['ok' => false, 'error' => 'Falha ao gerar áudio.']);
-            return;
+        // Tenta streaming primeiro (mais rápido, começa a tocar antes de terminar)
+        $ok = $elevenlabs->textToSpeechStream($text);
+
+        if (!$ok) {
+            // Fallback: método não-streaming
+            $audio = $elevenlabs->textToSpeech($text);
+            if (!$audio) {
+                header('Content-Type: application/json');
+                echo json_encode(['ok' => false, 'error' => 'Falha ao gerar áudio.']);
+                return;
+            }
+            header('Content-Type: audio/mpeg');
+            header('Content-Length: ' . strlen($audio));
+            echo $audio;
         }
-
-        header('Content-Type: audio/mpeg');
-        header('Content-Length: ' . strlen($audio));
-        echo $audio;
     }
 
     /**

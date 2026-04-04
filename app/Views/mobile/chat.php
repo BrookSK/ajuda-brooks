@@ -64,11 +64,24 @@ $safeToolName = htmlspecialchars($toolName);
     </div>
 </div>
 
-<!-- AI Speaking overlay -->
-<div id="speaking-overlay" style="display:none; position:fixed; inset:0; z-index:50; background:rgba(5,5,9,0.95); flex-direction:column; align-items:center; justify-content:center;">
-    <div style="width:120px; height:120px; border-radius:50%; background:linear-gradient(135deg, var(--accent), var(--accent-soft)); position:relative; animation:glow 1.5s ease-in-out infinite; margin-bottom:24px;">
+<!-- Overlay unificado de voz: 3 estados (ouvindo / pensando / falando) -->
+<div id="voice-overlay" style="display:none; position:fixed; inset:0; z-index:50; background:rgba(5,5,9,0.95); flex-direction:column; align-items:center; justify-content:center;">
+
+    <!-- Orb central -->
+    <div id="voice-orb" style="width:130px; height:130px; border-radius:50%; background:linear-gradient(135deg, var(--accent), var(--accent-soft)); position:relative; margin-bottom:24px; transition:all 0.4s;">
         <div style="position:absolute; inset:3px; border-radius:50%; background:var(--bg); display:flex; align-items:center; justify-content:center;">
-            <div id="wave-bars" style="display:flex; gap:3px; align-items:center; height:30px;">
+            <!-- Estado: Ouvindo (mic) -->
+            <div id="orb-listening" style="display:flex;">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+            </div>
+            <!-- Estado: Pensando (dots) -->
+            <div id="orb-thinking" style="display:none; gap:6px; align-items:center;">
+                <div class="think-dot" style="width:10px; height:10px; border-radius:50%; background:var(--accent); animation:pulse-ring 1s ease-in-out infinite;"></div>
+                <div class="think-dot" style="width:10px; height:10px; border-radius:50%; background:var(--accent); animation:pulse-ring 1s ease-in-out 0.2s infinite;"></div>
+                <div class="think-dot" style="width:10px; height:10px; border-radius:50%; background:var(--accent); animation:pulse-ring 1s ease-in-out 0.4s infinite;"></div>
+            </div>
+            <!-- Estado: Falando (wave bars) -->
+            <div id="orb-speaking" style="display:none; gap:3px; align-items:center; height:30px;">
                 <div style="width:3px; background:var(--accent); border-radius:2px; animation:wave-bar 0.8s ease-in-out infinite;"></div>
                 <div style="width:3px; background:var(--accent); border-radius:2px; animation:wave-bar 0.8s ease-in-out 0.1s infinite;"></div>
                 <div style="width:3px; background:var(--accent); border-radius:2px; animation:wave-bar 0.8s ease-in-out 0.2s infinite;"></div>
@@ -76,23 +89,15 @@ $safeToolName = htmlspecialchars($toolName);
                 <div style="width:3px; background:var(--accent); border-radius:2px; animation:wave-bar 0.8s ease-in-out 0.4s infinite;"></div>
             </div>
         </div>
+        <!-- Pulse rings (ouvindo) -->
+        <div id="orb-pulse-1" style="position:absolute; inset:-12px; border-radius:50%; border:2px solid var(--accent); opacity:0.3; animation:pulse-ring 2s ease-in-out infinite;"></div>
+        <div id="orb-pulse-2" style="position:absolute; inset:-24px; border-radius:50%; border:1px solid var(--accent); opacity:0.15; animation:pulse-ring 2s ease-in-out 0.5s infinite;"></div>
     </div>
-    <p id="speaking-text" style="color:var(--text); font-size:16px; text-align:center; padding:0 32px; max-width:320px; line-height:1.5;"></p>
-    <button onclick="stopSpeaking()" style="margin-top:24px; background:rgba(255,255,255,0.1); border:1px solid var(--border); border-radius:999px; color:var(--text); padding:10px 24px; font-size:14px; cursor:pointer;">Parar</button>
-</div>
 
-<!-- Voice listening overlay -->
-<div id="listening-overlay" style="display:none; position:fixed; inset:0; z-index:45; background:rgba(5,5,9,0.92); flex-direction:column; align-items:center; justify-content:center;">
-    <div style="width:120px; height:120px; border-radius:50%; background:linear-gradient(135deg, var(--accent), var(--accent-soft)); position:relative; animation:glow 1.5s ease-in-out infinite; margin-bottom:20px;">
-        <div style="position:absolute; inset:3px; border-radius:50%; background:var(--bg); display:flex; align-items:center; justify-content:center;">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
-        </div>
-        <!-- Pulse rings -->
-        <div style="position:absolute; inset:-12px; border-radius:50%; border:2px solid var(--accent); opacity:0.3; animation:pulse-ring 2s ease-in-out infinite;"></div>
-        <div style="position:absolute; inset:-24px; border-radius:50%; border:1px solid var(--accent); opacity:0.15; animation:pulse-ring 2s ease-in-out 0.5s infinite;"></div>
-    </div>
-    <p id="listening-status" style="color:var(--text); font-size:16px; font-weight:600; margin-bottom:6px;">Ouvindo...</p>
-    <button onclick="stopVoiceSession()" style="margin-top:20px; background:rgba(229,57,53,0.2); border:1px solid var(--accent); border-radius:999px; color:var(--accent); padding:10px 24px; font-size:14px; cursor:pointer;">Encerrar conversa por voz</button>
+    <p id="voice-status" style="color:var(--text); font-size:16px; font-weight:600; margin-bottom:6px;">Ouvindo...</p>
+    <p id="voice-subtitle" style="color:var(--text-dim); font-size:13px; text-align:center; padding:0 32px; max-width:300px; min-height:20px;"></p>
+
+    <button onclick="stopVoiceSession()" style="margin-top:28px; background:rgba(229,57,53,0.15); border:1px solid rgba(229,57,53,0.3); border-radius:999px; color:var(--accent); padding:10px 24px; font-size:14px; cursor:pointer;">Encerrar</button>
 </div>
 
 <!-- Input area -->
@@ -130,6 +135,16 @@ $safeToolName = htmlspecialchars($toolName);
     .msg { animation: fadeInUp 0.3s ease; }
     textarea { scrollbar-width: none; }
     textarea::-webkit-scrollbar { display: none; }
+    @keyframes orbit-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    #voice-orb.state-listening { animation: glow 2s ease-in-out infinite; }
+    #voice-orb.state-thinking { animation: glow 1s ease-in-out infinite; }
+    #voice-orb.state-speaking { animation: glow 1.5s ease-in-out infinite; }
+    #orb-thinking { display: none; }
+    #orb-speaking { display: none; }
+    #orb-listening { display: flex; }
 </style>
 
 <script>
@@ -138,9 +153,57 @@ const voiceEnabled = <?= $voiceEnabled ? 'true' : 'false' ?>;
 let isVoiceMode = voiceEnabled;
 let currentAudio = null;
 let recognition = null;
-let voiceSessionActive = false; // sessão de voz ativa (fica ouvindo em loop)
-let isBusy = false; // esperando resposta da IA ou tocando TTS
-let hasSent = false; // flag pra evitar envio duplicado
+let voiceSessionActive = false;
+let isBusy = false;
+let hasSent = false;
+
+// ========== Voice Overlay States ==========
+function setVoiceState(state) {
+    const orb = document.getElementById('voice-orb');
+    const listening = document.getElementById('orb-listening');
+    const thinking = document.getElementById('orb-thinking');
+    const speaking = document.getElementById('orb-speaking');
+    const pulse1 = document.getElementById('orb-pulse-1');
+    const pulse2 = document.getElementById('orb-pulse-2');
+    const status = document.getElementById('voice-status');
+    const subtitle = document.getElementById('voice-subtitle');
+
+    orb.className = '';
+    listening.style.display = 'none';
+    thinking.style.display = 'none';
+    speaking.style.display = 'none';
+
+    if (state === 'listening') {
+        orb.classList.add('state-listening');
+        listening.style.display = 'flex';
+        pulse1.style.display = 'block';
+        pulse2.style.display = 'block';
+        status.textContent = 'Ouvindo...';
+        subtitle.textContent = 'Fale normalmente';
+    } else if (state === 'thinking') {
+        orb.classList.add('state-thinking');
+        thinking.style.display = 'flex';
+        pulse1.style.display = 'none';
+        pulse2.style.display = 'none';
+        status.textContent = 'Pensando...';
+        subtitle.textContent = '';
+    } else if (state === 'speaking') {
+        orb.classList.add('state-speaking');
+        speaking.style.display = 'flex';
+        pulse1.style.display = 'none';
+        pulse2.style.display = 'none';
+        status.textContent = 'Respondendo...';
+        subtitle.textContent = '';
+    }
+}
+
+function showVoiceOverlay() {
+    document.getElementById('voice-overlay').style.display = 'flex';
+}
+
+function hideVoiceOverlay() {
+    document.getElementById('voice-overlay').style.display = 'none';
+}
 
 // ========== Input Mode ==========
 function updateInputMode() {
@@ -214,8 +277,14 @@ function sendMessage(text, fromVoice) {
     text = text.trim();
 
     addMessage('user', text);
-    showTyping();
     isBusy = true;
+
+    // Se veio de voz, mostra estado "pensando" no overlay (não sai dele)
+    if (fromVoice && voiceSessionActive) {
+        setVoiceState('thinking');
+    } else {
+        showTyping();
+    }
 
     fetch('/m/chat/enviar', {
         method: 'POST',
@@ -227,9 +296,10 @@ function sendMessage(text, fromVoice) {
         hideTyping();
         if (data.ok) {
             addMessage('assistant', data.reply);
-            // Se veio de voz e sessão ativa, toca TTS e depois reabre mic
             if (fromVoice && voiceSessionActive && voiceEnabled) {
-                doTTS(data.reply, true); // true = reabrir mic depois
+                // Muda pra estado "falando" e toca TTS
+                setVoiceState('speaking');
+                doTTS(data.reply, true);
             } else {
                 isBusy = false;
             }
@@ -257,10 +327,6 @@ function sendTextMessage() {
 }
 
 // ========== Voice Session ==========
-// Uma "sessão de voz" = o usuário clicou no mic uma vez.
-// A partir daí: ouve → envia → IA responde → TTS toca → volta a ouvir.
-// Só para quando o usuário clica "Encerrar conversa por voz".
-
 function toggleListening() {
     if (voiceSessionActive) {
         stopVoiceSession();
@@ -280,15 +346,20 @@ function startVoiceSession() {
 
     voiceSessionActive = true;
     isBusy = false;
-    showListeningOverlay();
+    showVoiceOverlay();
+    setVoiceState('listening');
     startSingleListen();
 }
 
 function stopVoiceSession() {
     voiceSessionActive = false;
     isBusy = false;
-    hideListeningOverlay();
+    hideVoiceOverlay();
     destroyRecognition();
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+    }
 }
 
 function destroyRecognition() {
@@ -306,8 +377,8 @@ function startSingleListen() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognition = new SpeechRecognition();
     recognition.lang = 'pt-BR';
-    recognition.continuous = false;      // UMA frase por vez
-    recognition.interimResults = false;  // Só resultado final, sem transcrição parcial
+    recognition.continuous = false;
+    recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
     hasSent = false;
@@ -317,8 +388,6 @@ function startSingleListen() {
         const text = e.results[0][0].transcript;
         if (text && text.trim()) {
             hasSent = true;
-            hideListeningOverlay();
-            document.getElementById('status-text').textContent = 'Processando...';
             sendMessage(text.trim(), true);
         }
     };
@@ -329,21 +398,13 @@ function startSingleListen() {
             stopVoiceSession();
             return;
         }
-        if (e.error === 'no-speech') {
-            // Ninguém falou — tenta de novo
-            if (voiceSessionActive && !isBusy) {
-                setTimeout(() => startSingleListen(), 300);
-            }
-            return;
-        }
-        // Outros erros: tenta de novo
+        // no-speech ou outros: tenta de novo
         if (voiceSessionActive && !isBusy) {
-            setTimeout(() => startSingleListen(), 500);
+            setTimeout(() => startSingleListen(), 300);
         }
     };
 
     recognition.onend = function() {
-        // Se não enviou nada e sessão ainda ativa, reabre
         if (!hasSent && voiceSessionActive && !isBusy) {
             setTimeout(() => startSingleListen(), 300);
         }
@@ -351,7 +412,6 @@ function startSingleListen() {
 
     try {
         recognition.start();
-        document.getElementById('listening-status').textContent = 'Ouvindo...';
     } catch(e) {
         setTimeout(() => startSingleListen(), 500);
     }
@@ -360,30 +420,21 @@ function startSingleListen() {
 function resumeListening() {
     if (!voiceSessionActive) return;
     isBusy = false;
-    showListeningOverlay();
+    setVoiceState('listening');
     startSingleListen();
 }
 
-function showListeningOverlay() {
-    document.getElementById('listening-overlay').style.display = 'flex';
-}
-
-function hideListeningOverlay() {
-    document.getElementById('listening-overlay').style.display = 'none';
-}
-
-// ========== TTS (ElevenLabs) ==========
+// ========== TTS (ElevenLabs Streaming) ==========
 function playTTS(btn) {
     const text = btn.dataset.text;
     if (!text) return;
+    // Quando clica no botão de som de uma mensagem (fora da sessão de voz)
+    showVoiceOverlay();
+    setVoiceState('speaking');
     doTTS(text, false);
 }
 
 function doTTS(text, reopenMicAfter) {
-    const overlay = document.getElementById('speaking-overlay');
-    overlay.style.display = 'flex';
-    document.getElementById('speaking-text').textContent = text.substring(0, 200) + (text.length > 200 ? '...' : '');
-
     const fd = new FormData();
     fd.append('text', text);
 
@@ -397,13 +448,13 @@ function doTTS(text, reopenMicAfter) {
             currentAudio = new Audio(url);
 
             const onFinish = () => {
-                overlay.style.display = 'none';
                 URL.revokeObjectURL(url);
                 currentAudio = null;
                 isBusy = false;
-                // Reabre mic automaticamente se sessão de voz ativa
                 if (reopenMicAfter && voiceSessionActive) {
                     resumeListening();
+                } else {
+                    hideVoiceOverlay();
                 }
             };
 
@@ -412,25 +463,13 @@ function doTTS(text, reopenMicAfter) {
             currentAudio.play().catch(() => onFinish());
         })
         .catch(() => {
-            overlay.style.display = 'none';
             isBusy = false;
             if (reopenMicAfter && voiceSessionActive) {
                 resumeListening();
+            } else {
+                hideVoiceOverlay();
             }
         });
-}
-
-function stopSpeaking() {
-    if (currentAudio) {
-        currentAudio.pause();
-        currentAudio = null;
-    }
-    document.getElementById('speaking-overlay').style.display = 'none';
-    isBusy = false;
-    // Se sessão ativa, volta a ouvir
-    if (voiceSessionActive) {
-        resumeListening();
-    }
 }
 
 // ========== Keyboard ==========

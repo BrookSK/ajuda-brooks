@@ -1596,49 +1596,8 @@ class ChatController extends Controller
 
                 $mentionedPaths = array_values(array_unique(array_filter(array_map('trim', $mentionedPaths))));
 
-                // Se a mensagem parece citar um arquivo, mas não foi encontrado nenhum match, retorna feedback amigável
-                // (isso reduz casos onde o modelo diz "não tenho acesso ao arquivo" por falta de anexo)
-                if (empty($mentionedPaths)) {
-                    $maybeMentioned = false;
-                    if (preg_match('/\b(pdf|docx?|xlsx?|pptx?)\b/i', (string)$message)) {
-                        $maybeMentioned = true;
-                    } elseif (strpos($msgLowerForFiles, 'arquivo') !== false || strpos($msgLowerForFiles, 'anexo') !== false) {
-                        $maybeMentioned = true;
-                    }
-
-                    if ($maybeMentioned && !empty($baseFiles)) {
-                        $names = [];
-                        foreach ($baseFiles as $bfMeta) {
-                            $nm = trim((string)($bfMeta['name'] ?? ''));
-                            if ($nm !== '') {
-                                $names[] = $nm;
-                            }
-                        }
-                        $names = array_values(array_unique(array_filter($names)));
-                        if (!empty($names)) {
-                            $assistantReply = "Não consegui localizar qual arquivo do projeto você está mencionando.\n\n"
-                                . "Tente mencionar o nome exatamente como aparece em *Arquivos* (incluindo a extensão). Exemplos disponíveis:\n- "
-                                . implode("\n- ", array_slice($names, 0, 12));
-
-                            Message::create($conversation->id, 'assistant', $assistantReply, null);
-                            if ($isAjax) {
-                                header('Content-Type: application/json; charset=utf-8');
-                                $nowLabel = date('d/m/Y H:i');
-                                echo json_encode([
-                                    'success' => true,
-                                    'messages' => [
-                                        ['role' => 'user', 'content' => $message, 'created_label' => $nowLabel],
-                                        ['role' => 'assistant', 'content' => $assistantReply, 'tokens_used' => 0, 'created_label' => $nowLabel],
-                                    ],
-                                    'total_tokens_used' => 0,
-                                ]);
-                                exit;
-                            }
-                            header('Location: /chat');
-                            exit;
-                        }
-                    }
-                }
+                // Quando o projeto tem arquivos base, não bloqueia mensagens genéricas sobre "arquivo"/"anexo".
+                // Os arquivos base já estão carregados no contexto ($parts) e a IA deve usá-los automaticamente.
 
                 foreach ($mentionedPaths as $path) {
                     $file = $baseFilesByPath[$path] ?? ProjectFile::findByPath($projectId, $path);
@@ -1747,7 +1706,12 @@ class ChatController extends Controller
                 $projectContextFilesUsed = array_values(array_unique(array_filter($projectContextFilesUsed)));
 
                 if (!empty($parts)) {
-                    $projectContextMessage = "Contexto do projeto (use como fonte de verdade; não invente se estiver aqui):\n\n" . implode("\n\n---\n\n", $parts);
+                    $projectContextMessage = "INSTRUÇÃO OBRIGATÓRIA: Este chat está vinculado a um projeto. "
+                        . "Você DEVE usar TODOS os arquivos base do projeto como referência para responder QUALQUER pergunta do usuário, "
+                        . "mesmo que ele não mencione nenhum arquivo pelo nome. "
+                        . "Os arquivos base são a fonte principal de conhecimento deste projeto. "
+                        . "Sempre baseie suas respostas no conteúdo desses arquivos.\n\n"
+                        . "Contexto do projeto (use como fonte de verdade; não invente se estiver aqui):\n\n" . implode("\n\n---\n\n", $parts);
                 }
             }
 

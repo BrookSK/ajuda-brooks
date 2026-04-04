@@ -473,7 +473,7 @@ class MobileController extends Controller
     }
 
     /**
-     * Gera áudio via ElevenLabs.
+     * Gera áudio via ElevenLabs com streaming passthrough.
      */
     public function textToSpeech(): void
     {
@@ -484,7 +484,7 @@ class MobileController extends Controller
             http_response_code(400);
             header('Content-Type: application/json');
             echo json_encode(['ok' => false, 'error' => 'Texto vazio.']);
-            return;
+            exit;
         }
 
         $elevenlabs = new ElevenLabsService();
@@ -496,24 +496,28 @@ class MobileController extends Controller
             exit;
         }
 
-        $audio = $elevenlabs->textToSpeech($text);
-
-        if (!$audio || strlen($audio) < 100) {
-            http_response_code(502);
-            header('Content-Type: application/json');
-            echo json_encode(['ok' => false, 'error' => 'Falha ao gerar áudio.']);
-            return;
-        }
-
-        // Limpa qualquer output buffer pra não misturar HTML com áudio
+        // Limpa buffers
         while (ob_get_level()) {
             ob_end_clean();
         }
 
-        header('Content-Type: audio/mpeg');
-        header('Content-Length: ' . strlen($audio));
-        header('Cache-Control: no-cache');
-        echo $audio;
+        // Tenta streaming passthrough (mais rápido)
+        $ok = $elevenlabs->textToSpeechStream($text);
+
+        if (!$ok) {
+            // Fallback não-streaming
+            $audio = $elevenlabs->textToSpeech($text);
+            if (!$audio || strlen($audio) < 100) {
+                http_response_code(502);
+                header('Content-Type: application/json');
+                echo json_encode(['ok' => false, 'error' => 'Falha ao gerar áudio.']);
+                exit;
+            }
+            header('Content-Type: audio/mpeg');
+            header('Content-Length: ' . strlen($audio));
+            echo $audio;
+        }
+
         exit;
     }
 

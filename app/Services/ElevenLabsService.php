@@ -81,7 +81,6 @@ class ElevenLabsService
         }
 
         $voice = $voiceId ?: $this->defaultVoiceId;
-        // Endpoint de streaming da ElevenLabs
         $url = $this->baseUrl . '/text-to-speech/' . urlencode($voice) . '/stream';
 
         $payload = json_encode([
@@ -93,17 +92,12 @@ class ElevenLabsService
                 'style' => 0.0,
                 'use_speaker_boost' => true,
             ],
+            'optimize_streaming_latency' => 3,
         ]);
 
-        // Desabilita output buffering pra streaming real
-        while (ob_get_level()) {
-            ob_end_flush();
-        }
-
-        header('Content-Type: audio/mpeg');
-        header('Transfer-Encoding: chunked');
-        header('Cache-Control: no-cache');
-        header('X-Accel-Buffering: no'); // nginx
+        // Primeiro, faz a request e verifica se deu certo antes de enviar headers
+        $headersSent = false;
+        $gotData = false;
 
         $ch = curl_init($url);
         curl_setopt_array($ch, [
@@ -115,12 +109,33 @@ class ElevenLabsService
                 'Content-Type: application/json',
                 'xi-api-key: ' . $this->apiKey,
             ],
-            CURLOPT_TIMEOUT => 60,
-            CURLOPT_WRITEFUNCTION => function ($ch, $data) {
-                echo $data;
-                if (function_exists('flush')) {
-                    flush();
+            CURLOPT_TIMEOUT => 90,
+            CURLOPT_HEADERFUNCTION => function ($ch, $header) use (&$headersSent) {
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                if ($httpCode === 200 && !$headersSent) {
+                    header('Content-Type: audio/mpeg');
+                    header('Transfer-Encoding: chunked');
+                    header('Cache-Control: no-cache, no-store');
+                    header('X-Accel-Buffering: no');
+                    $headersSent = true;
                 }
+                return strlen($header);
+            },
+            CURLOPT_WRITEFUNCTION => function ($ch, $data) use (&$headersSent, &$gotData) {
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                if ($httpCode !== 200) {
+                    return strlen($data); // descarta dados de erro
+                }
+                if (!$headersSent) {
+                    header('Content-Type: audio/mpeg');
+                    header('Transfer-Encoding: chunked');
+                    header('Cache-Control: no-cache, no-store');
+                    header('X-Accel-Buffering: no');
+                    $headersSent = true;
+                }
+                echo $data;
+                if (function_exists('flush')) { flush(); }
+                $gotData = true;
                 return strlen($data);
             },
         ]);
@@ -129,7 +144,7 @@ class ElevenLabsService
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        return $httpCode === 200;
+        return $httpCode === 200 && $gotData;
     }
 
     /**

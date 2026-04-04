@@ -14,6 +14,7 @@ use App\Models\Setting;
 use App\Models\Plan;
 use App\Models\ConversationSetting;
 use App\Services\ElevenLabsService;
+use App\Services\OpenAiTtsService;
 
 class MobileController extends Controller
 {
@@ -497,14 +498,6 @@ class MobileController extends Controller
             exit;
         }
 
-        $elevenlabs = new ElevenLabsService();
-        if (!$elevenlabs->isConfigured()) {
-            http_response_code(503);
-            header('Content-Type: application/json');
-            echo json_encode(['ok' => false]);
-            exit;
-        }
-
         // Limpa todos os output buffers pra streaming funcionar
         while (ob_get_level()) {
             ob_end_clean();
@@ -517,23 +510,44 @@ class MobileController extends Controller
         @ini_set('zlib.output_compression', '0');
         @ini_set('implicit_flush', '1');
 
-        // Tenta streaming (chunks vão direto pro browser)
-        $ok = $elevenlabs->textToSpeechStream($text);
+        // Provedor primário: OpenAI TTS (gpt-4o-mini-tts com streaming)
+        $openai = new OpenAiTtsService();
+        if ($openai->isConfigured()) {
+            $ok = $openai->textToSpeechStream($text);
+            if ($ok) {
+                exit;
+            }
 
-        if (!$ok) {
-            // Fallback: gera tudo e envia de uma vez
+            // Fallback não-streaming OpenAI
+            $audio = $openai->textToSpeech($text);
+            if ($audio && strlen($audio) > 100) {
+                header('Content-Type: audio/mpeg');
+                header('Content-Length: ' . strlen($audio));
+                echo $audio;
+                exit;
+            }
+        }
+
+        // Fallback: ElevenLabs
+        $elevenlabs = new ElevenLabsService();
+        if ($elevenlabs->isConfigured()) {
+            $ok = $elevenlabs->textToSpeechStream($text);
+            if ($ok) {
+                exit;
+            }
+
             $audio = $elevenlabs->textToSpeech($text);
             if ($audio && strlen($audio) > 100) {
                 header('Content-Type: audio/mpeg');
                 header('Content-Length: ' . strlen($audio));
                 echo $audio;
-            } else {
-                http_response_code(502);
-                header('Content-Type: application/json');
-                echo json_encode(['ok' => false]);
+                exit;
             }
         }
 
+        http_response_code(503);
+        header('Content-Type: application/json');
+        echo json_encode(['ok' => false]);
         exit;
     }
 

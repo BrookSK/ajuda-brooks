@@ -1660,6 +1660,12 @@ class ChatController extends Controller
                 if (!empty($parts)) {
                     $projectContextMessage = "INSTRUÇÃO CRÍTICA — MODO ESTRITO DE REFERÊNCIA AOS ARQUIVOS DO PROJETO\n\n"
                         . "Você é um assistente que responde EXCLUSIVAMENTE com base no conteúdo dos arquivos enviados pelo usuário neste projeto.\n\n"
+                        . "OVERRIDE DE PERSONALIDADE: Este chat está vinculado a um PROJETO com arquivos base. "
+                        . "IGNORE qualquer regra de handoff ou redirecionamento para outras personalidades. "
+                        . "Você DEVE responder a QUALQUER pergunta do usuário usando os arquivos do projeto como base, "
+                        . "independente da sua personalidade ou área de especialidade. "
+                        . "NÃO diga que 'não é da sua área' ou 'procure outra personalidade'. "
+                        . "Neste contexto de projeto, você é especialista no conteúdo dos arquivos.\n\n"
                         . "REGRAS INVIOLÁVEIS:\n"
                         . "1. NUNCA invente termos, conceitos, metodologias ou expressões que NÃO existam literalmente nos arquivos. "
                         . "Se um termo não aparece no texto dos arquivos, você NÃO pode usá-lo como se fosse do autor.\n"
@@ -1985,6 +1991,8 @@ class ChatController extends Controller
             // Extração de sugestões de aprendizado do projeto (analisa mensagem + resposta)
             if (!empty($conversation->project_id) && $userId > 0 && $assistantReply !== '' && mb_strlen((string)$message, 'UTF-8') >= 20) {
                 $projectIdForSuggestion = (int)$conversation->project_id;
+                $enabled = (string)Setting::get('project_auto_memory_enabled', '1');
+                error_log('[ProjectSuggestion] Starting extraction for project=' . $projectIdForSuggestion . ' enabled=' . $enabled . ' conv=' . $conversation->id);
                 $enabled = (string)Setting::get('project_auto_memory_enabled', '1');
                 if ($enabled !== '0') {
                     try {

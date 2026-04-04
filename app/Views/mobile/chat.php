@@ -437,133 +437,46 @@ function doTTS(text, reopenMicAfter) {
     const fd = new FormData();
     fd.append('text', text);
 
-    // Usa fetch com streaming reader pra começar a tocar antes de terminar
     fetch('/m/chat/tts', { method: 'POST', body: fd })
         .then(r => {
             const ct = r.headers.get('content-type') || '';
             if (!r.ok || !ct.includes('audio')) {
-                throw new Error('TTS not audio: ' + r.status);
+                throw new Error('Not audio: ' + r.status + ' ' + ct);
             }
-            // Tenta streaming via MediaSource
-            if (window.MediaSource && MediaSource.isTypeSupported('audio/mpeg')) {
-                return streamAudio(r.body, reopenMicAfter);
-            }
-            // Fallback: blob completo
-            return r.blob().then(b => playBlob(b, reopenMicAfter));
+            return r.blob();
+        })
+        .then(blob => {
+            if (!blob || blob.size < 100) throw new Error('Audio too small');
+            const url = URL.createObjectURL(blob);
+            currentAudio = new Audio(url);
+
+            const done = () => {
+                URL.revokeObjectURL(url);
+                currentAudio = null;
+                isBusy = false;
+                if (reopenMicAfter && voiceSessionActive) resumeListening();
+                else hideVoiceOverlay();
+            };
+
+            currentAudio.onended = done;
+            currentAudio.onerror = done;
+            currentAudio.play().catch(() => done());
         })
         .catch(err => {
-            console.error('TTS error:', err);
-            ttsFinished(reopenMicAfter, true);
-        });
-}
-
-function ttsFinished(reopenMicAfter, failed) {
-    currentAudio = null;
-    isBusy = false;
-    if (failed) {
-        document.getElementById('voice-status').textContent = 'Sem áudio';
-        document.getElementById('voice-subtitle').textContent = 'Resposta no chat';
-        setTimeout(() => {
+            console.error('TTS:', err);
+            isBusy = false;
             if (reopenMicAfter && voiceSessionActive) resumeListening();
             else hideVoiceOverlay();
-        }, 1200);
-    } else {
-        if (reopenMicAfter && voiceSessionActive) resumeListening();
-        else hideVoiceOverlay();
-    }
-}
-
-function streamAudio(body, reopenMicAfter) {
-    const ms = new MediaSource();
-    const url = URL.createObjectURL(ms);
-    currentAudio = new Audio();
-    currentAudio.src = url;
-
-    return new Promise(resolve => {
-        const cleanup = (failed) => {
-            URL.revokeObjectURL(url);
-            ttsFinished(reopenMicAfter, failed);
-            resolve();
-        };
-
-        currentAudio.onended = () => cleanup(false);
-        currentAudio.onerror = () => cleanup(false);
-
-        ms.addEventListener('sourceopen', () => {
-            let sb;
-            try {
-                sb = ms.addSourceBuffer('audio/mpeg');
-            } catch(e) {
-                // MediaSource não suporta mpeg neste browser — fallback
-                body.cancel().catch(() => {});
-                cleanup(true);
-                return;
-            }
-
-            const reader = body.getReader();
-            let queue = [];
-            let done = false;
-            let started = false;
-
-            function flush() {
-                if (sb.updating || queue.length === 0) return;
-                try { sb.appendBuffer(queue.shift()); } catch(e) {}
-            }
-
-            sb.addEventListener('updateend', () => {
-                if (queue.length > 0) flush();
-                else if (done && ms.readyState === 'open') {
-                    try { ms.endOfStream(); } catch(e) {}
-                }
-            });
-
-            (function pump() {
-                reader.read().then(({ done: d, value }) => {
-                    if (d) {
-                        done = true;
-                        if (!sb.updating && queue.length === 0 && ms.readyState === 'open') {
-                            try { ms.endOfStream(); } catch(e) {}
-                        }
-                        return;
-                    }
-                    queue.push(value.buffer);
-                    flush();
-                    // Começa a tocar assim que tiver dados
-                    if (!started && currentAudio) {
-                        started = true;
-                        currentAudio.play().catch(() => {});
-                    }
-                    pump();
-                }).catch(() => {
-                    done = true;
-                    if (ms.readyState === 'open') {
-                        try { ms.endOfStream(); } catch(e) {}
-                    }
-                });
-            })();
         });
-    });
 }
 
-function playBlob(blob, reopenMicAfter) {
-    if (!blob || blob.size < 100) throw new Error('Audio too small');
-    const url = URL.createObjectURL(blob);
-    currentAudio = new Audio(url);
-    currentAudio.onended = () => { URL.revokeObjectURL(url); ttsFinished(reopenMicAfter, false); };
-    currentAudio.onerror = () => { URL.revokeObjectURL(url); ttsFinished(reopenMicAfter, false); };
-    currentAudio.play().catch(() => { URL.revokeObjectURL(url); ttsFinished(reopenMicAfter, true); });
-}
-
-// ========== Interrupt: tocar no overlay enquanto IA fala ==========
+// Interromper IA: tocar no overlay enquanto fala
 document.getElementById('voice-overlay').addEventListener('click', function(e) {
-    // Só intercepta se tá no estado "speaking" e clicou no orb
     if (!voiceSessionActive) return;
     const orb = document.getElementById('voice-orb');
     if (!orb.classList.contains('state-speaking')) return;
-    // Ignora clique no botão "Encerrar"
     if (e.target.tagName === 'BUTTON') return;
 
-    // Interrompe áudio e volta a ouvir
     if (currentAudio) {
         currentAudio.pause();
         currentAudio.onended = null;

@@ -473,7 +473,7 @@ class MobileController extends Controller
     }
 
     /**
-     * Gera áudio via ElevenLabs com streaming passthrough.
+     * Gera áudio via ElevenLabs.
      */
     public function textToSpeech(): void
     {
@@ -501,23 +501,38 @@ class MobileController extends Controller
             ob_end_clean();
         }
 
-        // Tenta streaming passthrough (mais rápido)
-        $ok = $elevenlabs->textToSpeechStream($text);
-
-        if (!$ok) {
-            // Fallback não-streaming
-            $audio = $elevenlabs->textToSpeech($text);
-            if (!$audio || strlen($audio) < 100) {
-                http_response_code(502);
-                header('Content-Type: application/json');
-                echo json_encode(['ok' => false, 'error' => 'Falha ao gerar áudio.']);
-                exit;
+        // Corta texto longo — pega só as primeiras ~500 chars (2-3 frases)
+        // pra resposta ser rápida. O resto o usuário lê no chat.
+        $maxChars = 500;
+        if (mb_strlen($text, 'UTF-8') > $maxChars) {
+            // Corta na última frase completa antes do limite
+            $cut = mb_substr($text, 0, $maxChars, 'UTF-8');
+            $lastDot = max(
+                (int)mb_strrpos($cut, '.', 0, 'UTF-8'),
+                (int)mb_strrpos($cut, '!', 0, 'UTF-8'),
+                (int)mb_strrpos($cut, '?', 0, 'UTF-8'),
+                (int)mb_strrpos($cut, "\n", 0, 'UTF-8')
+            );
+            if ($lastDot > 50) {
+                $text = mb_substr($text, 0, $lastDot + 1, 'UTF-8');
+            } else {
+                $text = $cut;
             }
-            header('Content-Type: audio/mpeg');
-            header('Content-Length: ' . strlen($audio));
-            echo $audio;
         }
 
+        $audio = $elevenlabs->textToSpeech($text);
+
+        if (!$audio || strlen($audio) < 100) {
+            http_response_code(502);
+            header('Content-Type: application/json');
+            echo json_encode(['ok' => false, 'error' => 'Falha ao gerar áudio.']);
+            exit;
+        }
+
+        header('Content-Type: audio/mpeg');
+        header('Content-Length: ' . strlen($audio));
+        header('Cache-Control: no-cache');
+        echo $audio;
         exit;
     }
 

@@ -92,8 +92,7 @@ $safeToolName = htmlspecialchars($toolName);
         <div style="position:absolute; inset:-24px; border-radius:50%; border:1px solid var(--accent); opacity:0.15; animation:pulse-ring 2s ease-in-out 0.5s infinite;"></div>
     </div>
     <p id="listening-status" style="color:var(--text); font-size:16px; font-weight:600; margin-bottom:6px;">Ouvindo...</p>
-    <p id="live-transcript" style="color:var(--text-dim); font-size:14px; text-align:center; padding:0 32px; max-width:320px; min-height:40px; line-height:1.5;"></p>
-    <button onclick="stopListening()" style="margin-top:20px; background:rgba(229,57,53,0.2); border:1px solid var(--accent); border-radius:999px; color:var(--accent); padding:10px 24px; font-size:14px; cursor:pointer;">Parar</button>
+    <button onclick="stopVoiceSession()" style="margin-top:20px; background:rgba(229,57,53,0.2); border:1px solid var(--accent); border-radius:999px; color:var(--accent); padding:10px 24px; font-size:14px; cursor:pointer;">Encerrar conversa por voz</button>
 </div>
 
 <!-- Input area -->
@@ -139,8 +138,9 @@ const voiceEnabled = <?= $voiceEnabled ? 'true' : 'false' ?>;
 let isVoiceMode = voiceEnabled;
 let currentAudio = null;
 let recognition = null;
-let isListening = false;
-let finalTranscript = '';
+let voiceSessionActive = false; // sessão de voz ativa (fica ouvindo em loop)
+let isBusy = false; // esperando resposta da IA ou tocando TTS
+let hasSent = false; // flag pra evitar envio duplicado
 
 // ========== Input Mode ==========
 function updateInputMode() {
@@ -152,6 +152,7 @@ function updateInputMode() {
 
 function toggleInputMode() {
     isVoiceMode = !isVoiceMode;
+    if (!isVoiceMode && voiceSessionActive) stopVoiceSession();
     updateInputMode();
     if (!isVoiceMode) setTimeout(() => document.getElementById('msg-input').focus(), 100);
 }
@@ -194,12 +195,11 @@ function addMessage(role, content) {
     div.appendChild(bubble);
     document.getElementById('typing').before(div);
     scrollToBottom();
-    return bubble;
 }
 
 function showTyping() {
     document.getElementById('typing').style.display = 'block';
-    document.getElementById('status-text').textContent = 'Digitando...';
+    document.getElementById('status-text').textContent = 'Pensando...';
     scrollToBottom();
 }
 
@@ -209,12 +209,13 @@ function hideTyping() {
 }
 
 // ========== Send Message ==========
-function sendMessage(text) {
+function sendMessage(text, fromVoice) {
     if (!text || !text.trim()) return;
     text = text.trim();
 
     addMessage('user', text);
     showTyping();
+    isBusy = true;
 
     fetch('/m/chat/enviar', {
         method: 'POST',
@@ -226,17 +227,23 @@ function sendMessage(text) {
         hideTyping();
         if (data.ok) {
             addMessage('assistant', data.reply);
-            // Auto-play TTS se estiver no modo voz
-            if (isVoiceMode && voiceEnabled) {
-                autoPlayTTS(data.reply);
+            // Se veio de voz e sessão ativa, toca TTS e depois reabre mic
+            if (fromVoice && voiceSessionActive && voiceEnabled) {
+                doTTS(data.reply, true); // true = reabrir mic depois
+            } else {
+                isBusy = false;
             }
         } else {
             addMessage('assistant', data.error || 'Erro ao processar mensagem.');
+            isBusy = false;
+            if (fromVoice && voiceSessionActive) resumeListening();
         }
     })
     .catch(() => {
         hideTyping();
         addMessage('assistant', 'Erro de conexão. Tente novamente.');
+        isBusy = false;
+        if (fromVoice && voiceSessionActive) resumeListening();
     });
 }
 
@@ -246,106 +253,115 @@ function sendTextMessage() {
     if (!text) return;
     input.value = '';
     input.style.height = 'auto';
-    sendMessage(text);
+    sendMessage(text, false);
 }
 
-// ========== Voice Recognition (Web Speech API) ==========
-function initRecognition() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) return null;
-
-    const r = new SpeechRecognition();
-    r.lang = 'pt-BR';
-    r.continuous = true;
-    r.interimResults = true;
-
-    let silenceTimer = null;
-
-    r.onresult = function(e) {
-        let interim = '';
-        finalTranscript = '';
-        for (let i = 0; i < e.results.length; i++) {
-            if (e.results[i].isFinal) {
-                finalTranscript += e.results[i][0].transcript;
-            } else {
-                interim += e.results[i][0].transcript;
-            }
-        }
-        // Mostra transcrição ao vivo
-        document.getElementById('live-transcript').textContent = finalTranscript + interim;
-
-        // Reset silence timer — quando parar de falar por 2s, envia
-        clearTimeout(silenceTimer);
-        silenceTimer = setTimeout(() => {
-            if (finalTranscript.trim()) {
-                stopListening();
-                sendMessage(finalTranscript.trim());
-            }
-        }, 2000);
-    };
-
-    r.onerror = function(e) {
-        console.log('Speech error:', e.error);
-        if (e.error === 'not-allowed') {
-            alert('Permita o acesso ao microfone para usar o chat por voz.');
-        }
-        hideListeningOverlay();
-        isListening = false;
-    };
-
-    r.onend = function() {
-        // Se ainda está no modo listening (não foi parado manualmente), envia o que tem
-        if (isListening && finalTranscript.trim()) {
-            isListening = false;
-            hideListeningOverlay();
-            sendMessage(finalTranscript.trim());
-        } else if (isListening) {
-            // Reinicia se parou sem resultado (pode acontecer em alguns browsers)
-            try { r.start(); } catch(e) {}
-        }
-    };
-
-    return r;
-}
+// ========== Voice Session ==========
+// Uma "sessão de voz" = o usuário clicou no mic uma vez.
+// A partir daí: ouve → envia → IA responde → TTS toca → volta a ouvir.
+// Só para quando o usuário clica "Encerrar conversa por voz".
 
 function toggleListening() {
-    if (isListening) {
-        stopListening();
+    if (voiceSessionActive) {
+        stopVoiceSession();
     } else {
-        startListening();
+        startVoiceSession();
     }
 }
 
-function startListening() {
-    if (isListening) return;
+function startVoiceSession() {
+    if (voiceSessionActive) return;
 
-    if (!recognition) {
-        recognition = initRecognition();
-    }
-    if (!recognition) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
         alert('Seu navegador não suporta reconhecimento de voz. Use o modo texto.');
         return;
     }
 
-    finalTranscript = '';
-    document.getElementById('live-transcript').textContent = '';
-    document.getElementById('listening-status').textContent = 'Ouvindo...';
+    voiceSessionActive = true;
+    isBusy = false;
     showListeningOverlay();
-    isListening = true;
+    startSingleListen();
+}
 
-    try {
-        recognition.start();
-    } catch(e) {
-        // Já está rodando
+function stopVoiceSession() {
+    voiceSessionActive = false;
+    isBusy = false;
+    hideListeningOverlay();
+    destroyRecognition();
+}
+
+function destroyRecognition() {
+    if (recognition) {
+        try { recognition.abort(); } catch(e) {}
+        recognition = null;
     }
 }
 
-function stopListening() {
-    isListening = false;
-    hideListeningOverlay();
-    if (recognition) {
-        try { recognition.stop(); } catch(e) {}
+function startSingleListen() {
+    if (!voiceSessionActive || isBusy) return;
+
+    destroyRecognition();
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = 'pt-BR';
+    recognition.continuous = false;      // UMA frase por vez
+    recognition.interimResults = false;  // Só resultado final, sem transcrição parcial
+    recognition.maxAlternatives = 1;
+
+    hasSent = false;
+
+    recognition.onresult = function(e) {
+        if (hasSent) return;
+        const text = e.results[0][0].transcript;
+        if (text && text.trim()) {
+            hasSent = true;
+            hideListeningOverlay();
+            document.getElementById('status-text').textContent = 'Processando...';
+            sendMessage(text.trim(), true);
+        }
+    };
+
+    recognition.onerror = function(e) {
+        if (e.error === 'not-allowed') {
+            alert('Permita o acesso ao microfone para usar o chat por voz.');
+            stopVoiceSession();
+            return;
+        }
+        if (e.error === 'no-speech') {
+            // Ninguém falou — tenta de novo
+            if (voiceSessionActive && !isBusy) {
+                setTimeout(() => startSingleListen(), 300);
+            }
+            return;
+        }
+        // Outros erros: tenta de novo
+        if (voiceSessionActive && !isBusy) {
+            setTimeout(() => startSingleListen(), 500);
+        }
+    };
+
+    recognition.onend = function() {
+        // Se não enviou nada e sessão ainda ativa, reabre
+        if (!hasSent && voiceSessionActive && !isBusy) {
+            setTimeout(() => startSingleListen(), 300);
+        }
+    };
+
+    try {
+        recognition.start();
+        document.getElementById('listening-status').textContent = 'Ouvindo...';
+    } catch(e) {
+        setTimeout(() => startSingleListen(), 500);
     }
+}
+
+function resumeListening() {
+    if (!voiceSessionActive) return;
+    isBusy = false;
+    showListeningOverlay();
+    startSingleListen();
 }
 
 function showListeningOverlay() {
@@ -360,14 +376,10 @@ function hideListeningOverlay() {
 function playTTS(btn) {
     const text = btn.dataset.text;
     if (!text) return;
-    doTTS(text);
+    doTTS(text, false);
 }
 
-function autoPlayTTS(text) {
-    doTTS(text);
-}
-
-function doTTS(text) {
+function doTTS(text, reopenMicAfter) {
     const overlay = document.getElementById('speaking-overlay');
     overlay.style.display = 'flex';
     document.getElementById('speaking-text').textContent = text.substring(0, 200) + (text.length > 200 ? '...' : '');
@@ -383,20 +395,28 @@ function doTTS(text) {
         .then(blob => {
             const url = URL.createObjectURL(blob);
             currentAudio = new Audio(url);
-            currentAudio.onended = () => {
+
+            const onFinish = () => {
                 overlay.style.display = 'none';
                 URL.revokeObjectURL(url);
+                currentAudio = null;
+                isBusy = false;
+                // Reabre mic automaticamente se sessão de voz ativa
+                if (reopenMicAfter && voiceSessionActive) {
+                    resumeListening();
+                }
             };
-            currentAudio.onerror = () => {
-                overlay.style.display = 'none';
-                URL.revokeObjectURL(url);
-            };
-            currentAudio.play().catch(() => {
-                overlay.style.display = 'none';
-            });
+
+            currentAudio.onended = onFinish;
+            currentAudio.onerror = onFinish;
+            currentAudio.play().catch(() => onFinish());
         })
         .catch(() => {
             overlay.style.display = 'none';
+            isBusy = false;
+            if (reopenMicAfter && voiceSessionActive) {
+                resumeListening();
+            }
         });
 }
 
@@ -406,6 +426,11 @@ function stopSpeaking() {
         currentAudio = null;
     }
     document.getElementById('speaking-overlay').style.display = 'none';
+    isBusy = false;
+    // Se sessão ativa, volta a ouvir
+    if (voiceSessionActive) {
+        resumeListening();
+    }
 }
 
 // ========== Keyboard ==========

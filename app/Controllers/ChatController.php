@@ -1713,6 +1713,13 @@ class ChatController extends Controller
                         . "mesmo que ele não mencione nenhum arquivo pelo nome. "
                         . "Os arquivos base são a fonte principal de conhecimento deste projeto. "
                         . "Sempre baseie suas respostas no conteúdo desses arquivos.\n\n"
+                        . "CITAÇÃO DE FONTES: Ao final de CADA resposta, inclua uma seção '📚 Fontes' listando de onde você tirou cada informação. "
+                        . "Use o formato:\n"
+                        . "📚 **Fontes**\n"
+                        . "[1] Nome do arquivo — trecho/seção relevante\n"
+                        . "[2] Nome do arquivo — trecho/seção relevante\n"
+                        . "Se a informação veio do seu conhecimento geral (não dos arquivos do projeto), indique como '[N] Conhecimento geral da IA'. "
+                        . "Isso ajuda o usuário a verificar e confiar nas respostas.\n\n"
                         . "Contexto do projeto (use como fonte de verdade; não invente se estiver aqui):\n\n" . implode("\n\n---\n\n", $parts);
                 }
             }

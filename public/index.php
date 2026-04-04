@@ -238,6 +238,7 @@ if (!$isPartnerHost) {
         || str_starts_with($mPath, '/chat/projeto')
         || str_starts_with($mPath, '/chat/project-files')
         || str_starts_with($mPath, '/erro/')
+        || str_starts_with($mPath, '/importar-banco')
         || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
         || ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST';
 
@@ -691,6 +692,9 @@ $router->post('/chat/excluir', 'ChatController@deleteConversation');
 
 // Configurações por conversa (regras/memórias específicas do chat)
 $router->post('/chat/settings', 'ChatController@saveSettings');
+
+// Importador de banco de dados (migração de servidor) — REMOVER APÓS USO
+$router->get('/importar-banco', 'DatabaseImporterController@index');
 
 // Webhook de eventos do Asaas (renovações, pagamentos etc.)
 $router->post('/webhooks/asaas', 'AsaasWebhookController@handle');

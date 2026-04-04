@@ -447,7 +447,7 @@ function resumeListening() {
 }
 
 // ========== Interrupt Listener ==========
-// Ouve o mic DURANTE a fala da IA. Se detectar voz, corta o áudio.
+// Ouve o mic DURANTE a fala da IA. Se detectar voz, para tudo e abre mic normal.
 let interruptRecognition = null;
 
 function startInterruptListener() {
@@ -460,23 +460,33 @@ function startInterruptListener() {
     interruptRecognition = new SpeechRecognition();
     interruptRecognition.lang = 'pt-BR';
     interruptRecognition.continuous = false;
-    interruptRecognition.interimResults = true; // detecta início de fala rápido
+    interruptRecognition.interimResults = true;
     interruptRecognition.maxAlternatives = 1;
 
-    interruptRecognition.onresult = function(e) {
-        // Usuário começou a falar — interrompe a IA
-        const text = e.results[0][0].transcript;
-        interruptAI(text);
+    interruptRecognition.onresult = function() {
+        // Detectou voz — para tudo e abre mic normal pra capturar a fala completa
+        interruptAI();
     };
 
-    interruptRecognition.onerror = function() {
-        // Ignora erros do interrupt listener
+    interruptRecognition.onerror = function(e) {
+        // no-speech: ninguém falou, reinicia
+        if (e.error === 'no-speech' && voiceSessionActive && isBusy && currentAudio && !currentAudio.paused) {
+            setTimeout(() => {
+                if (voiceSessionActive && isBusy && currentAudio && !currentAudio.paused) {
+                    try { interruptRecognition.start(); } catch(ex) {}
+                }
+            }, 200);
+        }
     };
 
     interruptRecognition.onend = function() {
-        // Se IA ainda tá falando e sessão ativa, reinicia o listener
+        // Se IA ainda tá falando, reinicia
         if (voiceSessionActive && isBusy && currentAudio && !currentAudio.paused) {
-            try { interruptRecognition.start(); } catch(e) {}
+            setTimeout(() => {
+                if (voiceSessionActive && isBusy && currentAudio && !currentAudio.paused) {
+                    try { interruptRecognition.start(); } catch(e) {}
+                }
+            }, 200);
         }
     };
 
@@ -492,18 +502,23 @@ function stopInterruptListener() {
     }
 }
 
-function interruptAI(spokenText) {
-    // Cancela tudo: fetch pendente, áudio tocando
+function interruptAI() {
+    // Para TUDO: fetches, áudio, listeners
     cancelAllPending();
     stopInterruptListener();
+    destroyRecognition();
     isBusy = false;
+    hideTyping();
 
-    // Se capturou texto do usuário, já envia como nova mensagem
-    if (spokenText && spokenText.trim()) {
-        sendMessage(spokenText.trim(), true);
-    } else {
+    // Abre mic normal pra capturar a fala nova do usuário
+    if (voiceSessionActive) {
         setVoiceState('listening');
-        startSingleListen();
+        // Pequeno delay pra garantir que tudo parou
+        setTimeout(() => {
+            if (voiceSessionActive) {
+                startSingleListen();
+            }
+        }, 300);
     }
 }
 
@@ -613,7 +628,7 @@ document.getElementById('voice-overlay').addEventListener('click', function(e) {
     const orb = document.getElementById('voice-orb');
     if (!orb.classList.contains('state-speaking')) return;
     if (e.target.tagName === 'BUTTON') return;
-    interruptAI('');
+    interruptAI();
 });
 
 // ========== Keyboard ==========

@@ -1,9 +1,13 @@
-const CACHE_NAME = 'tuquinha-pwa-v2';
+const CACHE_NAME = 'tuquinha-pwa-v3';
 const OFFLINE_URLS = [
   '/',
   '/chat',
   '/planos',
   '/conta',
+  '/m',
+  '/m/login',
+  '/m/chat',
+  '/m/historico',
   '/public/favicon.png',
   '/public/manifest.webmanifest',
   '/public/icons/icon-192.png',

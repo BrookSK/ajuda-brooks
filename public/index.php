@@ -603,6 +603,21 @@ $router->get('/admin/comunidade/bloqueios', 'AdminCommunityController@blocks');
 $router->get('/admin/comunidade/categorias', 'AdminCommunityController@categories');
 $router->post('/admin/comunidade/categorias/criar', 'AdminCommunityController@createCategory');
 $router->get('/admin/comunidade/categorias/toggle', 'AdminCommunityController@toggleCategory');
+// Mobile routes
+$router->get('/m', 'MobileController@index');
+$router->get('/m/login', 'MobileController@showLogin');
+$router->post('/m/login', 'MobileController@login');
+$router->get('/m/registrar', 'MobileController@showRegister');
+$router->post('/m/registrar', 'MobileController@register');
+$router->get('/m/onboarding', 'MobileController@onboarding');
+$router->post('/m/onboarding/salvar', 'MobileController@saveOnboardingStep');
+$router->post('/m/onboarding/upload', 'MobileController@uploadDocument');
+$router->get('/m/chat', 'MobileController@chat');
+$router->post('/m/chat/enviar', 'MobileController@sendMessage');
+$router->post('/m/chat/tts', 'MobileController@textToSpeech');
+$router->get('/m/historico', 'MobileController@history');
+$router->get('/m/logout', 'MobileController@logout');
+
 $router->get('/chat', 'ChatController@index');
 $router->post('/chat/send', 'ChatController@send');
 $router->get('/chat/job', 'ChatController@job');

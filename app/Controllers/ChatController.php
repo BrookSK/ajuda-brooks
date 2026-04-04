@@ -1993,7 +1993,6 @@ class ChatController extends Controller
                 $projectIdForSuggestion = (int)$conversation->project_id;
                 $enabled = (string)Setting::get('project_auto_memory_enabled', '1');
                 error_log('[ProjectSuggestion] Starting extraction for project=' . $projectIdForSuggestion . ' enabled=' . $enabled . ' conv=' . $conversation->id);
-                $enabled = (string)Setting::get('project_auto_memory_enabled', '1');
                 if ($enabled !== '0') {
                     try {
                         $engineForSuggestion = new TuquinhaEngine();

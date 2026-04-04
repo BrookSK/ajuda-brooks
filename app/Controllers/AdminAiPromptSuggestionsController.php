@@ -97,7 +97,7 @@ class AdminAiPromptSuggestionsController extends Controller
     public function saveSuggestionInterval(): void
     {
         $this->ensureAdmin();
-        $interval = max(10, min(1000, (int)($_POST['ai_suggestion_interval'] ?? 50)));
+        $interval = max(1, min(1000, (int)($_POST['ai_suggestion_interval'] ?? 50)));
         Setting::set('ai_suggestion_interval', (string)$interval);
         header('Location: /admin/ia-sugestoes-prompt');
         exit;

@@ -21,8 +21,8 @@
         </div>
 
         <form method="post" action="/admin/ia-sugestoes-prompt/intervalo" style="display:flex; align-items:center; gap:8px;">
-            <label style="font-size:12px; color:#888;">Gerar sugestão a cada</label>
-            <input type="number" name="ai_suggestion_interval" min="10" max="1000" value="<?= (int)$suggestionInterval ?>"
+            <label style="font-size:12px; color:#888;">Gerar sugestão global a cada</label>
+            <input type="number" name="ai_suggestion_interval" min="1" max="1000" value="<?= (int)$suggestionInterval ?>"
                 style="width:70px; padding:5px 8px; border-radius:6px; border:1px solid #272727; background:#050509; color:#f5f5f5; font-size:13px;">
             <span style="font-size:12px; color:#888;">aprendizados</span>
             <button type="submit" style="padding:5px 12px; border-radius:6px; border:none; background:#1a1a2e; color:#a78bfa; font-size:12px; cursor:pointer;">Salvar</button>
@@ -51,7 +51,11 @@
 
     <?php if (empty($suggestions)): ?>
         <div style="text-align:center; padding:60px 20px; color:#555; font-size:14px;">
-            Nenhuma sugestão ainda. Elas aparecem automaticamente a cada <?= (int)$suggestionInterval ?> aprendizados acumulados.
+            Nenhuma sugestão ainda.<br>
+            <span style="font-size:12px; color:#444;">
+                Sugestões de projeto são geradas automaticamente a cada conversa no chat de um projeto.<br>
+                Sugestões globais aparecem a cada <?= (int)$suggestionInterval ?> aprendizados acumulados.
+            </span>
         </div>
     <?php else: ?>
         <div style="display:flex; flex-direction:column; gap:10px;">

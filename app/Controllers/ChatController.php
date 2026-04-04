@@ -1369,7 +1369,9 @@ class ChatController extends Controller
                 }
 
                 $baseFileTextBudgetUsed = 0;
-                $baseFileTextBudgetMax = 700000;
+                // Budget reduzido para evitar estourar rate limit de tokens da API (ex: Anthropic 30k tokens/min)
+                // ~60k chars ≈ ~15k tokens, deixando margem para system prompt, histórico e resposta
+                $baseFileTextBudgetMax = 60000;
                 $autoPdfFileInputsForModel = [];
                 $baseFileCount = max(1, count($baseFiles));
                 $baseFileIndex  = 0;

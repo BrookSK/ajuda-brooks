@@ -433,7 +433,12 @@ class TuquinhaEngine
                 $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
                 curl_close($ch);
                 if ($try < self::PROVIDER_RETRY_MAX_ATTEMPTS && ($httpCode === 429 || $httpCode === 408 || ($httpCode >= 500 && $httpCode <= 599))) {
-                    usleep($try === 1 ? 300000 : ($try === 2 ? 900000 : 1500000));
+                    // Para 429 (rate limit), espera mais tempo pois o limite é por minuto
+                    if ($httpCode === 429) {
+                        sleep($try === 1 ? 10 : 20);
+                    } else {
+                        usleep($try === 1 ? 300000 : ($try === 2 ? 900000 : 1500000));
+                    }
                     continue;
                 }
                 break;

@@ -195,7 +195,7 @@ function setVoiceState(state) {
         pulse1.style.display = 'none';
         pulse2.style.display = 'none';
         status.textContent = 'Respondendo...';
-        subtitle.textContent = '';
+        subtitle.textContent = 'Toque para interromper';
     }
 }
 
@@ -377,7 +377,6 @@ function stopVoiceSession() {
     voiceSessionActive = false;
     isBusy = false;
     cancelAllPending();
-    stopVoiceDetector();
     destroyRecognition();
     hideVoiceOverlay();
 }
@@ -474,111 +473,29 @@ function doTTS(text, reopenMicAfter) {
                 URL.revokeObjectURL(url);
                 currentAudio = null;
                 isBusy = false;
-                stopVoiceDetector();
                 if (reopenMicAfter && voiceSessionActive) resumeListening();
                 else hideVoiceOverlay();
             };
 
             currentAudio.onended = done;
             currentAudio.onerror = done;
-            currentAudio.play().then(() => {
-                // Áudio começou — ativa detector de voz pra interrupção
-                if (reopenMicAfter && voiceSessionActive) {
-                    startVoiceDetector();
-                }
-            }).catch(() => done());
+            currentAudio.play().catch(() => done());
         })
         .catch(err => {
             if (err.name === 'AbortError') return;
             isBusy = false;
-            stopVoiceDetector();
             if (reopenMicAfter && voiceSessionActive) resumeListening();
             else hideVoiceOverlay();
         });
 }
 
-// ========== Voice Detector (interrupção por volume do mic) ==========
-// Usa AudioContext + getUserMedia pra detectar som no mic sem usar SpeechRecognition.
-// Não conflita com nada — é só leitura de dados brutos do microfone.
-let voiceDetectorStream = null;
-let voiceDetectorCtx = null;
-let voiceDetectorInterval = null;
-
-function startVoiceDetector() {
-    stopVoiceDetector();
-
-    navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-            voiceDetectorStream = stream;
-            voiceDetectorCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const source = voiceDetectorCtx.createMediaStreamSource(stream);
-            const analyser = voiceDetectorCtx.createAnalyser();
-            analyser.fftSize = 512;
-            source.connect(analyser);
-
-            const data = new Uint8Array(analyser.frequencyBinCount);
-            let loudFrames = 0;
-            let skipFrames = 20; // ignora os primeiros ~1s (áudio da IA no alto-falante)
-
-            voiceDetectorInterval = setInterval(() => {
-                if (!currentAudio || currentAudio.paused || !voiceSessionActive) {
-                    stopVoiceDetector();
-                    return;
-                }
-
-                // Pula frames iniciais pra não confundir áudio do alto-falante com fala
-                if (skipFrames > 0) {
-                    skipFrames--;
-                    return;
-                }
-
-                analyser.getByteFrequencyData(data);
-                let sum = 0;
-                for (let i = 0; i < data.length; i++) sum += data[i];
-                const avg = sum / data.length;
-
-                // Threshold alto (60) pra não confundir áudio do speaker com fala no mic
-                if (avg > 60) {
-                    loudFrames++;
-                    if (loudFrames >= 5) { // ~250ms de som alto contínuo
-                        stopVoiceDetector();
-                        cancelAllPending();
-                        isBusy = false;
-                        resumeListening();
-                    }
-                } else {
-                    loudFrames = Math.max(0, loudFrames - 1); // decay gradual
-                }
-            }, 50); // checa a cada 50ms
-        })
-        .catch(() => {
-            // Sem permissão de mic — ignora, interrupção só por toque
-        });
-}
-
-function stopVoiceDetector() {
-    if (voiceDetectorInterval) {
-        clearInterval(voiceDetectorInterval);
-        voiceDetectorInterval = null;
-    }
-    if (voiceDetectorCtx) {
-        try { voiceDetectorCtx.close(); } catch(e) {}
-        voiceDetectorCtx = null;
-    }
-    if (voiceDetectorStream) {
-        voiceDetectorStream.getTracks().forEach(t => t.stop());
-        voiceDetectorStream = null;
-    }
-}
-
-// Interromper: tocar na tela enquanto IA fala (fallback manual)
+// Interromper: tocar na tela enquanto IA fala
 document.getElementById('voice-overlay').addEventListener('click', function(e) {
     if (!voiceSessionActive) return;
     if (e.target.tagName === 'BUTTON') return;
 
     const orb = document.getElementById('voice-orb');
     if (orb.classList.contains('state-speaking') || orb.classList.contains('state-thinking')) {
-        stopVoiceDetector();
         cancelAllPending();
         isBusy = false;
         resumeListening();

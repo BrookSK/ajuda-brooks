@@ -1369,9 +1369,12 @@ class ChatController extends Controller
                 }
 
                 $baseFileTextBudgetUsed = 0;
-                // Budget reduzido para evitar estourar rate limit de tokens da API (ex: Anthropic 30k tokens/min)
-                // ~60k chars ≈ ~15k tokens, deixando margem para system prompt, histórico e resposta
-                $baseFileTextBudgetMax = 60000;
+                // Budget adaptado ao modelo: Claude tem janela grande (200k tokens), OpenAI menor
+                $chatModel = isset($_SESSION['chat_model']) ? (string)$_SESSION['chat_model'] : '';
+                $isClaudeModel = str_starts_with(strtolower($chatModel), 'claude-');
+                // Claude: ~120k chars (~30k tokens) cabe no system prompt sem estourar rate limit
+                // OpenAI: ~40k chars (~10k tokens) pra modelos menores
+                $baseFileTextBudgetMax = $isClaudeModel ? 120000 : 40000;
                 $autoPdfFileInputsForModel = [];
                 $baseFileCount = max(1, count($baseFiles));
                 $baseFileIndex  = 0;
@@ -1866,14 +1869,10 @@ class ChatController extends Controller
             $engine = new TuquinhaEngine();
             $historyForEngine = $history;
 
-            // Injeta contexto do projeto e anexos concatenando no último user message (não array_unshift).
-            // Isso protege o contexto do projeto do trim de histórico, que remove do início do array.
+            // Injeta anexos da mensagem atual no histórico (NÃO o contexto do projeto — esse vai no system prompt)
             $lastHistIdx = count($historyForEngine) - 1;
             if ($lastHistIdx >= 0 && ($historyForEngine[$lastHistIdx]['role'] ?? '') === 'user') {
                 $ctxPrefix = '';
-                if (is_string($projectContextMessage) && $projectContextMessage !== '') {
-                    $ctxPrefix .= $projectContextMessage . "\n\n";
-                }
                 if (is_string($attachmentsMessage) && $attachmentsMessage !== '') {
                     $ctxPrefix .= $attachmentsMessage . "\n\n";
                 }
@@ -1883,9 +1882,6 @@ class ChatController extends Controller
             } else {
                 if (is_string($attachmentsMessage) && $attachmentsMessage !== '') {
                     array_unshift($historyForEngine, ['role' => 'user', 'content' => $attachmentsMessage]);
-                }
-                if (is_string($projectContextMessage) && $projectContextMessage !== '') {
-                    array_unshift($historyForEngine, ['role' => 'user', 'content' => $projectContextMessage]);
                 }
             }
 
@@ -1999,7 +1995,8 @@ class ChatController extends Controller
                     $userData,
                     $conversationSettings,
                     $personaData,
-                    !empty($persistentFileInputs) ? $persistentFileInputs : null
+                    !empty($persistentFileInputs) ? $persistentFileInputs : null,
+                    $projectContextMessage
                 );
             } catch (\Throwable $e) {
                 if ($asyncJobId) {

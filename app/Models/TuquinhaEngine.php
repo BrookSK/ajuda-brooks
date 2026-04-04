@@ -44,7 +44,7 @@ class TuquinhaEngine
         return is_string($result) ? $result : '';
     }
 
-    public function generateResponseWithContext(array $messages, ?string $model = null, ?array $user = null, ?array $conversationSettings = null, ?array $persona = null, ?array $fileInputs = null): array
+    public function generateResponseWithContext(array $messages, ?string $model = null, ?array $user = null, ?array $conversationSettings = null, ?array $persona = null, ?array $fileInputs = null, ?string $projectContext = null): array
     {
         $configuredModel = Setting::get('openai_default_model', AI_MODEL);
         $modelToUse = $model ?: $configuredModel;
@@ -53,10 +53,10 @@ class TuquinhaEngine
 
         // Decide provedor com base no nome do modelo
         if ($this->isClaudeModel($modelToUse)) {
-            return $this->callAnthropicClaude($messages, $modelToUse, $user, $conversationSettings, $persona, $fileInputs);
+            return $this->callAnthropicClaude($messages, $modelToUse, $user, $conversationSettings, $persona, $fileInputs, $projectContext);
         }
 
-        return $this->callOpenAI($messages, $modelToUse, $user, $conversationSettings, $persona, $fileInputs);
+        return $this->callOpenAI($messages, $modelToUse, $user, $conversationSettings, $persona, $fileInputs, $projectContext);
     }
 
     private function isClaudeModel(string $model): bool
@@ -118,7 +118,7 @@ class TuquinhaEngine
         return false;
     }
 
-    private function callOpenAI(array $messages, string $model, ?array $user, ?array $conversationSettings, ?array $persona, ?array $fileInputs): array
+    private function callOpenAI(array $messages, string $model, ?array $user, ?array $conversationSettings, ?array $persona, ?array $fileInputs, ?string $projectContext = null): array
     {
         $configuredApiKey = Setting::get('openai_api_key', AI_API_KEY);
 
@@ -131,13 +131,13 @@ class TuquinhaEngine
         }
 
         if (!empty($fileInputs) && is_array($fileInputs)) {
-            return $this->callOpenAIResponsesWithFiles($messages, $model, $configuredApiKey, $user, $conversationSettings, $persona, $fileInputs);
+            return $this->callOpenAIResponsesWithFiles($messages, $model, $configuredApiKey, $user, $conversationSettings, $persona, $fileInputs, $projectContext);
         }
 
         $payloadMessages = [];
         $payloadMessages[] = [
             'role' => 'system',
-            'content' => $this->buildSystemPromptWithContext($user, $conversationSettings, $persona),
+            'content' => $this->buildSystemPromptWithContext($user, $conversationSettings, $persona, $projectContext),
         ];
 
         foreach ($messages as $m) {
@@ -237,7 +237,7 @@ class TuquinhaEngine
         ];
     }
 
-    private function callAnthropicClaude(array $messages, string $model, ?array $user, ?array $conversationSettings, ?array $persona, ?array $fileInputs): array
+    private function callAnthropicClaude(array $messages, string $model, ?array $user, ?array $conversationSettings, ?array $persona, ?array $fileInputs, ?string $projectContext = null): array
     {
         $apiKey = Setting::get('anthropic_api_key', ANTHROPIC_API_KEY);
         if (empty($apiKey)) {
@@ -248,7 +248,7 @@ class TuquinhaEngine
             ];
         }
 
-        $systemPrompt = $this->buildSystemPromptWithContext($user, $conversationSettings, $persona);
+        $systemPrompt = $this->buildSystemPromptWithContext($user, $conversationSettings, $persona, $projectContext);
         $model = $this->normalizeClaudeModel($model);
 
         $claudeMessages = [];
@@ -500,7 +500,7 @@ class TuquinhaEngine
         ];
     }
 
-    private function callOpenAIResponsesWithFiles(array $messages, string $model, string $apiKey, ?array $user, ?array $conversationSettings, ?array $persona, array $fileInputs): array
+    private function callOpenAIResponsesWithFiles(array $messages, string $model, string $apiKey, ?array $user, ?array $conversationSettings, ?array $persona, array $fileInputs, ?string $projectContext = null): array
     {
         $imageInputs = [];
         $fileIds = [];
@@ -627,7 +627,7 @@ class TuquinhaEngine
             ];
         }
 
-        $systemText = $this->buildSystemPromptWithContext($user, $conversationSettings, $persona);
+        $systemText = $this->buildSystemPromptWithContext($user, $conversationSettings, $persona, $projectContext);
         if ($imageInputs) {
             $systemText = "IMPORTANTE: Você PODE analisar imagens quando elas forem fornecidas como input_image neste chat.\n" . $systemText;
         }
@@ -987,10 +987,15 @@ class TuquinhaEngine
         return $prompt;
     }
 
-    private function buildSystemPromptWithContext(?array $user, ?array $conversationSettings, ?array $persona): string
+    private function buildSystemPromptWithContext(?array $user, ?array $conversationSettings, ?array $persona, ?string $projectContext = null): string
     {
         $parts = [];
         $parts[] = $this->systemPrompt;
+
+        // Contexto do projeto: vai no system prompt pra não ser cortado pelo trim de histórico
+        if (is_string($projectContext) && $projectContext !== '') {
+            $parts[] = $projectContext;
+        }
 
         if ($persona) {
             $personaLines = [];

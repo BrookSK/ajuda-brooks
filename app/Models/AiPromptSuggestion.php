@@ -45,14 +45,26 @@ class AiPromptSuggestion
             return 0;
         }
         $pdo = Database::getConnection();
-        $stmt = $pdo->prepare('INSERT INTO ai_prompt_suggestions (project_id, suggestion, rationale, source_conversation_id) VALUES (:pid, :s, :r, :cid)');
-        $stmt->execute([
-            'pid' => $projectId && $projectId > 0 ? $projectId : null,
-            's' => $suggestion,
-            'r' => $rationale !== '' ? $rationale : null,
-            'cid' => $sourceConversationId && $sourceConversationId > 0 ? $sourceConversationId : null,
-        ]);
-        return (int)$pdo->lastInsertId();
+
+        // Tenta com as colunas novas (project_id, source_conversation_id)
+        try {
+            $stmt = $pdo->prepare('INSERT INTO ai_prompt_suggestions (project_id, suggestion, rationale, source_conversation_id) VALUES (:pid, :s, :r, :cid)');
+            $stmt->execute([
+                'pid' => $projectId && $projectId > 0 ? $projectId : null,
+                's' => $suggestion,
+                'r' => $rationale !== '' ? $rationale : null,
+                'cid' => $sourceConversationId && $sourceConversationId > 0 ? $sourceConversationId : null,
+            ]);
+            return (int)$pdo->lastInsertId();
+        } catch (\Throwable $e) {
+            // Fallback: colunas novas podem não existir ainda (migration não rodada)
+            $stmt = $pdo->prepare('INSERT INTO ai_prompt_suggestions (suggestion, rationale) VALUES (:s, :r)');
+            $stmt->execute([
+                's' => $suggestion,
+                'r' => $rationale !== '' ? $rationale : null,
+            ]);
+            return (int)$pdo->lastInsertId();
+        }
     }
 
     public static function approve(int $id): void

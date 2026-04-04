@@ -267,7 +267,7 @@ class CronLearningController extends Controller
             "SELECT c.id, c.persona_id
              FROM conversations c
              INNER JOIN messages m ON m.conversation_id = c.id AND m.role = 'assistant'
-             WHERE c.created_at >= NOW() - INTERVAL :days DAY
+             WHERE c.created_at >= NOW() - INTERVAL " . (int)$daysBack . " DAY
                AND c.id NOT IN (
                    SELECT DISTINCT source_conversation_id
                    FROM ai_learnings
@@ -276,9 +276,9 @@ class CronLearningController extends Controller
              GROUP BY c.id
              HAVING COUNT(m.id) >= 2
              ORDER BY c.created_at DESC
-             LIMIT :lim"
+             LIMIT " . (int)$batchLimit
         );
-        $stmt->execute(['days' => $daysBack, 'lim' => $batchLimit]);
+        $stmt->execute();
         $conversations = $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
 
         $enqueued = 0;

@@ -2003,11 +2003,12 @@ class ChatController extends Controller
                             [['role' => 'user', 'content' => $suggestionInstruction
                                 . "\n\nMENSAGEM DO USUÁRIO:\n" . mb_substr((string)$message, 0, 500, 'UTF-8')
                                 . "\n\nRESPOSTA DO ASSISTENTE:\n" . mb_substr($assistantReply, 0, 1000, 'UTF-8')]],
-                            'claude-3-5-haiku-latest',
+                            'claude-3-5-sonnet-latest',
                             null, null, null
                         );
 
                         $suggestionText = is_array($suggestionResult) ? trim((string)($suggestionResult['content'] ?? '')) : '';
+                        error_log('[ProjectSuggestion] Raw response: ' . mb_substr($suggestionText, 0, 500, 'UTF-8'));
                         if ($suggestionText !== '' && $suggestionText[0] === '{') {
                             $suggestionJson = json_decode($suggestionText, true);
                             if (is_array($suggestionJson) && isset($suggestionJson['items']) && is_array($suggestionJson['items'])) {
@@ -2024,7 +2025,7 @@ class ChatController extends Controller
                             }
                         }
                     } catch (\Throwable $sgErr) {
-                        error_log('[ProjectSuggestion] Falhou: ' . $sgErr->getMessage());
+                        error_log('[ProjectSuggestion] Falhou: ' . $sgErr->getMessage() . ' em ' . $sgErr->getFile() . ':' . $sgErr->getLine());
                     }
                 }
             }

@@ -1320,7 +1320,7 @@ class ChatController extends Controller
                 // para system prompt base, personalidade, histórico e resposta
                 $chatModel = isset($_SESSION['chat_model']) ? (string)$_SESSION['chat_model'] : '';
                 $isClaudeModel = str_starts_with(strtolower($chatModel), 'claude-');
-                $baseFileTextBudgetMax = $isClaudeModel ? 40000 : 30000;
+                $baseFileTextBudgetMax = $isClaudeModel ? 25000 : 30000;
                 $autoPdfFileInputsForModel = [];
                 $baseFileCount = max(1, count($baseFiles));
                 $baseFileIndex  = 0;
@@ -1972,11 +1972,18 @@ class ChatController extends Controller
             }
 
             // Extração de sugestões de aprendizado do projeto (analisa mensagem + resposta)
-            if (!empty($conversation->project_id) && $userId > 0 && $assistantReply !== '' && mb_strlen((string)$message, 'UTF-8') >= 20) {
+            // Só roda se a resposta principal foi gerada com sucesso (não é fallback de erro)
+            $isFallbackResponse = strpos($assistantReply, 'Não consegui acessar a IA agora') !== false
+                || strpos($assistantReply, '[DEBUG]') !== false
+                || mb_strlen($assistantReply, 'UTF-8') < 100;
+
+            if (!empty($conversation->project_id) && $userId > 0 && $assistantReply !== '' && !$isFallbackResponse && mb_strlen((string)$message, 'UTF-8') >= 20) {
                 $projectIdForSuggestion = (int)$conversation->project_id;
                 $enabled = (string)Setting::get('project_auto_memory_enabled', '1');
                 @file_put_contents('/tmp/tuq_project_suggestion.log', date('Y-m-d H:i:s') . ' Starting: project=' . $projectIdForSuggestion . ' enabled=' . $enabled . ' conv=' . $conversation->id . "\n", FILE_APPEND);
                 if ($enabled !== '0') {
+                    // Espera 15 segundos pra não estourar rate limit (a resposta principal acabou de consumir tokens)
+                    sleep(15);
                     try {
                         $engineForSuggestion = new TuquinhaEngine();
                         $suggestionInstruction = "Analise esta conversa entre usuário e assistente sobre um projeto empresarial. "
@@ -2009,7 +2016,8 @@ class ChatController extends Controller
                                     if (strpos($sgContent, '?') !== false) continue;
                                     $sgRationale = is_array($sgItem) ? trim((string)($sgItem['rationale'] ?? '')) : '';
                                     if (!AiPromptSuggestion::existsSimilar($sgContent)) {
-                                        AiPromptSuggestion::create($sgContent, $sgRationale, $projectIdForSuggestion, (int)$conversation->id);
+                                        $newSgId = AiPromptSuggestion::create($sgContent, $sgRationale, $projectIdForSuggestion, (int)$conversation->id);
+                                        @file_put_contents('/tmp/tuq_project_suggestion.log', date('Y-m-d H:i:s') . ' Created suggestion id=' . $newSgId . ' content=' . mb_substr($sgContent, 0, 80, 'UTF-8') . "\n", FILE_APPEND);
                                     }
                                 }
                             }

@@ -1992,7 +1992,7 @@ class ChatController extends Controller
             if (!empty($conversation->project_id) && $userId > 0 && $assistantReply !== '' && mb_strlen((string)$message, 'UTF-8') >= 20) {
                 $projectIdForSuggestion = (int)$conversation->project_id;
                 $enabled = (string)Setting::get('project_auto_memory_enabled', '1');
-                error_log('[ProjectSuggestion] Starting extraction for project=' . $projectIdForSuggestion . ' enabled=' . $enabled . ' conv=' . $conversation->id);
+                @file_put_contents('/tmp/tuq_project_suggestion.log', date('Y-m-d H:i:s') . ' Starting: project=' . $projectIdForSuggestion . ' enabled=' . $enabled . ' conv=' . $conversation->id . "\n", FILE_APPEND);
                 if ($enabled !== '0') {
                     try {
                         $engineForSuggestion = new TuquinhaEngine();
@@ -2015,7 +2015,7 @@ class ChatController extends Controller
                         );
 
                         $suggestionText = is_array($suggestionResult) ? trim((string)($suggestionResult['content'] ?? '')) : '';
-                        error_log('[ProjectSuggestion] Raw response: ' . mb_substr($suggestionText, 0, 500, 'UTF-8'));
+                        @file_put_contents('/tmp/tuq_project_suggestion.log', date('Y-m-d H:i:s') . ' Response: ' . mb_substr($suggestionText, 0, 500, 'UTF-8') . "\n", FILE_APPEND);
                         if ($suggestionText !== '' && $suggestionText[0] === '{') {
                             $suggestionJson = json_decode($suggestionText, true);
                             if (is_array($suggestionJson) && isset($suggestionJson['items']) && is_array($suggestionJson['items'])) {
@@ -2032,7 +2032,7 @@ class ChatController extends Controller
                             }
                         }
                     } catch (\Throwable $sgErr) {
-                        error_log('[ProjectSuggestion] Falhou: ' . $sgErr->getMessage() . ' em ' . $sgErr->getFile() . ':' . $sgErr->getLine());
+                        @file_put_contents('/tmp/tuq_project_suggestion.log', date('Y-m-d H:i:s') . ' ERROR: ' . $sgErr->getMessage() . ' em ' . $sgErr->getFile() . ':' . $sgErr->getLine() . "\n", FILE_APPEND);
                     }
                 }
             }

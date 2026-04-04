@@ -35,6 +35,7 @@ class DatabaseImporterController
 
         $this->db = Database::getConnection();
         $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $this->db->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
 
         echo $this->renderHeader();
         $this->flush();
@@ -148,78 +149,168 @@ class DatabaseImporterController
             $this->flush();
 
             $sql = file_get_contents($file);
-            $statements = $this->splitStatements($sql);
-            $migrationOk = true;
 
-            foreach ($statements as $stmt) {
-                $trimmed = trim($stmt);
-                if ($trimmed === '' || $this->isComment($trimmed)) {
-                    continue;
-                }
+            // Migrations com PREPARE/SET/DEALLOCATE precisam rodar como bloco único
+            // via mysqli multi_query pra evitar conflito de unbuffered queries no PDO
+            $isComplexMigration = (bool) preg_match('/\b(PREPARE\s+|DEALLOCATE\s+|SET\s+@)/i', $sql);
 
-                // Verificar CREATE TABLE — pular se tabela já existe
-                if (preg_match('/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?[`"]?(\w+)[`"]?/i', $trimmed, $m)) {
-                    $tableName = $m[1];
-                    if ($this->tableExists($tableName)) {
-                        $this->addLog('skip', "&nbsp;&nbsp;Tabela <code>{$tableName}</code> já existe.");
-                        $this->skipCount++;
-                        continue;
-                    }
-                }
-
-                // Verificar ALTER TABLE ADD COLUMN — pular se coluna já existe
-                if (preg_match('/ALTER\s+TABLE\s+[`"]?(\w+)[`"]?\s+ADD\s+(?:COLUMN\s+)?[`"]?(\w+)[`"]?/i', $trimmed, $m)) {
-                    $table = $m[1];
-                    $column = $m[2];
-                    if ($this->columnExists($table, $column)) {
-                        $this->addLog('skip', "&nbsp;&nbsp;Coluna <code>{$table}.{$column}</code> já existe.");
-                        $this->skipCount++;
-                        continue;
-                    }
-                }
-
-                // Verificar CREATE INDEX — pular se index já existe
-                if (preg_match('/CREATE\s+(?:UNIQUE\s+)?INDEX\s+[`"]?(\w+)[`"]?\s+ON\s+[`"]?(\w+)[`"]?/i', $trimmed, $m)) {
-                    $indexName = $m[1];
-                    $table = $m[2];
-                    if ($this->indexExists($table, $indexName)) {
-                        $this->addLog('skip', "&nbsp;&nbsp;Index <code>{$indexName}</code> já existe em <code>{$table}</code>.");
-                        $this->skipCount++;
-                        continue;
-                    }
-                }
-
-                $isInsert = (bool) preg_match('/^\s*INSERT\s+/i', $trimmed);
-
-                try {
-                    $this->db->exec($trimmed);
-                    $this->successCount++;
-                } catch (PDOException $e) {
-                    if ($isInsert && $this->isDuplicateError($e)) {
-                        $this->addLog('skip', '&nbsp;&nbsp;INSERT ignorado (duplicata).');
-                        $this->skipCount++;
-                    } elseif ($this->isAlreadyExistsError($e)) {
-                        $this->addLog('skip', '&nbsp;&nbsp;Já existe: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES));
-                        $this->skipCount++;
-                    } else {
-                        $this->addLog('error', '&nbsp;&nbsp;Erro: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES));
-                        $this->errorCount++;
-                        $migrationOk = false;
-                    }
-                }
+            if ($isComplexMigration) {
+                $migrationOk = $this->runComplexMigration($sql, $filename);
+            } else {
+                $migrationOk = $this->runSimpleMigration($sql, $filename);
             }
 
-            // Registrar migration como executada
             if ($migrationOk) {
                 $this->recordMigration($migrationKey);
                 $this->addLog('ok', "Migration <code>{$filename}</code> concluída.");
             } else {
-                $this->addLog('warn', "Migration <code>{$filename}</code> teve erros (registrada mesmo assim).");
-                $this->recordMigration($migrationKey);
+                $this->addLog('warn', "Migration <code>{$filename}</code> teve erros — NÃO registrada (será tentada novamente).");
             }
 
             $this->flush();
         }
+    }
+
+    /**
+     * Executa migration simples statement por statement com verificações.
+     */
+    private function runSimpleMigration(string $sql, string $filename): bool
+    {
+        $statements = $this->splitStatements($sql);
+        $migrationOk = true;
+
+        foreach ($statements as $stmt) {
+            $trimmed = trim($stmt);
+            if ($trimmed === '' || $this->isComment($trimmed)) {
+                continue;
+            }
+
+            // Verificar CREATE TABLE — pular se tabela já existe
+            if (preg_match('/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?[`"]?(\w+)[`"]?/i', $trimmed, $m)) {
+                $tableName = $m[1];
+                if ($this->tableExists($tableName)) {
+                    $this->addLog('skip', "&nbsp;&nbsp;Tabela <code>{$tableName}</code> já existe.");
+                    $this->skipCount++;
+                    continue;
+                }
+            }
+
+            // Verificar ALTER TABLE ADD COLUMN — pular se coluna já existe
+            if (preg_match('/ALTER\s+TABLE\s+[`"]?(\w+)[`"]?\s+ADD\s+(?:COLUMN\s+)?[`"]?(\w+)[`"]?/i', $trimmed, $m)) {
+                $table = $m[1];
+                $column = $m[2];
+                if ($this->columnExists($table, $column)) {
+                    $this->addLog('skip', "&nbsp;&nbsp;Coluna <code>{$table}.{$column}</code> já existe.");
+                    $this->skipCount++;
+                    continue;
+                }
+            }
+
+            // Verificar CREATE INDEX — pular se index já existe
+            if (preg_match('/CREATE\s+(?:UNIQUE\s+)?INDEX\s+[`"]?(\w+)[`"]?\s+ON\s+[`"]?(\w+)[`"]?/i', $trimmed, $m)) {
+                $indexName = $m[1];
+                $table = $m[2];
+                if ($this->indexExists($table, $indexName)) {
+                    $this->addLog('skip', "&nbsp;&nbsp;Index <code>{$indexName}</code> já existe em <code>{$table}</code>.");
+                    $this->skipCount++;
+                    continue;
+                }
+            }
+
+            $isInsert = (bool) preg_match('/^\s*INSERT\s+/i', $trimmed);
+
+            try {
+                $this->db->exec($trimmed);
+                $this->successCount++;
+            } catch (PDOException $e) {
+                if ($isInsert && $this->isDuplicateError($e)) {
+                    $this->addLog('skip', '&nbsp;&nbsp;INSERT ignorado (duplicata).');
+                    $this->skipCount++;
+                } elseif ($this->isAlreadyExistsError($e)) {
+                    $this->addLog('skip', '&nbsp;&nbsp;Já existe: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES));
+                    $this->skipCount++;
+                } else {
+                    $this->addLog('error', '&nbsp;&nbsp;Erro: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES));
+                    $this->errorCount++;
+                    $migrationOk = false;
+                }
+            }
+        }
+
+        return $migrationOk;
+    }
+
+    /**
+     * Executa migration complexa (com PREPARE/SET/@) usando mysqli multi_query
+     * para evitar conflitos de unbuffered queries do PDO.
+     */
+    private function runComplexMigration(string $sql, string $filename): bool
+    {
+        $this->addLog('info', "&nbsp;&nbsp;Migration complexa detectada (PREPARE/SET) — executando via mysqli.");
+
+        global $currentDbConfig;
+
+        $mysqli = new \mysqli(
+            $currentDbConfig['host'],
+            $currentDbConfig['username'],
+            $currentDbConfig['password'],
+            $currentDbConfig['database'],
+            (int)$currentDbConfig['port']
+        );
+
+        if ($mysqli->connect_error) {
+            $this->addLog('error', '&nbsp;&nbsp;Erro ao conectar via mysqli: ' . htmlspecialchars($mysqli->connect_error, ENT_QUOTES));
+            $this->errorCount++;
+            return false;
+        }
+
+        $mysqli->set_charset($currentDbConfig['charset'] ?? 'utf8mb4');
+
+        // Remove comentários de linha para evitar problemas
+        $cleanSql = preg_replace('/--[^\n]*/', '', $sql);
+
+        $ok = true;
+        if ($mysqli->multi_query($cleanSql)) {
+            do {
+                $result = $mysqli->store_result();
+                if ($result) {
+                    $result->free();
+                }
+                if ($mysqli->errno) {
+                    $errMsg = $mysqli->error;
+                    // Ignorar erros de "já existe"
+                    if ($this->isMysqliAlreadyExistsError($mysqli->errno)) {
+                        $this->addLog('skip', '&nbsp;&nbsp;Já existe: ' . htmlspecialchars($errMsg, ENT_QUOTES));
+                        $this->skipCount++;
+                    } else {
+                        $this->addLog('error', '&nbsp;&nbsp;Erro: ' . htmlspecialchars($errMsg, ENT_QUOTES));
+                        $this->errorCount++;
+                        $ok = false;
+                    }
+                } else {
+                    $this->successCount++;
+                }
+            } while ($mysqli->next_result());
+
+            // Verificar erro final
+            if ($mysqli->errno && !$this->isMysqliAlreadyExistsError($mysqli->errno)) {
+                $this->addLog('error', '&nbsp;&nbsp;Erro final: ' . htmlspecialchars($mysqli->error, ENT_QUOTES));
+                $this->errorCount++;
+                $ok = false;
+            }
+        } else {
+            $this->addLog('error', '&nbsp;&nbsp;Erro multi_query: ' . htmlspecialchars($mysqli->error, ENT_QUOTES));
+            $this->errorCount++;
+            $ok = false;
+        }
+
+        $mysqli->close();
+        return $ok;
+    }
+
+    private function isMysqliAlreadyExistsError(int $errno): bool
+    {
+        return in_array($errno, [1050, 1060, 1061, 1062, 1068], true);
     }
 
     // ── Helpers ──────────────────────────────────────────────
@@ -228,28 +319,36 @@ class DatabaseImporterController
     {
         $stmt = $this->db->prepare("SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? LIMIT 1");
         $stmt->execute([$table]);
-        return (bool) $stmt->fetchColumn();
+        $result = (bool) $stmt->fetchColumn();
+        $stmt->closeCursor();
+        return $result;
     }
 
     private function columnExists(string $table, string $column): bool
     {
         $stmt = $this->db->prepare("SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1");
         $stmt->execute([$table, $column]);
-        return (bool) $stmt->fetchColumn();
+        $result = (bool) $stmt->fetchColumn();
+        $stmt->closeCursor();
+        return $result;
     }
 
     private function indexExists(string $table, string $indexName): bool
     {
         $stmt = $this->db->prepare("SELECT 1 FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ? LIMIT 1");
         $stmt->execute([$table, $indexName]);
-        return (bool) $stmt->fetchColumn();
+        $result = (bool) $stmt->fetchColumn();
+        $stmt->closeCursor();
+        return $result;
     }
 
     private function migrationAlreadyRan(string $key): bool
     {
         $stmt = $this->db->prepare("SELECT 1 FROM `_migrations` WHERE `migration` = ? LIMIT 1");
         $stmt->execute([$key]);
-        return (bool) $stmt->fetchColumn();
+        $result = (bool) $stmt->fetchColumn();
+        $stmt->closeCursor();
+        return $result;
     }
 
     private function recordMigration(string $key): void

@@ -135,15 +135,6 @@ $safeToolName = htmlspecialchars($toolName);
     .msg { animation: fadeInUp 0.3s ease; }
     textarea { scrollbar-width: none; }
     textarea::-webkit-scrollbar { display: none; }
-    .streaming-bubble::after {
-        content: '▊';
-        animation: blink-cursor 0.8s step-end infinite;
-        color: var(--accent);
-        font-weight: 100;
-    }
-    @keyframes blink-cursor {
-        50% { opacity: 0; }
-    }
     @keyframes orbit-spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
@@ -316,87 +307,28 @@ function sendMessage(text, fromVoice) {
 
     messageAbort = new AbortController();
 
-    // Usa streaming SSE para receber tokens em tempo real
-    fetch('/m/chat/stream', {
+    fetch('/m/chat/enviar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body,
         signal: messageAbort.signal
     })
-    .then(response => {
-        if (!response.ok) throw new Error('HTTP ' + response.status);
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-        let fullReply = '';
-        let bubbleEl = null;
-
-        function processChunk() {
-            return reader.read().then(({ done, value }) => {
-                if (done) {
-                    // Stream terminou
-                    hideTyping();
-                    if (!fullReply) {
-                        addMessage('assistant', 'Erro ao processar mensagem.');
-                        isBusy = false;
-                        if (fromVoice && voiceSessionActive) resumeListening();
-                    }
-                    return;
-                }
-
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-                buffer = lines.pop(); // guarda linha incompleta
-
-                for (const line of lines) {
-                    if (line.startsWith('event: ')) {
-                        var eventType = line.substring(7).trim();
-                    }
-                    if (line.startsWith('data: ')) {
-                        try {
-                            const data = JSON.parse(line.substring(6));
-
-                            if (eventType === 'token') {
-                                if (!bubbleEl) {
-                                    hideTyping();
-                                    bubbleEl = addStreamingMessage();
-                                }
-                                fullReply += data.text;
-                                updateStreamingMessage(bubbleEl, fullReply);
-                            }
-
-                            if (eventType === 'done') {
-                                hideTyping();
-                                if (bubbleEl) {
-                                    finalizeStreamingMessage(bubbleEl, fullReply);
-                                } else {
-                                    addMessage('assistant', data.content || fullReply);
-                                }
-                                // Dispara TTS imediatamente no modo voz
-                                if (fromVoice && voiceSessionActive && voiceEnabled) {
-                                    setVoiceState('speaking');
-                                    doTTS(fullReply, true);
-                                } else {
-                                    isBusy = false;
-                                }
-                            }
-
-                            if (eventType === 'error') {
-                                hideTyping();
-                                addMessage('assistant', data.message || 'Erro ao processar.');
-                                isBusy = false;
-                                if (fromVoice && voiceSessionActive) resumeListening();
-                            }
-                        } catch(e) {}
-                    }
-                }
-
-                return processChunk();
-            });
+    .then(r => r.json())
+    .then(data => {
+        hideTyping();
+        if (data.ok) {
+            addMessage('assistant', data.reply);
+            if (fromVoice && voiceSessionActive && voiceEnabled) {
+                setVoiceState('speaking');
+                doTTS(data.reply, true);
+            } else {
+                isBusy = false;
+            }
+        } else {
+            addMessage('assistant', data.error || 'Erro ao processar mensagem.');
+            isBusy = false;
+            if (fromVoice && voiceSessionActive) resumeListening();
         }
-
-        return processChunk();
     })
     .catch(err => {
         if (err.name === 'AbortError') return;
@@ -405,44 +337,6 @@ function sendMessage(text, fromVoice) {
         isBusy = false;
         if (fromVoice && voiceSessionActive) resumeListening();
     });
-}
-
-// Cria bolha de mensagem vazia para streaming
-function addStreamingMessage() {
-    const empty = document.getElementById('empty-state');
-    if (empty) empty.remove();
-
-    const div = document.createElement('div');
-    div.className = 'msg msg-ai';
-    div.style.cssText = 'margin-bottom:16px; display:flex; justify-content:flex-start;';
-
-    const bubble = document.createElement('div');
-    bubble.style.cssText = 'max-width:85%; padding:12px 16px; border-radius:18px; background:var(--bg-card); border:1px solid var(--border); border-bottom-left-radius:4px; font-size:15px; line-height:1.6; word-break:break-word;';
-    bubble.className = 'streaming-bubble';
-
-    div.appendChild(bubble);
-    document.getElementById('typing').before(div);
-    scrollToBottom();
-    return bubble;
-}
-
-// Atualiza texto da bolha durante streaming
-function updateStreamingMessage(bubble, text) {
-    bubble.innerHTML = text.replace(/\n/g, '<br>');
-    scrollToBottom();
-}
-
-// Finaliza bolha: adiciona botão de TTS
-function finalizeStreamingMessage(bubble, text) {
-    bubble.classList.remove('streaming-bubble');
-    if (voiceEnabled) {
-        const btn = document.createElement('button');
-        btn.onclick = function() { playTTS(this); };
-        btn.dataset.text = text;
-        btn.style.cssText = 'background:none; border:none; color:var(--text-dim); cursor:pointer; padding:4px; margin-top:4px; display:block;';
-        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
-        bubble.appendChild(btn);
-    }
 }
 
 function sendTextMessage() {

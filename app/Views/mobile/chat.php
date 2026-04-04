@@ -29,10 +29,9 @@ $safeToolName = htmlspecialchars($toolName);
 <div id="messages" style="flex:1; overflow-y:auto; padding:80px 16px 160px; min-height:100dvh;">
     <?php if (empty($messages)): ?>
         <div id="empty-state" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60vh; text-align:center;">
-            <!-- Orb animado -->
             <div style="width:100px; height:100px; border-radius:50%; background:linear-gradient(135deg, var(--accent), var(--accent-soft)); position:relative; animation:glow 3s ease-in-out infinite; margin-bottom:24px;">
                 <div style="position:absolute; inset:3px; border-radius:50%; background:var(--bg); display:flex; align-items:center; justify-content:center;">
-                    <div id="idle-orb-inner" style="width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg, var(--accent), var(--accent-soft)); opacity:0.7; transition:all 0.3s;"></div>
+                    <div style="width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg, var(--accent), var(--accent-soft)); opacity:0.7;"></div>
                 </div>
             </div>
             <h2 style="font-size:20px; font-weight:700; margin-bottom:8px;">Olá, <?= $userName ?>!</h2>
@@ -58,9 +57,9 @@ $safeToolName = htmlspecialchars($toolName);
     <!-- Typing indicator -->
     <div id="typing" style="display:none; margin-bottom:16px;">
         <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:18px; border-bottom-left-radius:4px; padding:14px 20px; display:inline-flex; gap:4px; align-items:center;">
-            <div class="typing-dot" style="width:8px; height:8px; border-radius:50%; background:var(--accent); animation:pulse-ring 1.4s ease-in-out infinite;"></div>
-            <div class="typing-dot" style="width:8px; height:8px; border-radius:50%; background:var(--accent); animation:pulse-ring 1.4s ease-in-out 0.2s infinite;"></div>
-            <div class="typing-dot" style="width:8px; height:8px; border-radius:50%; background:var(--accent); animation:pulse-ring 1.4s ease-in-out 0.4s infinite;"></div>
+            <div style="width:8px; height:8px; border-radius:50%; background:var(--accent); animation:pulse-ring 1.4s ease-in-out infinite;"></div>
+            <div style="width:8px; height:8px; border-radius:50%; background:var(--accent); animation:pulse-ring 1.4s ease-in-out 0.2s infinite;"></div>
+            <div style="width:8px; height:8px; border-radius:50%; background:var(--accent); animation:pulse-ring 1.4s ease-in-out 0.4s infinite;"></div>
         </div>
     </div>
 </div>
@@ -69,7 +68,6 @@ $safeToolName = htmlspecialchars($toolName);
 <div id="speaking-overlay" style="display:none; position:fixed; inset:0; z-index:50; background:rgba(5,5,9,0.95); flex-direction:column; align-items:center; justify-content:center;">
     <div style="width:120px; height:120px; border-radius:50%; background:linear-gradient(135deg, var(--accent), var(--accent-soft)); position:relative; animation:glow 1.5s ease-in-out infinite; margin-bottom:24px;">
         <div style="position:absolute; inset:3px; border-radius:50%; background:var(--bg); display:flex; align-items:center; justify-content:center;">
-            <!-- Wave bars -->
             <div id="wave-bars" style="display:flex; gap:3px; align-items:center; height:30px;">
                 <div style="width:3px; background:var(--accent); border-radius:2px; animation:wave-bar 0.8s ease-in-out infinite;"></div>
                 <div style="width:3px; background:var(--accent); border-radius:2px; animation:wave-bar 0.8s ease-in-out 0.1s infinite;"></div>
@@ -83,11 +81,26 @@ $safeToolName = htmlspecialchars($toolName);
     <button onclick="stopSpeaking()" style="margin-top:24px; background:rgba(255,255,255,0.1); border:1px solid var(--border); border-radius:999px; color:var(--text); padding:10px 24px; font-size:14px; cursor:pointer;">Parar</button>
 </div>
 
+<!-- Voice listening overlay -->
+<div id="listening-overlay" style="display:none; position:fixed; inset:0; z-index:45; background:rgba(5,5,9,0.92); flex-direction:column; align-items:center; justify-content:center;">
+    <div style="width:120px; height:120px; border-radius:50%; background:linear-gradient(135deg, var(--accent), var(--accent-soft)); position:relative; animation:glow 1.5s ease-in-out infinite; margin-bottom:20px;">
+        <div style="position:absolute; inset:3px; border-radius:50%; background:var(--bg); display:flex; align-items:center; justify-content:center;">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+        </div>
+        <!-- Pulse rings -->
+        <div style="position:absolute; inset:-12px; border-radius:50%; border:2px solid var(--accent); opacity:0.3; animation:pulse-ring 2s ease-in-out infinite;"></div>
+        <div style="position:absolute; inset:-24px; border-radius:50%; border:1px solid var(--accent); opacity:0.15; animation:pulse-ring 2s ease-in-out 0.5s infinite;"></div>
+    </div>
+    <p id="listening-status" style="color:var(--text); font-size:16px; font-weight:600; margin-bottom:6px;">Ouvindo...</p>
+    <p id="live-transcript" style="color:var(--text-dim); font-size:14px; text-align:center; padding:0 32px; max-width:320px; min-height:40px; line-height:1.5;"></p>
+    <button onclick="stopListening()" style="margin-top:20px; background:rgba(229,57,53,0.2); border:1px solid var(--accent); border-radius:999px; color:var(--accent); padding:10px 24px; font-size:14px; cursor:pointer;">Parar</button>
+</div>
+
 <!-- Input area -->
 <div style="position:fixed; bottom:0; left:0; right:0; z-index:20; background:rgba(5,5,9,0.95); backdrop-filter:blur(20px); border-top:1px solid var(--border); padding-bottom:var(--safe-bottom);">
     <div style="display:flex; align-items:flex-end; gap:8px; padding:12px 16px;">
-        <!-- Mode toggle: text/voice -->
-        <button id="mode-toggle" onclick="toggleInputMode()" style="background:var(--bg-card); border:1px solid var(--border); border-radius:50%; width:42px; height:42px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; color:var(--text-dim); transition:color 0.2s;">
+        <!-- Mode toggle -->
+        <button id="mode-toggle" onclick="toggleInputMode()" style="background:var(--bg-card); border:1px solid var(--border); border-radius:50%; width:42px; height:42px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; color:var(--text-dim);">
             <svg id="icon-keyboard" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/></svg>
             <svg id="icon-mic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
         </button>
@@ -104,13 +117,11 @@ $safeToolName = htmlspecialchars($toolName);
 
         <!-- Voice input (default) -->
         <div id="voice-input-area" style="flex:1; display:flex; align-items:center; justify-content:center;">
-            <button id="voice-btn" ontouchstart="startRecording(event)" ontouchend="stopRecording(event)" onmousedown="startRecording(event)" onmouseup="stopRecording(event)"
-                style="width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg, var(--accent), var(--accent-soft)); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.2s; position:relative;">
+            <button id="voice-btn" onclick="toggleListening()"
+                style="width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg, var(--accent), var(--accent-soft)); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.2s;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
-                <!-- Pulse ring -->
-                <div id="recording-ring" style="display:none; position:absolute; inset:-8px; border-radius:50%; border:2px solid var(--accent); animation:pulse-ring 1.5s ease-in-out infinite;"></div>
             </button>
-            <p style="color:var(--text-dim); font-size:12px; position:absolute; bottom:calc(var(--safe-bottom) + 72px); text-align:center; width:100%; pointer-events:none;">Segure para falar</p>
+            <p style="color:var(--text-dim); font-size:12px; position:absolute; bottom:calc(var(--safe-bottom) + 72px); text-align:center; width:100%; pointer-events:none;">Toque para falar</p>
         </div>
     </div>
 </div>
@@ -118,8 +129,6 @@ $safeToolName = htmlspecialchars($toolName);
 <style>
     #messages { scroll-behavior: smooth; }
     .msg { animation: fadeInUp 0.3s ease; }
-    #voice-btn:active { transform: scale(1.15); }
-    #voice-btn.recording { animation: glow 1s ease-in-out infinite; }
     textarea { scrollbar-width: none; }
     textarea::-webkit-scrollbar { display: none; }
 </style>
@@ -128,12 +137,12 @@ $safeToolName = htmlspecialchars($toolName);
 const conversationId = <?= (int)$conversationId ?>;
 const voiceEnabled = <?= $voiceEnabled ? 'true' : 'false' ?>;
 let isVoiceMode = voiceEnabled;
-let isRecording = false;
-let mediaRecorder = null;
-let audioChunks = [];
 let currentAudio = null;
+let recognition = null;
+let isListening = false;
+let finalTranscript = '';
 
-// Init: show correct input mode
+// ========== Input Mode ==========
 function updateInputMode() {
     document.getElementById('text-input-area').style.display = isVoiceMode ? 'none' : 'flex';
     document.getElementById('voice-input-area').style.display = isVoiceMode ? 'flex' : 'none';
@@ -144,9 +153,7 @@ function updateInputMode() {
 function toggleInputMode() {
     isVoiceMode = !isVoiceMode;
     updateInputMode();
-    if (!isVoiceMode) {
-        setTimeout(() => document.getElementById('msg-input').focus(), 100);
-    }
+    if (!isVoiceMode) setTimeout(() => document.getElementById('msg-input').focus(), 100);
 }
 
 function autoResize(el) {
@@ -154,6 +161,7 @@ function autoResize(el) {
     el.style.height = Math.min(el.scrollHeight, 120) + 'px';
 }
 
+// ========== Messages ==========
 function scrollToBottom() {
     const el = document.getElementById('messages');
     el.scrollTop = el.scrollHeight;
@@ -186,7 +194,6 @@ function addMessage(role, content) {
     div.appendChild(bubble);
     document.getElementById('typing').before(div);
     scrollToBottom();
-
     return bubble;
 }
 
@@ -201,14 +208,11 @@ function hideTyping() {
     document.getElementById('status-text').textContent = 'Online';
 }
 
-// Send text message
-function sendTextMessage() {
-    const input = document.getElementById('msg-input');
-    const text = input.value.trim();
-    if (!text) return;
+// ========== Send Message ==========
+function sendMessage(text) {
+    if (!text || !text.trim()) return;
+    text = text.trim();
 
-    input.value = '';
-    input.style.height = 'auto';
     addMessage('user', text);
     showTyping();
 
@@ -221,7 +225,8 @@ function sendTextMessage() {
     .then(data => {
         hideTyping();
         if (data.ok) {
-            const bubble = addMessage('assistant', data.reply);
+            addMessage('assistant', data.reply);
+            // Auto-play TTS se estiver no modo voz
             if (isVoiceMode && voiceEnabled) {
                 autoPlayTTS(data.reply);
             }
@@ -235,127 +240,134 @@ function sendTextMessage() {
     });
 }
 
-// Voice recording
-function startRecording(e) {
-    e.preventDefault();
-    if (isRecording) return;
+function sendTextMessage() {
+    const input = document.getElementById('msg-input');
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    input.style.height = 'auto';
+    sendMessage(text);
+}
 
-    navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-            isRecording = true;
-            audioChunks = [];
-            document.getElementById('voice-btn').classList.add('recording');
-            document.getElementById('recording-ring').style.display = 'block';
-            document.getElementById('status-text').textContent = 'Ouvindo...';
+// ========== Voice Recognition (Web Speech API) ==========
+function initRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return null;
 
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-            mediaRecorder.onstop = () => {
-                stream.getTracks().forEach(t => t.stop());
-                processVoiceInput();
-            };
-            mediaRecorder.start();
-        })
-        .catch(() => {
+    const r = new SpeechRecognition();
+    r.lang = 'pt-BR';
+    r.continuous = true;
+    r.interimResults = true;
+
+    let silenceTimer = null;
+
+    r.onresult = function(e) {
+        let interim = '';
+        finalTranscript = '';
+        for (let i = 0; i < e.results.length; i++) {
+            if (e.results[i].isFinal) {
+                finalTranscript += e.results[i][0].transcript;
+            } else {
+                interim += e.results[i][0].transcript;
+            }
+        }
+        // Mostra transcrição ao vivo
+        document.getElementById('live-transcript').textContent = finalTranscript + interim;
+
+        // Reset silence timer — quando parar de falar por 2s, envia
+        clearTimeout(silenceTimer);
+        silenceTimer = setTimeout(() => {
+            if (finalTranscript.trim()) {
+                stopListening();
+                sendMessage(finalTranscript.trim());
+            }
+        }, 2000);
+    };
+
+    r.onerror = function(e) {
+        console.log('Speech error:', e.error);
+        if (e.error === 'not-allowed') {
             alert('Permita o acesso ao microfone para usar o chat por voz.');
-        });
+        }
+        hideListeningOverlay();
+        isListening = false;
+    };
+
+    r.onend = function() {
+        // Se ainda está no modo listening (não foi parado manualmente), envia o que tem
+        if (isListening && finalTranscript.trim()) {
+            isListening = false;
+            hideListeningOverlay();
+            sendMessage(finalTranscript.trim());
+        } else if (isListening) {
+            // Reinicia se parou sem resultado (pode acontecer em alguns browsers)
+            try { r.start(); } catch(e) {}
+        }
+    };
+
+    return r;
 }
 
-function stopRecording(e) {
-    e.preventDefault();
-    if (!isRecording || !mediaRecorder) return;
-    isRecording = false;
-    document.getElementById('voice-btn').classList.remove('recording');
-    document.getElementById('recording-ring').style.display = 'none';
-    mediaRecorder.stop();
+function toggleListening() {
+    if (isListening) {
+        stopListening();
+    } else {
+        startListening();
+    }
 }
 
-function processVoiceInput() {
-    const blob = new Blob(audioChunks, { type: 'audio/webm' });
-    if (blob.size < 1000) { // Too short
-        document.getElementById('status-text').textContent = 'Online';
+function startListening() {
+    if (isListening) return;
+
+    if (!recognition) {
+        recognition = initRecognition();
+    }
+    if (!recognition) {
+        alert('Seu navegador não suporta reconhecimento de voz. Use o modo texto.');
         return;
     }
 
-    document.getElementById('status-text').textContent = 'Processando...';
+    finalTranscript = '';
+    document.getElementById('live-transcript').textContent = '';
+    document.getElementById('listening-status').textContent = 'Ouvindo...';
+    showListeningOverlay();
+    isListening = true;
 
-    const fd = new FormData();
-    fd.append('audio', blob, 'voice.webm');
-    fd.append('conversation_id', conversationId);
-
-    // Use existing audio endpoint for transcription, then send as text
-    // For now, we'll use the Web Speech API for transcription
-    transcribeAndSend(blob);
-}
-
-function transcribeAndSend(blob) {
-    // Use Web Speech API if available
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        // Already handled by continuous recognition below
+    try {
+        recognition.start();
+    } catch(e) {
+        // Já está rodando
     }
-    // Fallback: send audio to server
-    const fd = new FormData();
-    fd.append('audio', blob, 'voice.webm');
-    fd.append('conversation_id', conversationId);
-
-    fetch('/chat/audio', { method: 'POST', body: fd })
-        .then(r => r.json())
-        .then(data => {
-            if (data.transcription || data.text) {
-                const text = data.transcription || data.text;
-                addMessage('user', text);
-                showTyping();
-                return fetch('/m/chat/enviar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: `conversation_id=${conversationId}&message=${encodeURIComponent(text)}`
-                });
-            }
-            throw new Error('No transcription');
-        })
-        .then(r => r.json())
-        .then(data => {
-            hideTyping();
-            if (data.ok) {
-                addMessage('assistant', data.reply);
-                if (voiceEnabled) autoPlayTTS(data.reply);
-            }
-        })
-        .catch(() => {
-            hideTyping();
-            document.getElementById('status-text').textContent = 'Online';
-        });
 }
 
-// TTS via ElevenLabs
+function stopListening() {
+    isListening = false;
+    hideListeningOverlay();
+    if (recognition) {
+        try { recognition.stop(); } catch(e) {}
+    }
+}
+
+function showListeningOverlay() {
+    document.getElementById('listening-overlay').style.display = 'flex';
+}
+
+function hideListeningOverlay() {
+    document.getElementById('listening-overlay').style.display = 'none';
+}
+
+// ========== TTS (ElevenLabs) ==========
 function playTTS(btn) {
     const text = btn.dataset.text;
     if (!text) return;
-
-    const overlay = document.getElementById('speaking-overlay');
-    overlay.style.display = 'flex';
-    document.getElementById('speaking-text').textContent = text.substring(0, 200) + (text.length > 200 ? '...' : '');
-
-    const fd = new FormData();
-    fd.append('text', text);
-
-    fetch('/m/chat/tts', { method: 'POST', body: fd })
-        .then(r => {
-            if (!r.ok) throw new Error('TTS failed');
-            return r.blob();
-        })
-        .then(blob => {
-            const url = URL.createObjectURL(blob);
-            currentAudio = new Audio(url);
-            currentAudio.onended = () => { overlay.style.display = 'none'; };
-            currentAudio.play();
-        })
-        .catch(() => {
-            overlay.style.display = 'none';
-        });
+    doTTS(text);
 }
 
 function autoPlayTTS(text) {
+    doTTS(text);
+}
+
+function doTTS(text) {
     const overlay = document.getElementById('speaking-overlay');
     overlay.style.display = 'flex';
     document.getElementById('speaking-text').textContent = text.substring(0, 200) + (text.length > 200 ? '...' : '');
@@ -371,8 +383,17 @@ function autoPlayTTS(text) {
         .then(blob => {
             const url = URL.createObjectURL(blob);
             currentAudio = new Audio(url);
-            currentAudio.onended = () => { overlay.style.display = 'none'; };
-            currentAudio.play();
+            currentAudio.onended = () => {
+                overlay.style.display = 'none';
+                URL.revokeObjectURL(url);
+            };
+            currentAudio.onerror = () => {
+                overlay.style.display = 'none';
+                URL.revokeObjectURL(url);
+            };
+            currentAudio.play().catch(() => {
+                overlay.style.display = 'none';
+            });
         })
         .catch(() => {
             overlay.style.display = 'none';
@@ -387,7 +408,7 @@ function stopSpeaking() {
     document.getElementById('speaking-overlay').style.display = 'none';
 }
 
-// Enter to send in text mode
+// ========== Keyboard ==========
 document.getElementById('msg-input').addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -395,7 +416,7 @@ document.getElementById('msg-input').addEventListener('keydown', e => {
     }
 });
 
-// Init
+// ========== Init ==========
 updateInputMode();
 scrollToBottom();
 </script>

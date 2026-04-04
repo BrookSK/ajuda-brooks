@@ -71,7 +71,7 @@
             </div>
         </div>
 
-        <!-- Step 3: Personalidade -->
+        <!-- Step 3: Tom de conversa -->
         <div class="step" data-step="3">
             <div class="step-content">
                 <div style="display:flex; justify-content:center; margin-bottom:28px;">
@@ -84,31 +84,52 @@
 
                 <div style="text-align:center; margin-bottom:20px;">
                     <p style="color:var(--text-dim); font-size:13px; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px;">Passo 3 de 5</p>
-                    <h2 style="font-size:22px; font-weight:700; margin-bottom:8px;">Personalidade</h2>
-                    <p style="color:var(--text-dim); font-size:15px; line-height:1.6;">Escolha como <span id="tool-name-display"></span> vai se comportar</p>
+                    <h2 style="font-size:22px; font-weight:700; margin-bottom:8px;">Tom de conversa</h2>
+                    <p style="color:var(--text-dim); font-size:15px; line-height:1.6;">Como <span id="tool-name-display"></span> deve falar com você?</p>
                 </div>
 
-                <!-- Slider horizontal de personalidades -->
-                <div id="personality-slider" style="display:flex; gap:12px; overflow-x:auto; padding:8px 4px 16px; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;">
-                    <?php foreach ($personalities as $p): ?>
-                        <?php if (!empty($p['coming_soon'])) continue; ?>
-                        <div class="personality-card" data-id="<?= (int)$p['id'] ?>" onclick="selectPersonality(this, <?= (int)$p['id'] ?>)"
-                             style="min-width:160px; max-width:160px; scroll-snap-align:center; background:var(--bg-card); border:2px solid var(--border); border-radius:16px; padding:16px; text-align:center; cursor:pointer; transition:border-color 0.2s, transform 0.1s; flex-shrink:0;">
-                            <?php if (!empty($p['image_path'])): ?>
-                                <img src="<?= htmlspecialchars($p['image_path']) ?>" alt="" style="width:48px; height:48px; border-radius:50%; object-fit:cover; margin-bottom:8px;">
-                            <?php else: ?>
-                                <div style="width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg, var(--accent), var(--accent-soft)); margin:0 auto 8px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:700; color:#fff;">
-                                    <?= mb_strtoupper(mb_substr($p['name'], 0, 1)) ?>
-                                </div>
-                            <?php endif; ?>
-                            <div style="font-weight:600; font-size:14px; margin-bottom:4px;"><?= htmlspecialchars($p['name']) ?></div>
-                            <div style="color:var(--text-dim); font-size:12px; line-height:1.4;"><?= htmlspecialchars($p['area'] ?? '') ?></div>
-                        </div>
-                    <?php endforeach; ?>
+                <!-- Slider horizontal de tons -->
+                <div id="tone-slider" style="display:flex; gap:12px; overflow-x:auto; padding:8px 4px 16px; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;">
+                    <div class="tone-card" data-tone="descontraido" onclick="selectTone(this, 'descontraido')"
+                         style="min-width:150px; max-width:150px; scroll-snap-align:center; background:var(--bg-card); border:2px solid var(--border); border-radius:16px; padding:16px; text-align:center; cursor:pointer; transition:border-color 0.2s, transform 0.1s; flex-shrink:0;">
+                        <div style="font-size:28px; margin-bottom:8px;">😄</div>
+                        <div style="font-weight:600; font-size:14px; margin-bottom:4px;">Descontraído</div>
+                        <div style="color:var(--text-dim); font-size:12px; line-height:1.4;">Leve, com humor e linguagem informal</div>
+                    </div>
+                    <div class="tone-card" data-tone="amigavel" onclick="selectTone(this, 'amigavel')"
+                         style="min-width:150px; max-width:150px; scroll-snap-align:center; background:var(--bg-card); border:2px solid var(--border); border-radius:16px; padding:16px; text-align:center; cursor:pointer; transition:border-color 0.2s, transform 0.1s; flex-shrink:0;">
+                        <div style="font-size:28px; margin-bottom:8px;">🤝</div>
+                        <div style="font-weight:600; font-size:14px; margin-bottom:4px;">Amigável</div>
+                        <div style="color:var(--text-dim); font-size:12px; line-height:1.4;">Próximo e acolhedor, como um amigo</div>
+                    </div>
+                    <div class="tone-card" data-tone="profissional" onclick="selectTone(this, 'profissional')"
+                         style="min-width:150px; max-width:150px; scroll-snap-align:center; background:var(--bg-card); border:2px solid var(--border); border-radius:16px; padding:16px; text-align:center; cursor:pointer; transition:border-color 0.2s, transform 0.1s; flex-shrink:0;">
+                        <div style="font-size:28px; margin-bottom:8px;">💼</div>
+                        <div style="font-weight:600; font-size:14px; margin-bottom:4px;">Profissional</div>
+                        <div style="color:var(--text-dim); font-size:12px; line-height:1.4;">Direto e objetivo, foco em resultados</div>
+                    </div>
+                    <div class="tone-card" data-tone="formal" onclick="selectTone(this, 'formal')"
+                         style="min-width:150px; max-width:150px; scroll-snap-align:center; background:var(--bg-card); border:2px solid var(--border); border-radius:16px; padding:16px; text-align:center; cursor:pointer; transition:border-color 0.2s, transform 0.1s; flex-shrink:0;">
+                        <div style="font-size:28px; margin-bottom:8px;">🎩</div>
+                        <div style="font-weight:600; font-size:14px; margin-bottom:4px;">Formal</div>
+                        <div style="color:var(--text-dim); font-size:12px; line-height:1.4;">Elegante e respeitoso, linguagem culta</div>
+                    </div>
+                    <div class="tone-card" data-tone="empresarial" onclick="selectTone(this, 'empresarial')"
+                         style="min-width:150px; max-width:150px; scroll-snap-align:center; background:var(--bg-card); border:2px solid var(--border); border-radius:16px; padding:16px; text-align:center; cursor:pointer; transition:border-color 0.2s, transform 0.1s; flex-shrink:0;">
+                        <div style="font-size:28px; margin-bottom:8px;">🏢</div>
+                        <div style="font-weight:600; font-size:14px; margin-bottom:4px;">Empresarial</div>
+                        <div style="color:var(--text-dim); font-size:12px; line-height:1.4;">Corporativo, técnico e estratégico</div>
+                    </div>
+                    <div class="tone-card" data-tone="motivacional" onclick="selectTone(this, 'motivacional')"
+                         style="min-width:150px; max-width:150px; scroll-snap-align:center; background:var(--bg-card); border:2px solid var(--border); border-radius:16px; padding:16px; text-align:center; cursor:pointer; transition:border-color 0.2s, transform 0.1s; flex-shrink:0;">
+                        <div style="font-size:28px; margin-bottom:8px;">🔥</div>
+                        <div style="font-weight:600; font-size:14px; margin-bottom:4px;">Motivacional</div>
+                        <div style="color:var(--text-dim); font-size:12px; line-height:1.4;">Energético, inspirador e encorajador</div>
+                    </div>
                 </div>
 
                 <div style="max-width:340px; margin:0 auto; width:100%;">
-                    <button onclick="nextStep(3)" class="btn-primary" id="btn-personality" disabled>Selecionar</button>
+                    <button onclick="nextStep(3)" class="btn-primary" id="btn-tone" disabled>Continuar</button>
                     <button onclick="prevStep(3)" class="btn-ghost" style="margin-top:8px; width:100%;">Voltar</button>
                 </div>
             </div>
@@ -183,7 +204,7 @@
     .step { display:none; }
     .step.active { display:block; }
     .step.active .step-content { animation: fadeInUp 0.5s ease forwards; }
-    .personality-card.selected {
+    .tone-card.selected {
         border-color: var(--accent) !important;
         background: rgba(229,57,53,0.08) !important;
         transform: scale(1.02);
@@ -213,6 +234,7 @@
 let currentStep = 1;
 const totalSteps = 5;
 let selectedPersonalityId = null;
+let selectedTone = null;
 let userName = '';
 let toolName = '';
 
@@ -262,8 +284,8 @@ function nextStep(from) {
         saveStep('tool_name', toolName);
         showStep(3);
     } else if (from === 3) {
-        if (!selectedPersonalityId) return;
-        saveStep('personality', selectedPersonalityId);
+        if (!selectedTone) return;
+        saveStep('conversation_tone', selectedTone);
         showStep(4);
     } else if (from === 4) {
         saveStep('preferences', JSON.stringify({ wants_projects: 1, wants_documents: 1 }));
@@ -282,11 +304,11 @@ function skipStep(from) {
     }
 }
 
-function selectPersonality(el, id) {
-    document.querySelectorAll('.personality-card').forEach(c => c.classList.remove('selected'));
+function selectTone(el, tone) {
+    document.querySelectorAll('.tone-card').forEach(c => c.classList.remove('selected'));
     el.classList.add('selected');
-    selectedPersonalityId = id;
-    document.getElementById('btn-personality').disabled = false;
+    selectedTone = tone;
+    document.getElementById('btn-tone').disabled = false;
 }
 
 function handleFileUpload(input) {

@@ -223,6 +223,12 @@ class MobileController extends Controller
                 User::updateProfile($userId, $user['name'], $user['preferred_name'] ?? null, $user['global_memory'] ?? null, $user['global_instructions'] ?? null, (int)$value);
                 $_SESSION['default_persona_id'] = (int)$value;
                 break;
+            case 'conversation_tone':
+                $allowedTones = ['descontraido', 'amigavel', 'profissional', 'formal', 'empresarial', 'motivacional'];
+                if (in_array($value, $allowedTones, true)) {
+                    $data['conversation_tone'] = $value;
+                }
+                break;
             case 'preferences':
                 $prefs = json_decode($value, true) ?: [];
                 $data['wants_projects'] = !empty($prefs['wants_projects']) ? 1 : 0;
@@ -396,10 +402,35 @@ class MobileController extends Controller
             $history[] = ['role' => $msg['role'], 'content' => $msg['content']];
         }
 
-        // Injeta nome da ferramenta no contexto do usuário
+        // Injeta nome da ferramenta e tom de conversa no contexto do usuário
         $userContext = $user;
         if (!empty($onboarding['tool_name'])) {
             $userContext['tool_name'] = $onboarding['tool_name'];
+        }
+
+        // Injeta tom de conversa como instrução global
+        $tone = $onboarding['conversation_tone'] ?? '';
+        if ($tone !== '') {
+            $toneMap = [
+                'descontraido' => 'Responda de forma descontraída, leve, com humor e linguagem informal. Use gírias quando fizer sentido e seja divertido.',
+                'amigavel' => 'Responda de forma amigável, próxima e acolhedora, como se fosse um amigo de confiança conversando.',
+                'profissional' => 'Responda de forma profissional, direta e objetiva, com foco em resultados e eficiência.',
+                'formal' => 'Responda de forma formal, elegante e respeitosa, usando linguagem culta e bem estruturada.',
+                'empresarial' => 'Responda de forma corporativa, técnica e estratégica, como um consultor empresarial experiente.',
+                'motivacional' => 'Responda de forma energética, inspiradora e encorajadora, motivando o usuário a agir e evoluir.',
+            ];
+            $toneInstruction = $toneMap[$tone] ?? '';
+            if ($toneInstruction !== '') {
+                $existing = trim((string)($userContext['global_instructions'] ?? ''));
+                $userContext['global_instructions'] = ($existing !== '' ? $existing . "\n\n" : '') . 'TOM DE CONVERSA: ' . $toneInstruction;
+            }
+        }
+
+        // Injeta nome da ferramenta como identidade
+        if (!empty($onboarding['tool_name'])) {
+            $toolNameVal = trim($onboarding['tool_name']);
+            $existing = trim((string)($userContext['global_instructions'] ?? ''));
+            $userContext['global_instructions'] = ($existing !== '' ? $existing . "\n\n" : '') . 'Seu nome é "' . $toolNameVal . '". Quando perguntarem seu nome, responda que se chama ' . $toolNameVal . '.';
         }
 
         // Gera resposta

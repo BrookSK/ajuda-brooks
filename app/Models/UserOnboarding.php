@@ -37,13 +37,14 @@ class UserOnboarding
         $existing = self::findByUserId($userId);
 
         $fields = [
-            'preferred_name'   => $data['preferred_name'] ?? null,
-            'tool_name'        => $data['tool_name'] ?? null,
-            'personality_id'   => isset($data['personality_id']) ? (int)$data['personality_id'] : null,
-            'wants_projects'   => isset($data['wants_projects']) ? (int)$data['wants_projects'] : 0,
-            'wants_documents'  => isset($data['wants_documents']) ? (int)$data['wants_documents'] : 0,
-            'voice_enabled'    => isset($data['voice_enabled']) ? (int)$data['voice_enabled'] : 1,
-            'completed_at'     => $data['completed_at'] ?? null,
+            'preferred_name'    => $data['preferred_name'] ?? null,
+            'tool_name'         => $data['tool_name'] ?? null,
+            'personality_id'    => isset($data['personality_id']) ? (int)$data['personality_id'] : null,
+            'conversation_tone' => $data['conversation_tone'] ?? null,
+            'wants_projects'    => isset($data['wants_projects']) ? (int)$data['wants_projects'] : 0,
+            'wants_documents'   => isset($data['wants_documents']) ? (int)$data['wants_documents'] : 0,
+            'voice_enabled'     => isset($data['voice_enabled']) ? (int)$data['voice_enabled'] : 1,
+            'completed_at'      => $data['completed_at'] ?? null,
         ];
 
         if ($existing) {

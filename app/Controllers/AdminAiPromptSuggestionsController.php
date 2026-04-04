@@ -58,8 +58,15 @@ class AdminAiPromptSuggestionsController extends Controller
         $this->ensureAdmin();
         $id = (int)($_POST['id'] ?? 0);
         if ($id > 0) {
-            AiPromptSuggestion::approve($id);
-            AiPromptSuggestion::applyApproved($id);
+            $row = AiPromptSuggestion::findById($id);
+            if ($row && !empty($row['project_id'])) {
+                // Sugestão de projeto: aprova e cria memória no projeto
+                AiPromptSuggestion::approveAndApplyToProject($id);
+            } else {
+                // Sugestão global: aprova e aplica ao system prompt
+                AiPromptSuggestion::approve($id);
+                AiPromptSuggestion::applyApproved($id);
+            }
         }
         header('Location: /admin/ia-sugestoes-prompt');
         exit;

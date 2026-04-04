@@ -71,13 +71,18 @@
                                     Justificativa: <?= htmlspecialchars((string)$sg['rationale']) ?>
                                 </div>
                             <?php endif; ?>
+                            <?php if (!empty($sg['project_id'])): ?>
+                                <div style="margin-top:6px; font-size:11px; color:#818cf8;">
+                                    📁 Projeto #<?= (int)$sg['project_id'] ?>
+                                </div>
+                            <?php endif; ?>
                             <div style="margin-top:8px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-size:11px; color:#555;">
                                 <span style="padding:2px 10px; border-radius:20px; background:<?= $statusBg ?>; color:<?= $statusColor ?>;">
                                     <?= $statusLabel ?>
                                 </span>
                                 <span><?= htmlspecialchars(substr((string)($sg['created_at'] ?? ''), 0, 16)) ?></span>
                                 <?php if (!empty($sg['applied_at'])): ?>
-                                    <span style="color:#4ade80;">✓ Aplicado ao prompt em <?= htmlspecialchars(substr((string)$sg['applied_at'], 0, 16)) ?></span>
+                                    <span style="color:#4ade80;">✓ Aplicado <?= !empty($sg['project_id']) ? 'ao projeto' : 'ao prompt' ?> em <?= htmlspecialchars(substr((string)$sg['applied_at'], 0, 16)) ?></span>
                                 <?php endif; ?>
                             </div>
                         </div>

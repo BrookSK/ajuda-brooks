@@ -1265,10 +1265,13 @@ class ChatController extends Controller
                         if (mb_strlen($normalizedMsg, 'UTF-8') >= 25) {
                             try {
                                 $engineForMemory = new TuquinhaEngine();
-                                $instruction = "Extraia APENAS fatos estáveis e úteis sobre o PROJETO (não sobre emoções momentâneas). "
-                                    . "Retorne APENAS JSON válido, sem texto extra, no formato: {\"items\":[{\"content\":\"...\"}]} . "
-                                    . "Regras: (1) cada item deve ser curto (até 180 chars), (2) sem perguntas, (3) sem dados sensíveis (senha, cartão, cpf), "
-                                    . "(4) só inclua se for algo que ajudaria o assistente em conversas futuras (ex: tipo do projeto, público, stack, regras). "
+                                $instruction = "Analise a mensagem do usuário e extraia APENAS aprendizados práticos e regras de negócio que seriam úteis para o assistente lembrar em conversas futuras sobre este projeto. "
+                                    . "Exemplos: políticas da empresa, como resolver problemas recorrentes, regras de atendimento, decisões tomadas. "
+                                    . "Retorne APENAS JSON válido, sem texto extra, no formato: {\"items\":[{\"content\":\"...\",\"rationale\":\"...\"}]} . "
+                                    . "Regras: (1) cada content deve ser curto (até 200 chars) e autoexplicativo, "
+                                    . "(2) rationale explica por que esse aprendizado é útil (até 100 chars), "
+                                    . "(3) sem perguntas, (4) sem dados sensíveis (senha, cartão, cpf), "
+                                    . "(5) só inclua se for algo que ajudaria o assistente a dar respostas melhores no futuro. "
                                     . "Se não houver nada relevante, retorne {\"items\":[]}.";
 
                                 $memoryResult = $engineForMemory->generateResponseWithContext(
@@ -1293,8 +1296,8 @@ class ChatController extends Controller
                                             if ($content === '') {
                                                 continue;
                                             }
-                                            if (mb_strlen($content, 'UTF-8') > 180) {
-                                                $content = mb_substr($content, 0, 180, 'UTF-8');
+                                            if (mb_strlen($content, 'UTF-8') > 200) {
+                                                $content = mb_substr($content, 0, 200, 'UTF-8');
                                                 $content = rtrim($content);
                                             }
                                             if (strpos($content, '?') !== false) {
@@ -1304,8 +1307,10 @@ class ChatController extends Controller
                                             if (strpos($lc, 'senha') !== false || strpos($lc, 'cartão') !== false || strpos($lc, 'cpf') !== false) {
                                                 continue;
                                             }
-                                            if (!ProjectMemoryItem::existsSimilar($projectId, $content)) {
-                                                ProjectMemoryItem::create($projectId, $userId, (int)$conversation->id, $normalizedMsg, $content);
+                                            $rationale = is_array($it) ? trim((string)($it['rationale'] ?? '')) : '';
+                                            // Cria como sugestão pendente (precisa de aprovação do dono)
+                                            if (!AiPromptSuggestion::existsSimilar($content)) {
+                                                AiPromptSuggestion::create($content, $rationale, $projectId, (int)$conversation->id);
                                             }
                                         }
                                     }

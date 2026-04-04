@@ -518,32 +518,36 @@ function startVoiceDetector() {
 
             const data = new Uint8Array(analyser.frequencyBinCount);
             let loudFrames = 0;
+            let skipFrames = 20; // ignora os primeiros ~1s (áudio da IA no alto-falante)
 
             voiceDetectorInterval = setInterval(() => {
-                // Se já não tá tocando, para o detector
                 if (!currentAudio || currentAudio.paused || !voiceSessionActive) {
                     stopVoiceDetector();
                     return;
                 }
 
+                // Pula frames iniciais pra não confundir áudio do alto-falante com fala
+                if (skipFrames > 0) {
+                    skipFrames--;
+                    return;
+                }
+
                 analyser.getByteFrequencyData(data);
-                // Calcula volume médio
                 let sum = 0;
                 for (let i = 0; i < data.length; i++) sum += data[i];
                 const avg = sum / data.length;
 
-                // Threshold: se volume > 30 por 3 frames seguidos (~150ms), é fala
-                if (avg > 30) {
+                // Threshold alto (60) pra não confundir áudio do speaker com fala no mic
+                if (avg > 60) {
                     loudFrames++;
-                    if (loudFrames >= 3) {
-                        // Detectou fala do usuário — interrompe
+                    if (loudFrames >= 5) { // ~250ms de som alto contínuo
                         stopVoiceDetector();
                         cancelAllPending();
                         isBusy = false;
                         resumeListening();
                     }
                 } else {
-                    loudFrames = 0;
+                    loudFrames = Math.max(0, loudFrames - 1); // decay gradual
                 }
             }, 50); // checa a cada 50ms
         })

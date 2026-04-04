@@ -510,17 +510,12 @@ class MobileController extends Controller
             ob_end_clean();
         }
 
-        // Corta texto longo pra TTS ser rápido
-        $maxChars = 500;
-        if (mb_strlen($text, 'UTF-8') > $maxChars) {
-            $cut = mb_substr($text, 0, $maxChars, 'UTF-8');
-            $lastDot = max(
-                (int)mb_strrpos($cut, '.', 0, 'UTF-8'),
-                (int)mb_strrpos($cut, '!', 0, 'UTF-8'),
-                (int)mb_strrpos($cut, '?', 0, 'UTF-8')
-            );
-            $text = ($lastDot > 50) ? mb_substr($text, 0, $lastDot + 1, 'UTF-8') : $cut;
+        // Desabilita compressão que pode bufferizar
+        if (function_exists('apache_setenv')) {
+            @apache_setenv('no-gzip', '1');
         }
+        @ini_set('zlib.output_compression', '0');
+        @ini_set('implicit_flush', '1');
 
         // Tenta streaming (chunks vão direto pro browser)
         $ok = $elevenlabs->textToSpeechStream($text);

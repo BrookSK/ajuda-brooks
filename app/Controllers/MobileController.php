@@ -350,7 +350,7 @@ class MobileController extends Controller
             'toolName' => $toolName,
             'conversationId' => $conversationId,
             'messages' => $messages,
-            'voiceEnabled' => $elevenlabs->isConfigured() && !empty($onboarding['voice_enabled']),
+            'voiceEnabled' => $elevenlabs->isConfigured() && ($onboarding['voice_enabled'] ?? 1),
             'layout' => 'mobile',
         ]);
     }
@@ -473,7 +473,7 @@ class MobileController extends Controller
     }
 
     /**
-     * Gera áudio via ElevenLabs com streaming direto pro browser.
+     * Gera áudio via ElevenLabs.
      */
     public function textToSpeech(): void
     {
@@ -481,6 +481,7 @@ class MobileController extends Controller
 
         $text = trim($_POST['text'] ?? '');
         if ($text === '') {
+            http_response_code(400);
             header('Content-Type: application/json');
             echo json_encode(['ok' => false, 'error' => 'Texto vazio.']);
             return;
@@ -488,21 +489,32 @@ class MobileController extends Controller
 
         $elevenlabs = new ElevenLabsService();
 
-        // Tenta streaming primeiro (mais rápido, começa a tocar antes de terminar)
-        $ok = $elevenlabs->textToSpeechStream($text);
-
-        if (!$ok) {
-            // Fallback: método não-streaming
-            $audio = $elevenlabs->textToSpeech($text);
-            if (!$audio) {
-                header('Content-Type: application/json');
-                echo json_encode(['ok' => false, 'error' => 'Falha ao gerar áudio.']);
-                return;
-            }
-            header('Content-Type: audio/mpeg');
-            header('Content-Length: ' . strlen($audio));
-            echo $audio;
+        if (!$elevenlabs->isConfigured()) {
+            http_response_code(503);
+            header('Content-Type: application/json');
+            echo json_encode(['ok' => false, 'error' => 'ElevenLabs não configurado.']);
+            exit;
         }
+
+        $audio = $elevenlabs->textToSpeech($text);
+
+        if (!$audio || strlen($audio) < 100) {
+            http_response_code(502);
+            header('Content-Type: application/json');
+            echo json_encode(['ok' => false, 'error' => 'Falha ao gerar áudio.']);
+            return;
+        }
+
+        // Limpa qualquer output buffer pra não misturar HTML com áudio
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        header('Content-Type: audio/mpeg');
+        header('Content-Length: ' . strlen($audio));
+        header('Cache-Control: no-cache');
+        echo $audio;
+        exit;
     }
 
     /**

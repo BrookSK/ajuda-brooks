@@ -55,7 +55,7 @@ class ElevenLabsService
                 'Content-Type: application/json',
                 'xi-api-key: ' . $this->apiKey,
             ],
-            CURLOPT_TIMEOUT => 30,
+            CURLOPT_TIMEOUT => 60,
         ]);
 
         $response = curl_exec($ch);

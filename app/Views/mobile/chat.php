@@ -440,10 +440,17 @@ function doTTS(text, reopenMicAfter) {
 
     fetch('/m/chat/tts', { method: 'POST', body: fd })
         .then(r => {
-            if (!r.ok) throw new Error('TTS failed');
+            // Verifica se a resposta é audio (não JSON de erro)
+            const ct = r.headers.get('content-type') || '';
+            if (!r.ok || !ct.includes('audio')) {
+                throw new Error('TTS response not audio: ' + r.status);
+            }
             return r.blob();
         })
         .then(blob => {
+            if (blob.size < 100) {
+                throw new Error('Audio too small: ' + blob.size);
+            }
             const url = URL.createObjectURL(blob);
             currentAudio = new Audio(url);
 
@@ -459,16 +466,28 @@ function doTTS(text, reopenMicAfter) {
             };
 
             currentAudio.onended = onFinish;
-            currentAudio.onerror = onFinish;
-            currentAudio.play().catch(() => onFinish());
+            currentAudio.onerror = () => {
+                console.error('Audio playback error');
+                onFinish();
+            };
+            currentAudio.play().catch(err => {
+                console.error('Audio play failed:', err);
+                onFinish();
+            });
         })
-        .catch(() => {
+        .catch(err => {
+            console.error('TTS fetch error:', err);
             isBusy = false;
-            if (reopenMicAfter && voiceSessionActive) {
-                resumeListening();
-            } else {
-                hideVoiceOverlay();
-            }
+            // TTS falhou — mostra status e continua
+            document.getElementById('voice-status').textContent = 'Sem áudio';
+            document.getElementById('voice-subtitle').textContent = 'Resposta no chat';
+            setTimeout(() => {
+                if (reopenMicAfter && voiceSessionActive) {
+                    resumeListening();
+                } else {
+                    hideVoiceOverlay();
+                }
+            }, 1500);
         });
 }
 

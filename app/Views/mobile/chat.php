@@ -377,6 +377,7 @@ function stopVoiceSession() {
     voiceSessionActive = false;
     isBusy = false;
     cancelAllPending();
+    stopVoiceDetector();
     destroyRecognition();
     hideVoiceOverlay();
 }
@@ -473,30 +474,107 @@ function doTTS(text, reopenMicAfter) {
                 URL.revokeObjectURL(url);
                 currentAudio = null;
                 isBusy = false;
+                stopVoiceDetector();
                 if (reopenMicAfter && voiceSessionActive) resumeListening();
                 else hideVoiceOverlay();
             };
 
             currentAudio.onended = done;
             currentAudio.onerror = done;
-            currentAudio.play().catch(() => done());
+            currentAudio.play().then(() => {
+                // Áudio começou — ativa detector de voz pra interrupção
+                if (reopenMicAfter && voiceSessionActive) {
+                    startVoiceDetector();
+                }
+            }).catch(() => done());
         })
         .catch(err => {
             if (err.name === 'AbortError') return;
             isBusy = false;
+            stopVoiceDetector();
             if (reopenMicAfter && voiceSessionActive) resumeListening();
             else hideVoiceOverlay();
         });
 }
 
-// Interromper: tocar na tela enquanto IA fala
+// ========== Voice Detector (interrupção por volume do mic) ==========
+// Usa AudioContext + getUserMedia pra detectar som no mic sem usar SpeechRecognition.
+// Não conflita com nada — é só leitura de dados brutos do microfone.
+let voiceDetectorStream = null;
+let voiceDetectorCtx = null;
+let voiceDetectorInterval = null;
+
+function startVoiceDetector() {
+    stopVoiceDetector();
+
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+            voiceDetectorStream = stream;
+            voiceDetectorCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const source = voiceDetectorCtx.createMediaStreamSource(stream);
+            const analyser = voiceDetectorCtx.createAnalyser();
+            analyser.fftSize = 512;
+            source.connect(analyser);
+
+            const data = new Uint8Array(analyser.frequencyBinCount);
+            let loudFrames = 0;
+
+            voiceDetectorInterval = setInterval(() => {
+                // Se já não tá tocando, para o detector
+                if (!currentAudio || currentAudio.paused || !voiceSessionActive) {
+                    stopVoiceDetector();
+                    return;
+                }
+
+                analyser.getByteFrequencyData(data);
+                // Calcula volume médio
+                let sum = 0;
+                for (let i = 0; i < data.length; i++) sum += data[i];
+                const avg = sum / data.length;
+
+                // Threshold: se volume > 30 por 3 frames seguidos (~150ms), é fala
+                if (avg > 30) {
+                    loudFrames++;
+                    if (loudFrames >= 3) {
+                        // Detectou fala do usuário — interrompe
+                        stopVoiceDetector();
+                        cancelAllPending();
+                        isBusy = false;
+                        resumeListening();
+                    }
+                } else {
+                    loudFrames = 0;
+                }
+            }, 50); // checa a cada 50ms
+        })
+        .catch(() => {
+            // Sem permissão de mic — ignora, interrupção só por toque
+        });
+}
+
+function stopVoiceDetector() {
+    if (voiceDetectorInterval) {
+        clearInterval(voiceDetectorInterval);
+        voiceDetectorInterval = null;
+    }
+    if (voiceDetectorCtx) {
+        try { voiceDetectorCtx.close(); } catch(e) {}
+        voiceDetectorCtx = null;
+    }
+    if (voiceDetectorStream) {
+        voiceDetectorStream.getTracks().forEach(t => t.stop());
+        voiceDetectorStream = null;
+    }
+}
+
+// Interromper: tocar na tela enquanto IA fala (fallback manual)
 document.getElementById('voice-overlay').addEventListener('click', function(e) {
     if (!voiceSessionActive) return;
     if (e.target.tagName === 'BUTTON') return;
 
     const orb = document.getElementById('voice-orb');
-    // Se tá falando ou pensando, interrompe
     if (orb.classList.contains('state-speaking') || orb.classList.contains('state-thinking')) {
+        stopVoiceDetector();
         cancelAllPending();
         isBusy = false;
         resumeListening();

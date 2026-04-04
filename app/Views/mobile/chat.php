@@ -273,7 +273,7 @@ function hideTyping() {
     document.getElementById('status-text').textContent = 'Online';
 }
 
-// ========== Send Message ==========
+// ========== Cancel ==========
 function cancelAllPending() {
     if (messageAbort) { messageAbort.abort(); messageAbort = null; }
     if (ttsAbort) { ttsAbort.abort(); ttsAbort = null; }
@@ -285,12 +285,13 @@ function cancelAllPending() {
     }
 }
 
+// ========== Send Message ==========
 function sendMessage(text, fromVoice) {
     if (!text || !text.trim()) return;
     text = text.trim();
 
-    // Cancela qualquer requisição/áudio anterior
     cancelAllPending();
+    destroyRecognition();
 
     addMessage('user', text);
     isBusy = true;
@@ -320,8 +321,6 @@ function sendMessage(text, fromVoice) {
             if (fromVoice && voiceSessionActive && voiceEnabled) {
                 setVoiceState('speaking');
                 doTTS(data.reply, true);
-                // Inicia detecção de interrupção por voz enquanto IA fala
-                startInterruptListener();
             } else {
                 isBusy = false;
             }
@@ -332,9 +331,9 @@ function sendMessage(text, fromVoice) {
         }
     })
     .catch(err => {
-        if (err.name === 'AbortError') return; // cancelado intencionalmente
+        if (err.name === 'AbortError') return;
         hideTyping();
-        addMessage('assistant', 'Erro de conexão. Tente novamente.');
+        addMessage('assistant', 'Erro de conexão.');
         isBusy = false;
         if (fromVoice && voiceSessionActive) resumeListening();
     });
@@ -361,9 +360,9 @@ function toggleListening() {
 function startVoiceSession() {
     if (voiceSessionActive) return;
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-        alert('Seu navegador não suporta reconhecimento de voz. Use o modo texto.');
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+        alert('Seu navegador não suporta reconhecimento de voz.');
         return;
     }
 
@@ -378,9 +377,8 @@ function stopVoiceSession() {
     voiceSessionActive = false;
     isBusy = false;
     cancelAllPending();
-    hideVoiceOverlay();
     destroyRecognition();
-    stopInterruptListener();
+    hideVoiceOverlay();
 }
 
 function destroyRecognition() {
@@ -391,13 +389,12 @@ function destroyRecognition() {
 }
 
 function startSingleListen() {
-    if (!voiceSessionActive || isBusy) return;
+    if (!voiceSessionActive) return;
 
     destroyRecognition();
-    stopInterruptListener();
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SpeechRecognition();
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SR();
     recognition.lang = 'pt-BR';
     recognition.continuous = false;
     recognition.interimResults = false;
@@ -416,12 +413,13 @@ function startSingleListen() {
 
     recognition.onerror = function(e) {
         if (e.error === 'not-allowed') {
-            alert('Permita o acesso ao microfone para usar o chat por voz.');
+            alert('Permita o acesso ao microfone.');
             stopVoiceSession();
             return;
         }
+        // Qualquer outro erro: tenta de novo
         if (voiceSessionActive && !isBusy) {
-            setTimeout(() => startSingleListen(), 300);
+            setTimeout(() => startSingleListen(), 500);
         }
     };
 
@@ -441,85 +439,8 @@ function startSingleListen() {
 function resumeListening() {
     if (!voiceSessionActive) return;
     isBusy = false;
-    stopInterruptListener();
     setVoiceState('listening');
     startSingleListen();
-}
-
-// ========== Interrupt Listener ==========
-// Ouve o mic DURANTE a fala da IA. Se detectar voz, para tudo e abre mic normal.
-let interruptRecognition = null;
-
-function startInterruptListener() {
-    stopInterruptListener();
-    if (!voiceSessionActive) return;
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) return;
-
-    interruptRecognition = new SpeechRecognition();
-    interruptRecognition.lang = 'pt-BR';
-    interruptRecognition.continuous = false;
-    interruptRecognition.interimResults = true;
-    interruptRecognition.maxAlternatives = 1;
-
-    interruptRecognition.onresult = function() {
-        // Detectou voz — para tudo e abre mic normal pra capturar a fala completa
-        interruptAI();
-    };
-
-    interruptRecognition.onerror = function(e) {
-        // no-speech: ninguém falou, reinicia
-        if (e.error === 'no-speech' && voiceSessionActive && isBusy && currentAudio && !currentAudio.paused) {
-            setTimeout(() => {
-                if (voiceSessionActive && isBusy && currentAudio && !currentAudio.paused) {
-                    try { interruptRecognition.start(); } catch(ex) {}
-                }
-            }, 200);
-        }
-    };
-
-    interruptRecognition.onend = function() {
-        // Se IA ainda tá falando, reinicia
-        if (voiceSessionActive && isBusy && currentAudio && !currentAudio.paused) {
-            setTimeout(() => {
-                if (voiceSessionActive && isBusy && currentAudio && !currentAudio.paused) {
-                    try { interruptRecognition.start(); } catch(e) {}
-                }
-            }, 200);
-        }
-    };
-
-    try {
-        interruptRecognition.start();
-    } catch(e) {}
-}
-
-function stopInterruptListener() {
-    if (interruptRecognition) {
-        try { interruptRecognition.abort(); } catch(e) {}
-        interruptRecognition = null;
-    }
-}
-
-function interruptAI() {
-    // Para TUDO: fetches, áudio, listeners
-    cancelAllPending();
-    stopInterruptListener();
-    destroyRecognition();
-    isBusy = false;
-    hideTyping();
-
-    // Abre mic normal pra capturar a fala nova do usuário
-    if (voiceSessionActive) {
-        setVoiceState('listening');
-        // Pequeno delay pra garantir que tudo parou
-        setTimeout(() => {
-            if (voiceSessionActive) {
-                startSingleListen();
-            }
-        }, 300);
-    }
 }
 
 // ========== TTS ==========
@@ -540,95 +461,46 @@ function doTTS(text, reopenMicAfter) {
     fetch('/m/chat/tts', { method: 'POST', body: fd, signal: ttsAbort.signal })
         .then(r => {
             const ct = r.headers.get('content-type') || '';
-            if (!r.ok || !ct.includes('audio')) {
-                throw new Error('Not audio: ' + r.status);
-            }
+            if (!r.ok || !ct.includes('audio')) throw new Error('Not audio');
+            return r.blob();
+        })
+        .then(blob => {
+            if (!blob || blob.size < 100) throw new Error('Empty');
+            const url = URL.createObjectURL(blob);
+            currentAudio = new Audio(url);
 
-            // Lê o stream e começa a tocar assim que tiver dados suficientes
-            const reader = r.body.getReader();
-            let chunks = [];
-            let totalSize = 0;
-            let started = false;
+            const done = () => {
+                URL.revokeObjectURL(url);
+                currentAudio = null;
+                isBusy = false;
+                if (reopenMicAfter && voiceSessionActive) resumeListening();
+                else hideVoiceOverlay();
+            };
 
-            function pump() {
-                return reader.read().then(({ done, value }) => {
-                    if (done) {
-                        // Stream acabou — se não começou a tocar ainda, toca agora
-                        if (!started && totalSize > 0) {
-                            playCollectedChunks(chunks, reopenMicAfter);
-                        }
-                        return;
-                    }
-
-                    chunks.push(value);
-                    totalSize += value.length;
-
-                    // Começa a tocar com ~4KB de dados (suficiente pra iniciar)
-                    if (!started && totalSize > 4096) {
-                        started = true;
-                        // Cria blob parcial e começa a tocar
-                        // Mas como Audio() precisa do blob completo pra funcionar bem,
-                        // vamos esperar o stream terminar mas com timeout curto
-                        // Na prática o streaming do ElevenLabs Flash é tão rápido
-                        // que o blob chega em <1s pra textos curtos
-                    }
-
-                    return pump();
-                });
-            }
-
-            return pump().then(() => {
-                if (totalSize > 0) {
-                    playCollectedChunks(chunks, reopenMicAfter);
-                } else {
-                    throw new Error('No audio data');
-                }
-            });
+            currentAudio.onended = done;
+            currentAudio.onerror = done;
+            currentAudio.play().catch(() => done());
         })
         .catch(err => {
-            if (err.name === 'AbortError') return; // cancelado intencionalmente
-            console.error('TTS:', err);
+            if (err.name === 'AbortError') return;
             isBusy = false;
-            stopInterruptListener();
             if (reopenMicAfter && voiceSessionActive) resumeListening();
             else hideVoiceOverlay();
         });
 }
 
-function playCollectedChunks(chunks, reopenMicAfter) {
-    const blob = new Blob(chunks, { type: 'audio/mpeg' });
-    if (blob.size < 100) {
-        isBusy = false;
-        stopInterruptListener();
-        if (reopenMicAfter && voiceSessionActive) resumeListening();
-        else hideVoiceOverlay();
-        return;
-    }
-
-    const url = URL.createObjectURL(blob);
-    currentAudio = new Audio(url);
-
-    const done = () => {
-        URL.revokeObjectURL(url);
-        currentAudio = null;
-        isBusy = false;
-        stopInterruptListener();
-        if (reopenMicAfter && voiceSessionActive) resumeListening();
-        else hideVoiceOverlay();
-    };
-
-    currentAudio.onended = done;
-    currentAudio.onerror = done;
-    currentAudio.play().catch(() => done());
-}
-
-// Interromper IA: tocar no overlay enquanto fala (fallback manual)
+// Interromper: tocar na tela enquanto IA fala
 document.getElementById('voice-overlay').addEventListener('click', function(e) {
     if (!voiceSessionActive) return;
-    const orb = document.getElementById('voice-orb');
-    if (!orb.classList.contains('state-speaking')) return;
     if (e.target.tagName === 'BUTTON') return;
-    interruptAI();
+
+    const orb = document.getElementById('voice-orb');
+    // Se tá falando ou pensando, interrompe
+    if (orb.classList.contains('state-speaking') || orb.classList.contains('state-thinking')) {
+        cancelAllPending();
+        isBusy = false;
+        resumeListening();
+    }
 });
 
 // ========== Keyboard ==========

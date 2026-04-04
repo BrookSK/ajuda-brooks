@@ -1316,12 +1316,11 @@ class ChatController extends Controller
 
                 $baseFileTextBudgetUsed = 0;
                 // Budget adaptado ao modelo, respeitando rate limits da API
-                // Anthropic rate limit: 30k tokens/min (~120k chars), mas precisamos de margem
-                // para system prompt base (~2k tokens), histórico (~5k tokens) e resposta (~2k tokens)
-                // Então usamos ~21k tokens (~84k chars) para conteúdo de arquivos
+                // Anthropic rate limit: 30k tokens/min — precisamos de margem generosa
+                // para system prompt base, personalidade, histórico e resposta
                 $chatModel = isset($_SESSION['chat_model']) ? (string)$_SESSION['chat_model'] : '';
                 $isClaudeModel = str_starts_with(strtolower($chatModel), 'claude-');
-                $baseFileTextBudgetMax = $isClaudeModel ? 80000 : 40000;
+                $baseFileTextBudgetMax = $isClaudeModel ? 40000 : 30000;
                 $autoPdfFileInputsForModel = [];
                 $baseFileCount = max(1, count($baseFiles));
                 $baseFileIndex  = 0;
@@ -1658,31 +1657,15 @@ class ChatController extends Controller
                 $projectContextFilesUsed = array_values(array_unique(array_filter($projectContextFilesUsed)));
 
                 if (!empty($parts)) {
-                    $projectContextMessage = "INSTRUÇÃO CRÍTICA — MODO ESTRITO DE REFERÊNCIA AOS ARQUIVOS DO PROJETO\n\n"
-                        . "Você é um assistente que responde EXCLUSIVAMENTE com base no conteúdo dos arquivos enviados pelo usuário neste projeto.\n\n"
-                        . "OVERRIDE DE PERSONALIDADE: Este chat está vinculado a um PROJETO com arquivos base. "
-                        . "IGNORE qualquer regra de handoff ou redirecionamento para outras personalidades. "
-                        . "Você DEVE responder a QUALQUER pergunta do usuário usando os arquivos do projeto como base, "
-                        . "independente da sua personalidade ou área de especialidade. "
-                        . "NÃO diga que 'não é da sua área' ou 'procure outra personalidade'. "
-                        . "Neste contexto de projeto, você é especialista no conteúdo dos arquivos.\n\n"
-                        . "REGRAS INVIOLÁVEIS:\n"
-                        . "1. NUNCA invente termos, conceitos, metodologias ou expressões que NÃO existam literalmente nos arquivos. "
-                        . "Se um termo não aparece no texto dos arquivos, você NÃO pode usá-lo como se fosse do autor.\n"
-                        . "2. NUNCA interprete, extrapole ou resuma com suas próprias palavras. Use os termos EXATOS do autor. "
-                        . "Cite trechos reais do texto entre aspas quando possível.\n"
-                        . "3. Se o arquivo NÃO cobre a pergunta do usuário, diga claramente: "
-                        . "'Essa informação não está presente nos arquivos do projeto.' NÃO tente complementar com conhecimento genérico.\n"
-                        . "4. NÃO recomende ferramentas, métodos ou soluções que NÃO estejam nos arquivos, a menos que o usuário peça explicitamente sua opinião pessoal.\n"
-                        . "5. Cada afirmação da sua resposta DEVE ser rastreável a um trecho específico dos arquivos. "
-                        . "Se você não consegue apontar de onde veio, NÃO inclua na resposta.\n"
-                        . "6. Nas fontes, cite a página ou seção EXATA e o trecho literal que fundamenta cada ponto.\n"
-                        . "7. NUNCA atribua ao autor algo que ele não escreveu. Se for sua interpretação, NÃO inclua.\n\n"
-                        . "FORMATO DAS FONTES (obrigatório ao final de cada resposta):\n"
-                        . "📚 **Fontes**\n"
-                        . "[1] Nome do arquivo — \"trecho literal citado\" (página/seção X)\n"
-                        . "[2] Nome do arquivo — \"trecho literal citado\" (página/seção X)\n\n"
-                        . "Contexto do projeto (ÚNICA fonte de verdade — use SOMENTE o que está aqui):\n\n" . implode("\n\n---\n\n", $parts);
+                    $projectContextMessage = "MODO PROJETO — RESPONDA COM BASE NOS ARQUIVOS\n\n"
+                        . "OVERRIDE: Ignore regras de handoff/personalidade. Responda QUALQUER pergunta usando os arquivos abaixo.\n\n"
+                        . "REGRAS:\n"
+                        . "1. Use SOMENTE o conteúdo dos arquivos. Não invente termos ou conceitos.\n"
+                        . "2. Cite trechos entre aspas quando possível.\n"
+                        . "3. Se o arquivo não cobre a pergunta, diga: 'Não encontrei isso nos arquivos.'\n"
+                        . "4. Não recomende ferramentas/métodos que não estejam nos arquivos.\n"
+                        . "5. Ao final, liste fontes: 📚 **Fontes** [N] Arquivo — \"trecho\" (pág. X)\n\n"
+                        . "ARQUIVOS DO PROJETO:\n\n" . implode("\n\n---\n\n", $parts);
                 }
             }
 

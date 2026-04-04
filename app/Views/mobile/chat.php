@@ -470,6 +470,8 @@ function startSingleListen() {
     if (!voiceSessionActive) return;
 
     destroyRecognition();
+    // Pausa mic persistente pra liberar o mic pro SpeechRecognition
+    if (micStream) micStream.getAudioTracks().forEach(t => t.enabled = false);
 
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognition = new SR();
@@ -559,8 +561,10 @@ function doTTS(text, reopenMicAfter) {
             currentAudio.onended = done;
             currentAudio.onerror = done;
             currentAudio.play().then(() => {
-                // Áudio começou — ativa monitor de mic pra interrupção por voz
+                // Reativa mic persistente e inicia monitor pra interrupção
                 if (reopenMicAfter && voiceSessionActive) {
+                    destroyRecognition(); // libera o mic do SpeechRecognition
+                    if (micStream) micStream.getAudioTracks().forEach(t => t.enabled = true);
                     startMicMonitor();
                 }
             }).catch(() => done());

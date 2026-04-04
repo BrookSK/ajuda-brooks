@@ -153,7 +153,7 @@ class CronLearningController extends Controller
                 }
 
                 // Gera sugestões de prompt periodicamente (a cada N aprendizados)
-                $this->maybeGeneratePromptSuggestions($model, $saved);
+                $this->maybeGeneratePromptSuggestions($extractionModel, $saved);
 
                 LearningJob::markDone($jobId);
                 $processed++;

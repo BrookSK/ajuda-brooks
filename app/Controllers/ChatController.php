@@ -1259,67 +1259,8 @@ class ChatController extends Controller
             if (!empty($conversation->project_id) && $userId > 0) {
                 $projectId = (int)$conversation->project_id;
                 if (ProjectMember::canRead($projectId, $userId)) {
-                    $enabled = (string)Setting::get('project_auto_memory_enabled', '1');
-                    if ($enabled !== '0') {
-                        $normalizedMsg = trim((string)$message);
-                        if (mb_strlen($normalizedMsg, 'UTF-8') >= 25) {
-                            try {
-                                $engineForMemory = new TuquinhaEngine();
-                                $instruction = "Analise a mensagem do usuário e extraia APENAS aprendizados práticos e regras de negócio que seriam úteis para o assistente lembrar em conversas futuras sobre este projeto. "
-                                    . "Exemplos: políticas da empresa, como resolver problemas recorrentes, regras de atendimento, decisões tomadas. "
-                                    . "Retorne APENAS JSON válido, sem texto extra, no formato: {\"items\":[{\"content\":\"...\",\"rationale\":\"...\"}]} . "
-                                    . "Regras: (1) cada content deve ser curto (até 200 chars) e autoexplicativo, "
-                                    . "(2) rationale explica por que esse aprendizado é útil (até 100 chars), "
-                                    . "(3) sem perguntas, (4) sem dados sensíveis (senha, cartão, cpf), "
-                                    . "(5) só inclua se for algo que ajudaria o assistente a dar respostas melhores no futuro. "
-                                    . "Se não houver nada relevante, retorne {\"items\":[]}.";
-
-                                $memoryResult = $engineForMemory->generateResponseWithContext(
-                                    [
-                                        ['role' => 'user', 'content' => $instruction . "\n\nMENSAGEM DO USUÁRIO:\n" . $normalizedMsg],
-                                    ],
-                                    'claude-3-5-haiku-latest',
-                                    null,
-                                    null,
-                                    null
-                                );
-
-                                $memoryText = is_array($memoryResult) ? (string)($memoryResult['content'] ?? '') : (string)$memoryResult;
-                                $memoryText = trim((string)$memoryText);
-
-                                if ($memoryText !== '' && $memoryText[0] === '{') {
-                                    $json = json_decode($memoryText, true);
-                                    if (is_array($json) && isset($json['items']) && is_array($json['items'])) {
-                                        foreach ($json['items'] as $it) {
-                                            $content = is_array($it) ? (string)($it['content'] ?? '') : '';
-                                            $content = trim(str_replace(["\r\n", "\r"], "\n", $content));
-                                            if ($content === '') {
-                                                continue;
-                                            }
-                                            if (mb_strlen($content, 'UTF-8') > 200) {
-                                                $content = mb_substr($content, 0, 200, 'UTF-8');
-                                                $content = rtrim($content);
-                                            }
-                                            if (strpos($content, '?') !== false) {
-                                                continue;
-                                            }
-                                            $lc = mb_strtolower($content, 'UTF-8');
-                                            if (strpos($lc, 'senha') !== false || strpos($lc, 'cartão') !== false || strpos($lc, 'cpf') !== false) {
-                                                continue;
-                                            }
-                                            $rationale = is_array($it) ? trim((string)($it['rationale'] ?? '')) : '';
-                                            // Cria como sugestão pendente (precisa de aprovação do dono)
-                                            if (!AiPromptSuggestion::existsSimilar($content)) {
-                                                AiPromptSuggestion::create($content, $rationale, $projectId, (int)$conversation->id);
-                                            }
-                                        }
-                                    }
-                                }
-                            } catch (\Throwable $memErr) {
-                                error_log('[AutoMemory] Falhou silenciosamente: ' . $memErr->getMessage());
-                            }
-                        }
-                    }
+                    // A extração de sugestões de aprendizado do projeto agora roda DEPOIS da resposta da IA
+                    // (ver bloco "Extração de sugestões de projeto" mais abaixo)
                 }
             }
 
@@ -2039,6 +1980,53 @@ class ChatController extends Controller
                     'conversation_id' => $conversation->id,
                     'plan_slug' => $planForContext['slug'] ?? null,
                 ]);
+            }
+
+            // Extração de sugestões de aprendizado do projeto (analisa mensagem + resposta)
+            if (!empty($conversation->project_id) && $userId > 0 && $assistantReply !== '' && mb_strlen((string)$message, 'UTF-8') >= 20) {
+                $projectIdForSuggestion = (int)$conversation->project_id;
+                $enabled = (string)Setting::get('project_auto_memory_enabled', '1');
+                if ($enabled !== '0') {
+                    try {
+                        $engineForSuggestion = new TuquinhaEngine();
+                        $suggestionInstruction = "Analise esta conversa entre usuário e assistente sobre um projeto empresarial. "
+                            . "Extraia aprendizados práticos, regras de negócio, decisões tomadas ou padrões de resolução de problemas que seriam úteis para o assistente lembrar em conversas futuras. "
+                            . "Exemplos: políticas da empresa, como resolver problemas recorrentes, regras de atendimento, decisões tomadas, padrões identificados. "
+                            . "Retorne APENAS JSON válido: {\"items\":[{\"content\":\"...\",\"rationale\":\"...\"}]} "
+                            . "Regras: (1) cada content deve ser curto (até 200 chars) e autoexplicativo, "
+                            . "(2) rationale explica por que esse aprendizado é útil (até 100 chars), "
+                            . "(3) sem perguntas, (4) sem dados sensíveis, "
+                            . "(5) só inclua se for algo que ajudaria o assistente a dar respostas melhores no futuro. "
+                            . "Se não houver nada relevante, retorne {\"items\":[]}.";
+
+                        $suggestionResult = $engineForSuggestion->generateResponseWithContext(
+                            [['role' => 'user', 'content' => $suggestionInstruction
+                                . "\n\nMENSAGEM DO USUÁRIO:\n" . mb_substr((string)$message, 0, 500, 'UTF-8')
+                                . "\n\nRESPOSTA DO ASSISTENTE:\n" . mb_substr($assistantReply, 0, 1000, 'UTF-8')]],
+                            'claude-3-5-haiku-latest',
+                            null, null, null
+                        );
+
+                        $suggestionText = is_array($suggestionResult) ? trim((string)($suggestionResult['content'] ?? '')) : '';
+                        if ($suggestionText !== '' && $suggestionText[0] === '{') {
+                            $suggestionJson = json_decode($suggestionText, true);
+                            if (is_array($suggestionJson) && isset($suggestionJson['items']) && is_array($suggestionJson['items'])) {
+                                foreach ($suggestionJson['items'] as $sgItem) {
+                                    $sgContent = is_array($sgItem) ? trim((string)($sgItem['content'] ?? '')) : '';
+                                    if ($sgContent === '' || mb_strlen($sgContent, 'UTF-8') < 10) continue;
+                                    if (mb_strlen($sgContent, 'UTF-8') > 200) $sgContent = mb_substr($sgContent, 0, 200, 'UTF-8');
+                                    if (strpos($sgContent, '?') !== false) continue;
+                                    $sgRationale = is_array($sgItem) ? trim((string)($sgItem['rationale'] ?? '')) : '';
+                                    if (!AiPromptSuggestion::existsSimilar($sgContent)) {
+                                        AiPromptSuggestion::create($sgContent, $sgRationale, $projectIdForSuggestion, (int)$conversation->id);
+                                    }
+                                }
+                            }
+                        }
+                    } catch (\Throwable $sgErr) {
+                        error_log('[ProjectSuggestion] Falhou: ' . $sgErr->getMessage());
+                    }
+                }
             }
 
             // I1 — Extração assíncrona: enfileira job em vez de chamar Claude inline

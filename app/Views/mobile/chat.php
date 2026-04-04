@@ -349,15 +349,16 @@ function sendTextMessage() {
 }
 
 // ========== Voice Session ==========
-// Mic stream persistente: aberto uma vez no início da sessão, nunca fecha até encerrar.
-// Isso evita o travamento de abrir getUserMedia durante reprodução de áudio.
+// Mic stream persistente pra detecção de interrupção durante TTS.
+// IMPORTANTE: no mobile, SpeechRecognition e getUserMedia não coexistem.
+// Por isso: fecha o mic antes de ouvir, reabre antes de tocar TTS.
 let micStream = null;
 let micAnalyser = null;
 let micAudioCtx = null;
 let micCheckInterval = null;
 
-async function initPersistentMic() {
-    if (micStream) return true;
+async function openMic() {
+    closeMic();
     try {
         micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         micAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -371,7 +372,7 @@ async function initPersistentMic() {
     }
 }
 
-function closePersistentMic() {
+function closeMic() {
     stopMicMonitor();
     if (micAudioCtx) { try { micAudioCtx.close(); } catch(e) {} micAudioCtx = null; }
     if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
@@ -435,13 +436,6 @@ async function startVoiceSession() {
         return;
     }
 
-    // Abre mic persistente ANTES de tudo
-    const micOk = await initPersistentMic();
-    if (!micOk) {
-        alert('Permita o acesso ao microfone.');
-        return;
-    }
-
     voiceSessionActive = true;
     isBusy = false;
     showVoiceOverlay();
@@ -454,8 +448,8 @@ function stopVoiceSession() {
     isBusy = false;
     cancelAllPending();
     stopMicMonitor();
+    closeMic();
     destroyRecognition();
-    closePersistentMic();
     hideVoiceOverlay();
 }
 
@@ -470,8 +464,7 @@ function startSingleListen() {
     if (!voiceSessionActive) return;
 
     destroyRecognition();
-    // Pausa mic persistente pra liberar o mic pro SpeechRecognition
-    if (micStream) micStream.getAudioTracks().forEach(t => t.enabled = false);
+    closeMic(); // fecha mic pra liberar pro SpeechRecognition
 
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognition = new SR();
@@ -546,33 +539,47 @@ function doTTS(text, reopenMicAfter) {
         })
         .then(blob => {
             if (!blob || blob.size < 100) throw new Error('Empty');
-            const url = URL.createObjectURL(blob);
-            currentAudio = new Audio(url);
 
-            const done = () => {
-                URL.revokeObjectURL(url);
-                currentAudio = null;
-                isBusy = false;
-                stopMicMonitor();
-                if (reopenMicAfter && voiceSessionActive) resumeListening();
-                else hideVoiceOverlay();
+            // Abre mic ANTES de tocar áudio (evita travamento de abrir durante reprodução)
+            const setupAndPlay = async () => {
+                if (reopenMicAfter && voiceSessionActive) {
+                    destroyRecognition();
+                    await openMic();
+                }
+
+                const url = URL.createObjectURL(blob);
+                currentAudio = new Audio(url);
+
+                const done = () => {
+                    URL.revokeObjectURL(url);
+                    currentAudio = null;
+                    isBusy = false;
+                    stopMicMonitor();
+                    if (reopenMicAfter && voiceSessionActive) resumeListening();
+                    else { closeMic(); hideVoiceOverlay(); }
+                };
+
+                currentAudio.onended = done;
+                currentAudio.onerror = done;
+
+                try {
+                    await currentAudio.play();
+                    // Áudio tocando — ativa monitor
+                    if (reopenMicAfter && voiceSessionActive && micAnalyser) {
+                        startMicMonitor();
+                    }
+                } catch(e) {
+                    done();
+                }
             };
 
-            currentAudio.onended = done;
-            currentAudio.onerror = done;
-            currentAudio.play().then(() => {
-                // Reativa mic persistente e inicia monitor pra interrupção
-                if (reopenMicAfter && voiceSessionActive) {
-                    destroyRecognition(); // libera o mic do SpeechRecognition
-                    if (micStream) micStream.getAudioTracks().forEach(t => t.enabled = true);
-                    startMicMonitor();
-                }
-            }).catch(() => done());
+            setupAndPlay();
         })
         .catch(err => {
             if (err.name === 'AbortError') return;
             isBusy = false;
             stopMicMonitor();
+            closeMic();
             if (reopenMicAfter && voiceSessionActive) resumeListening();
             else hideVoiceOverlay();
         });
@@ -586,6 +593,7 @@ document.getElementById('voice-overlay').addEventListener('click', function(e) {
     const orb = document.getElementById('voice-orb');
     if (orb.classList.contains('state-speaking') || orb.classList.contains('state-thinking')) {
         stopMicMonitor();
+        closeMic();
         cancelAllPending();
         isBusy = false;
         resumeListening();

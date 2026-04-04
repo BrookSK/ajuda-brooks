@@ -216,6 +216,63 @@ if ($isPartnerHost) {
     exit;
 }
 
+// --- Detecção automática de mobile: redireciona para /m ---
+if (!$isPartnerHost) {
+    $mPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
+    // Só redireciona se NÃO estiver já em /m, /admin, /api, /webhooks, /cron, assets
+    $skipMobileRedirect = str_starts_with($mPath, '/m/')
+        || $mPath === '/m'
+        || str_starts_with($mPath, '/admin')
+        || str_starts_with($mPath, '/api/')
+        || str_starts_with($mPath, '/webhooks/')
+        || str_starts_with($mPath, '/cron/')
+        || str_starts_with($mPath, '/public/')
+        || str_starts_with($mPath, '/chat/send')
+        || str_starts_with($mPath, '/chat/audio')
+        || str_starts_with($mPath, '/chat/job')
+        || str_starts_with($mPath, '/chat/settings')
+        || str_starts_with($mPath, '/chat/persona')
+        || str_starts_with($mPath, '/chat/renomear')
+        || str_starts_with($mPath, '/chat/favoritar')
+        || str_starts_with($mPath, '/chat/excluir')
+        || str_starts_with($mPath, '/chat/projeto')
+        || str_starts_with($mPath, '/chat/project-files')
+        || str_starts_with($mPath, '/erro/')
+        || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+        || ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST';
+
+    if (!$skipMobileRedirect) {
+        $ua = strtolower((string)($_SERVER['HTTP_USER_AGENT'] ?? ''));
+        $isMobile = (bool)preg_match('/mobile|android|iphone|ipod|blackberry|opera mini|iemobile|wpdesktop|windows phone/i', $ua);
+        // Também detecta PWA standalone (display-mode)
+        $isStandalone = !empty($_SERVER['HTTP_SEC_FETCH_DEST']) && $_SERVER['HTTP_SEC_FETCH_DEST'] === 'document'
+            && !empty($_SERVER['HTTP_SEC_FETCH_MODE']) && $_SERVER['HTTP_SEC_FETCH_MODE'] === 'navigate';
+
+        if ($isMobile) {
+            // Mapeia rotas conhecidas para equivalentes mobile
+            $mobileMap = [
+                '/' => '/m',
+                '/chat' => '/m/chat',
+                '/login' => '/m/login',
+                '/registrar' => '/m/registrar',
+                '/historico' => '/m/historico',
+                '/logout' => '/m/logout',
+            ];
+
+            $redirectTo = $mobileMap[$mPath] ?? '/m';
+
+            // Preserva query string
+            $qs = $_SERVER['QUERY_STRING'] ?? '';
+            if ($qs !== '') {
+                $redirectTo .= '?' . $qs;
+            }
+
+            header('Location: ' . $redirectTo);
+            exit;
+        }
+    }
+}
+
 $router = new Router();
 
 $router->get('/', 'HomeController@index');

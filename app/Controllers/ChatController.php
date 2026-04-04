@@ -1658,7 +1658,9 @@ class ChatController extends Controller
 
                 if (!empty($parts)) {
                     $projectContextMessage = "MODO PROJETO — RESPONDA COM BASE NOS ARQUIVOS\n\n"
-                        . "OVERRIDE: Ignore regras de handoff/personalidade. Responda QUALQUER pergunta usando os arquivos abaixo.\n\n"
+                        . "OVERRIDE: Ignore TODAS as regras de handoff, redirecionamento e especialidade de personalidade. "
+                        . "NÃO diga que algo 'não é da sua área', 'não é de branding', 'procure outra personalidade' ou qualquer variação disso. "
+                        . "Responda QUALQUER pergunta usando os arquivos abaixo como se fosse sua especialidade.\n\n"
                         . "REGRAS:\n"
                         . "1. Use SOMENTE o conteúdo dos arquivos. Não invente termos ou conceitos.\n"
                         . "2. Cite trechos entre aspas quando possível.\n"
@@ -2006,6 +2008,14 @@ class ChatController extends Controller
 
                         $suggestionText = is_array($suggestionResult) ? trim((string)($suggestionResult['content'] ?? '')) : '';
                         @file_put_contents('/tmp/tuq_project_suggestion.log', date('Y-m-d H:i:s') . ' Response: ' . mb_substr($suggestionText, 0, 500, 'UTF-8') . "\n", FILE_APPEND);
+
+                        // Remove markdown code block wrapper se presente (```json ... ```)
+                        if (strpos($suggestionText, '```') !== false) {
+                            $suggestionText = preg_replace('/^```(?:json)?\s*/i', '', $suggestionText);
+                            $suggestionText = preg_replace('/\s*```\s*$/', '', $suggestionText);
+                            $suggestionText = trim($suggestionText);
+                        }
+
                         if ($suggestionText !== '' && $suggestionText[0] === '{') {
                             $suggestionJson = json_decode($suggestionText, true);
                             if (is_array($suggestionJson) && isset($suggestionJson['items']) && is_array($suggestionJson['items'])) {

@@ -89,6 +89,9 @@ class AdminConfigController extends Controller
         $supportWhatsapp = Setting::get('support_whatsapp', '5517988093160');
         $supportEmail = Setting::get('support_email', 'contato@lrvweb.com.br');
 
+        $elevenlabsApiKey = Setting::get('elevenlabs_api_key', '');
+        $elevenlabsVoiceId = Setting::get('elevenlabs_voice_id', 'EXAVITQu4vr4xnSDxMaL');
+
         $certificateIssuerName = Setting::get('certificate_issuer_name', 'Thiago Marques');
         $certificateSignatureImagePath = Setting::get('certificate_signature_image_path', '');
 
@@ -137,6 +140,8 @@ class AdminConfigController extends Controller
             'nanoBananaProModel' => $nanoBananaProModel,
             'supportWhatsapp' => $supportWhatsapp,
             'supportEmail' => $supportEmail,
+            'elevenlabsApiKey' => $elevenlabsApiKey,
+            'elevenlabsVoiceId' => $elevenlabsVoiceId,
             'certificateIssuerName' => $certificateIssuerName,
             'certificateSignatureImagePath' => $certificateSignatureImagePath,
             'coursePartnerMinPayoutCents' => $coursePartnerMinPayoutCents,
@@ -218,6 +223,9 @@ class AdminConfigController extends Controller
 
         $supportWhatsapp = trim((string)($_POST['support_whatsapp'] ?? ''));
         $supportEmail = trim((string)($_POST['support_email'] ?? ''));
+
+        $elevenlabsApiKey = trim((string)($_POST['elevenlabs_api_key'] ?? ''));
+        $elevenlabsVoiceId = trim((string)($_POST['elevenlabs_voice_id'] ?? ''));
 
         if (isset($_FILES['tuquinha_about_video_upload']) && !empty($_FILES['tuquinha_about_video_upload']['tmp_name'])) {
             $tmp = (string)($_FILES['tuquinha_about_video_upload']['tmp_name'] ?? '');
@@ -320,6 +328,8 @@ class AdminConfigController extends Controller
             'nano_banana_pro_model' => $nanoBananaProModel !== '' ? $nanoBananaProModel : 'nano-banana-pro',
             'support_whatsapp' => $supportWhatsapp,
             'support_email' => $supportEmail,
+            'elevenlabs_api_key' => $elevenlabsApiKey,
+            'elevenlabs_voice_id' => $elevenlabsVoiceId !== '' ? $elevenlabsVoiceId : 'EXAVITQu4vr4xnSDxMaL',
             'certificate_issuer_name' => $certificateIssuerName,
             'certificate_signature_image_path' => $certificateSignatureImagePath,
             'course_partner_min_payout_cents' => (string)$coursePartnerMinPayoutCents,
@@ -384,6 +394,8 @@ class AdminConfigController extends Controller
             'nanoBananaProModel' => $nanoBananaProModel !== '' ? $nanoBananaProModel : 'nano-banana-pro',
             'supportWhatsapp' => $supportWhatsapp,
             'supportEmail' => $supportEmail,
+            'elevenlabsApiKey' => $elevenlabsApiKey,
+            'elevenlabsVoiceId' => $elevenlabsVoiceId !== '' ? $elevenlabsVoiceId : 'EXAVITQu4vr4xnSDxMaL',
             'certificateIssuerName' => $certificateIssuerName,
             'certificateSignatureImagePath' => $certificateSignatureImagePath,
             'coursePartnerMinPayoutCents' => $coursePartnerMinPayoutCents,
@@ -460,6 +472,9 @@ class AdminConfigController extends Controller
         $supportWhatsapp = Setting::get('support_whatsapp', '5517988093160');
         $supportEmail = Setting::get('support_email', 'contato@lrvweb.com.br');
 
+        $elevenlabsApiKey = Setting::get('elevenlabs_api_key', '');
+        $elevenlabsVoiceId = Setting::get('elevenlabs_voice_id', 'EXAVITQu4vr4xnSDxMaL');
+
         $coursePartnerMinPayoutCents = (int)Setting::get('course_partner_min_payout_cents', '5000');
         if ($coursePartnerMinPayoutCents < 0) {
             $coursePartnerMinPayoutCents = 5000;
@@ -522,6 +537,8 @@ class AdminConfigController extends Controller
             'coursePartnerMinPayoutCents' => $coursePartnerMinPayoutCents,
             'supportWhatsapp' => $supportWhatsapp,
             'supportEmail' => $supportEmail,
+            'elevenlabsApiKey' => $elevenlabsApiKey,
+            'elevenlabsVoiceId' => $elevenlabsVoiceId,
             'asaasEnvironment' => $asaas['environment'] ?? 'sandbox',
             'asaasSandboxKey' => $asaas['sandbox_api_key'] ?? '',
             'asaasProdKey' => $asaas['production_api_key'] ?? '',

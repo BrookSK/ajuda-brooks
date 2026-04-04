@@ -216,6 +216,31 @@ $knownModels = [
 
         <div style="margin-top: 8px; padding:10px 12px; border-radius:10px; border:1px solid #272727; background:#0a0a10;">
             <div style="font-size:13px; color:#b0b0b0; margin-bottom:8px;">
+                <strong>ElevenLabs (Voz da IA no Mobile)</strong><br>
+                Configure a integração com a ElevenLabs para text-to-speech no chat mobile. <a href="https://elevenlabs.io/" target="_blank" rel="noopener" style="color:var(--accent);">elevenlabs.io</a>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <div>
+                    <label style="font-size: 12px; color: #b0b0b0;">API Key</label>
+                    <input name="elevenlabs_api_key" value="<?= htmlspecialchars($elevenlabsApiKey ?? '') ?>" style="
+                        width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #272727;
+                        background: #050509; color: #f5f5f5; font-size: 13px;
+                    " placeholder="xi_...">
+                    <small style="color:#777; font-size:11px;">Deixe vazio para desativar o chat por voz no mobile.</small>
+                </div>
+                <div>
+                    <label style="font-size: 12px; color: #b0b0b0;">Voice ID</label>
+                    <input name="elevenlabs_voice_id" value="<?= htmlspecialchars($elevenlabsVoiceId ?? '') ?>" style="
+                        width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #272727;
+                        background: #050509; color: #f5f5f5; font-size: 13px;
+                    " placeholder="EXAVITQu4vr4xnSDxMaL">
+                    <small style="color:#777; font-size:11px;">ID da voz a ser usada. Padrão: Sarah (EXAVITQu4vr4xnSDxMaL). Veja as vozes disponíveis no painel da ElevenLabs.</small>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 8px; padding:10px 12px; border-radius:10px; border:1px solid #272727; background:#0a0a10;">
+            <div style="font-size:13px; color:#b0b0b0; margin-bottom:8px;">
                 <strong>Suporte</strong><br>
                 Configure os contatos exibidos na página /suporte.
             </div>

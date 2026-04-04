@@ -672,6 +672,7 @@ $router->post('/m/onboarding/salvar', 'MobileController@saveOnboardingStep');
 $router->post('/m/onboarding/upload', 'MobileController@uploadDocument');
 $router->get('/m/chat', 'MobileController@chat');
 $router->post('/m/chat/enviar', 'MobileController@sendMessage');
+$router->post('/m/chat/stream', 'MobileController@sendMessageStream');
 $router->post('/m/chat/tts', 'MobileController@textToSpeech');
 $router->get('/m/historico', 'MobileController@history');
 $router->get('/m/logout', 'MobileController@logout');

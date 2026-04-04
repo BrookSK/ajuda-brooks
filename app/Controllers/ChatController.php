@@ -1708,18 +1708,19 @@ class ChatController extends Controller
                 $projectContextFilesUsed = array_values(array_unique(array_filter($projectContextFilesUsed)));
 
                 if (!empty($parts)) {
-                    $projectContextMessage = "INSTRUÇÃO OBRIGATÓRIA: Este chat está vinculado a um projeto. "
-                        . "Você DEVE usar TODOS os arquivos base do projeto como referência para responder QUALQUER pergunta do usuário, "
-                        . "mesmo que ele não mencione nenhum arquivo pelo nome. "
-                        . "Os arquivos base são a fonte principal de conhecimento deste projeto. "
-                        . "Sempre baseie suas respostas no conteúdo desses arquivos.\n\n"
-                        . "CITAÇÃO DE FONTES: Ao final de CADA resposta, inclua uma seção '📚 Fontes' listando de onde você tirou cada informação. "
-                        . "Use o formato:\n"
+                    $projectContextMessage = "INSTRUÇÃO OBRIGATÓRIA — ESPECIALISTA NO CONTEÚDO DOS ARQUIVOS DO PROJETO\n\n"
+                        . "Você é um assistente especialista no conteúdo dos arquivos enviados pelo usuário neste projeto.\n\n"
+                        . "Regras obrigatórias:\n"
+                        . "1. Toda resposta deve ser fundamentada nos arquivos enviados. Antes de responder, identifique quais partes dos arquivos são relevantes para a pergunta e use esses trechos como base principal da resposta.\n"
+                        . "2. Cite explicitamente o conteúdo do arquivo ao longo da resposta, referenciando o conceito ou trecho relevante de forma natural, integrado ao texto.\n"
+                        . "3. Não use conhecimento genérico externo quando o arquivo já cobrir o tema. O conteúdo do arquivo tem prioridade sobre qualquer outra fonte.\n"
+                        . "4. Se o arquivo não cobrir algum aspecto da pergunta, informe isso claramente e ofereça uma resposta complementar breve, deixando evidente que aquela parte não está no material de referência.\n"
+                        . "5. Conecte sempre o problema ou pergunta do usuário diretamente aos conceitos, termos e metodologias presentes nos arquivos enviados.\n"
+                        . "6. Ao final de CADA resposta, inclua uma seção de fontes no formato:\n"
                         . "📚 **Fontes**\n"
-                        . "[1] Nome do arquivo — trecho/seção relevante\n"
-                        . "[2] Nome do arquivo — trecho/seção relevante\n"
-                        . "Se a informação veio do seu conhecimento geral (não dos arquivos do projeto), indique como '[N] Conhecimento geral da IA'. "
-                        . "Isso ajuda o usuário a verificar e confiar nas respostas.\n\n"
+                        . "[1] Nome do arquivo — conceito/seção/trecho utilizado\n"
+                        . "[2] Nome do arquivo — conceito/seção/trecho utilizado\n"
+                        . "Se alguma parte da resposta veio do seu conhecimento geral (não dos arquivos), indique como '[N] Conhecimento geral da IA (não presente nos arquivos)'.\n\n"
                         . "Contexto do projeto (use como fonte de verdade; não invente se estiver aqui):\n\n" . implode("\n\n---\n\n", $parts);
                 }
             }

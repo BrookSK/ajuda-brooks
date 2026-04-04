@@ -1369,12 +1369,13 @@ class ChatController extends Controller
                 }
 
                 $baseFileTextBudgetUsed = 0;
-                // Budget adaptado ao modelo: Claude tem janela grande (200k tokens), OpenAI menor
+                // Budget adaptado ao modelo, respeitando rate limits da API
+                // Anthropic rate limit: 30k tokens/min (~120k chars), mas precisamos de margem
+                // para system prompt base (~2k tokens), histórico (~5k tokens) e resposta (~2k tokens)
+                // Então usamos ~21k tokens (~84k chars) para conteúdo de arquivos
                 $chatModel = isset($_SESSION['chat_model']) ? (string)$_SESSION['chat_model'] : '';
                 $isClaudeModel = str_starts_with(strtolower($chatModel), 'claude-');
-                // Claude: ~120k chars (~30k tokens) cabe no system prompt sem estourar rate limit
-                // OpenAI: ~40k chars (~10k tokens) pra modelos menores
-                $baseFileTextBudgetMax = $isClaudeModel ? 120000 : 40000;
+                $baseFileTextBudgetMax = $isClaudeModel ? 80000 : 40000;
                 $autoPdfFileInputsForModel = [];
                 $baseFileCount = max(1, count($baseFiles));
                 $baseFileIndex  = 0;

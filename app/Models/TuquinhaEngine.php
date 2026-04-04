@@ -15,7 +15,7 @@ class TuquinhaEngine
     private const PROVIDER_CONNECT_TIMEOUT_SECONDS = 10;
     private const OPENAI_CHAT_TIMEOUT_SECONDS = 90;
     private const OPENAI_RESPONSES_TIMEOUT_SECONDS = 120;
-    private const ANTHROPIC_TIMEOUT_SECONDS = 90;
+    private const ANTHROPIC_TIMEOUT_SECONDS = 150;
     private const PROVIDER_RETRY_MAX_ATTEMPTS = 3;
 
     private string $systemPrompt;
@@ -433,9 +433,9 @@ class TuquinhaEngine
                 $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
                 curl_close($ch);
                 if ($try < self::PROVIDER_RETRY_MAX_ATTEMPTS && ($httpCode === 429 || $httpCode === 408 || ($httpCode >= 500 && $httpCode <= 599))) {
-                    // Para 429 (rate limit), espera mais tempo pois o limite é por minuto
+                    // Para 429 (rate limit), espera um pouco mais
                     if ($httpCode === 429) {
-                        sleep($try === 1 ? 10 : 20);
+                        sleep($try === 1 ? 5 : 10);
                     } else {
                         usleep($try === 1 ? 300000 : ($try === 2 ? 900000 : 1500000));
                     }

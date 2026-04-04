@@ -349,6 +349,75 @@ function sendTextMessage() {
 }
 
 // ========== Voice Session ==========
+// Mic stream persistente: aberto uma vez no início da sessão, nunca fecha até encerrar.
+// Isso evita o travamento de abrir getUserMedia durante reprodução de áudio.
+let micStream = null;
+let micAnalyser = null;
+let micAudioCtx = null;
+let micCheckInterval = null;
+
+async function initPersistentMic() {
+    if (micStream) return true;
+    try {
+        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        micAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const source = micAudioCtx.createMediaStreamSource(micStream);
+        micAnalyser = micAudioCtx.createAnalyser();
+        micAnalyser.fftSize = 512;
+        source.connect(micAnalyser);
+        return true;
+    } catch(e) {
+        return false;
+    }
+}
+
+function closePersistentMic() {
+    stopMicMonitor();
+    if (micAudioCtx) { try { micAudioCtx.close(); } catch(e) {} micAudioCtx = null; }
+    if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+    micAnalyser = null;
+}
+
+// Monitor de volume: roda durante TTS pra detectar fala do usuário
+function startMicMonitor() {
+    stopMicMonitor();
+    if (!micAnalyser || !voiceSessionActive) return;
+
+    const data = new Uint8Array(micAnalyser.frequencyBinCount);
+    let loudFrames = 0;
+    let skipFrames = 15; // ignora ~750ms iniciais (evita pegar início do áudio no speaker)
+
+    micCheckInterval = setInterval(() => {
+        if (!currentAudio || currentAudio.paused || !voiceSessionActive) {
+            stopMicMonitor();
+            return;
+        }
+
+        if (skipFrames > 0) { skipFrames--; return; }
+
+        micAnalyser.getByteFrequencyData(data);
+        let sum = 0;
+        for (let i = 0; i < data.length; i++) sum += data[i];
+        const avg = sum / data.length;
+
+        if (avg > 55) {
+            loudFrames++;
+            if (loudFrames >= 4) { // ~200ms de som forte
+                stopMicMonitor();
+                cancelAllPending();
+                isBusy = false;
+                resumeListening();
+            }
+        } else {
+            loudFrames = Math.max(0, loudFrames - 1);
+        }
+    }, 50);
+}
+
+function stopMicMonitor() {
+    if (micCheckInterval) { clearInterval(micCheckInterval); micCheckInterval = null; }
+}
+
 function toggleListening() {
     if (voiceSessionActive) {
         stopVoiceSession();
@@ -357,12 +426,19 @@ function toggleListening() {
     }
 }
 
-function startVoiceSession() {
+async function startVoiceSession() {
     if (voiceSessionActive) return;
 
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) {
         alert('Seu navegador não suporta reconhecimento de voz.');
+        return;
+    }
+
+    // Abre mic persistente ANTES de tudo
+    const micOk = await initPersistentMic();
+    if (!micOk) {
+        alert('Permita o acesso ao microfone.');
         return;
     }
 
@@ -377,7 +453,9 @@ function stopVoiceSession() {
     voiceSessionActive = false;
     isBusy = false;
     cancelAllPending();
+    stopMicMonitor();
     destroyRecognition();
+    closePersistentMic();
     hideVoiceOverlay();
 }
 
@@ -417,7 +495,6 @@ function startSingleListen() {
             stopVoiceSession();
             return;
         }
-        // Qualquer outro erro: tenta de novo
         if (voiceSessionActive && !isBusy) {
             setTimeout(() => startSingleListen(), 500);
         }
@@ -439,6 +516,7 @@ function startSingleListen() {
 function resumeListening() {
     if (!voiceSessionActive) return;
     isBusy = false;
+    stopMicMonitor();
     setVoiceState('listening');
     startSingleListen();
 }
@@ -473,29 +551,37 @@ function doTTS(text, reopenMicAfter) {
                 URL.revokeObjectURL(url);
                 currentAudio = null;
                 isBusy = false;
+                stopMicMonitor();
                 if (reopenMicAfter && voiceSessionActive) resumeListening();
                 else hideVoiceOverlay();
             };
 
             currentAudio.onended = done;
             currentAudio.onerror = done;
-            currentAudio.play().catch(() => done());
+            currentAudio.play().then(() => {
+                // Áudio começou — ativa monitor de mic pra interrupção por voz
+                if (reopenMicAfter && voiceSessionActive) {
+                    startMicMonitor();
+                }
+            }).catch(() => done());
         })
         .catch(err => {
             if (err.name === 'AbortError') return;
             isBusy = false;
+            stopMicMonitor();
             if (reopenMicAfter && voiceSessionActive) resumeListening();
             else hideVoiceOverlay();
         });
 }
 
-// Interromper: tocar na tela enquanto IA fala
+// Interromper: tocar na tela (fallback manual)
 document.getElementById('voice-overlay').addEventListener('click', function(e) {
     if (!voiceSessionActive) return;
     if (e.target.tagName === 'BUTTON') return;
 
     const orb = document.getElementById('voice-orb');
     if (orb.classList.contains('state-speaking') || orb.classList.contains('state-thinking')) {
+        stopMicMonitor();
         cancelAllPending();
         isBusy = false;
         resumeListening();

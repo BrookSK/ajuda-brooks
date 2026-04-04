@@ -156,6 +156,8 @@ let recognition = null;
 let voiceSessionActive = false;
 let isBusy = false;
 let hasSent = false;
+let messageAbort = null;  // AbortController pro fetch da mensagem
+let ttsAbort = null;      // AbortController pro fetch do TTS
 
 // ========== Voice Overlay States ==========
 function setVoiceState(state) {
@@ -272,28 +274,43 @@ function hideTyping() {
 }
 
 // ========== Send Message ==========
+function cancelAllPending() {
+    if (messageAbort) { messageAbort.abort(); messageAbort = null; }
+    if (ttsAbort) { ttsAbort.abort(); ttsAbort = null; }
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.onended = null;
+        currentAudio.onerror = null;
+        currentAudio = null;
+    }
+}
+
 function sendMessage(text, fromVoice) {
     if (!text || !text.trim()) return;
     text = text.trim();
 
+    // Cancela qualquer requisição/áudio anterior
+    cancelAllPending();
+
     addMessage('user', text);
     isBusy = true;
 
-    // Se veio de voz, mostra estado "pensando" no overlay (não sai dele)
     if (fromVoice && voiceSessionActive) {
         setVoiceState('thinking');
     } else {
         showTyping();
     }
 
-    // Envia voice_mode=1 se veio de voz pra IA responder curto
     let body = `conversation_id=${conversationId}&message=${encodeURIComponent(text)}`;
     if (fromVoice) body += '&voice_mode=1';
+
+    messageAbort = new AbortController();
 
     fetch('/m/chat/enviar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: body
+        body: body,
+        signal: messageAbort.signal
     })
     .then(r => r.json())
     .then(data => {
@@ -314,7 +331,8 @@ function sendMessage(text, fromVoice) {
             if (fromVoice && voiceSessionActive) resumeListening();
         }
     })
-    .catch(() => {
+    .catch(err => {
+        if (err.name === 'AbortError') return; // cancelado intencionalmente
         hideTyping();
         addMessage('assistant', 'Erro de conexão. Tente novamente.');
         isBusy = false;
@@ -359,13 +377,10 @@ function startVoiceSession() {
 function stopVoiceSession() {
     voiceSessionActive = false;
     isBusy = false;
+    cancelAllPending();
     hideVoiceOverlay();
     destroyRecognition();
     stopInterruptListener();
-    if (currentAudio) {
-        currentAudio.pause();
-        currentAudio = null;
-    }
 }
 
 function destroyRecognition() {
@@ -478,13 +493,8 @@ function stopInterruptListener() {
 }
 
 function interruptAI(spokenText) {
-    // Para o áudio
-    if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.onended = null;
-        currentAudio.onerror = null;
-        currentAudio = null;
-    }
+    // Cancela tudo: fetch pendente, áudio tocando
+    cancelAllPending();
     stopInterruptListener();
     isBusy = false;
 
@@ -510,7 +520,9 @@ function doTTS(text, reopenMicAfter) {
     const fd = new FormData();
     fd.append('text', text);
 
-    fetch('/m/chat/tts', { method: 'POST', body: fd })
+    ttsAbort = new AbortController();
+
+    fetch('/m/chat/tts', { method: 'POST', body: fd, signal: ttsAbort.signal })
         .then(r => {
             const ct = r.headers.get('content-type') || '';
             if (!r.ok || !ct.includes('audio')) {
@@ -559,6 +571,7 @@ function doTTS(text, reopenMicAfter) {
             });
         })
         .catch(err => {
+            if (err.name === 'AbortError') return; // cancelado intencionalmente
             console.error('TTS:', err);
             isBusy = false;
             stopInterruptListener();

@@ -236,18 +236,15 @@ function scrollToBottom() {
 function addMessage(role, content) {
     const empty = document.getElementById('empty-state');
     if (empty) empty.remove();
-
     const div = document.createElement('div');
     div.className = `msg msg-${role === 'user' ? 'user' : 'ai'}`;
     div.style.cssText = `margin-bottom:16px; display:flex; ${role === 'user' ? 'justify-content:flex-end' : 'justify-content:flex-start'};`;
-
     const isUser = role === 'user';
     const bubble = document.createElement('div');
     bubble.style.cssText = `max-width:85%; padding:12px 16px; border-radius:18px; font-size:15px; line-height:1.6; word-break:break-word; ${isUser
         ? 'background:linear-gradient(135deg, var(--accent), var(--accent-soft)); color:#fff; border-bottom-right-radius:4px;'
         : 'background:var(--bg-card); border:1px solid var(--border); border-bottom-left-radius:4px;'}`;
     bubble.innerHTML = content.replace(/\n/g, '<br>');
-
     if (!isUser && voiceEnabled) {
         const btn = document.createElement('button');
         btn.onclick = function() { playTTS(this); };
@@ -256,7 +253,6 @@ function addMessage(role, content) {
         btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
         bubble.appendChild(btn);
     }
-
     div.appendChild(bubble);
     document.getElementById('typing').before(div);
     scrollToBottom();
@@ -289,24 +285,18 @@ function cancelAllPending() {
 function sendMessage(text, fromVoice) {
     if (!text || !text.trim()) return;
     text = text.trim();
-
     cancelAllPending();
     destroyRecognition();
-
     addMessage('user', text);
     isBusy = true;
-
     if (fromVoice && voiceSessionActive) {
         setVoiceState('thinking');
     } else {
         showTyping();
     }
-
     let body = `conversation_id=${conversationId}&message=${encodeURIComponent(text)}`;
     if (fromVoice) body += '&voice_mode=1';
-
     messageAbort = new AbortController();
-
     fetch('/m/chat/enviar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -325,7 +315,7 @@ function sendMessage(text, fromVoice) {
                 isBusy = false;
             }
         } else {
-            addMessage('assistant', data.error || 'Erro ao processar mensagem.');
+            addMessage('assistant', data.error || 'Erro.');
             isBusy = false;
             if (fromVoice && voiceSessionActive) resumeListening();
         }
@@ -349,93 +339,15 @@ function sendTextMessage() {
 }
 
 // ========== Voice Session ==========
-// Mic stream persistente pra detecção de interrupção durante TTS.
-// IMPORTANTE: no mobile, SpeechRecognition e getUserMedia não coexistem.
-// Por isso: fecha o mic antes de ouvir, reabre antes de tocar TTS.
-let micStream = null;
-let micAnalyser = null;
-let micAudioCtx = null;
-let micCheckInterval = null;
-
-async function openMic() {
-    closeMic();
-    try {
-        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        micAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const source = micAudioCtx.createMediaStreamSource(micStream);
-        micAnalyser = micAudioCtx.createAnalyser();
-        micAnalyser.fftSize = 512;
-        source.connect(micAnalyser);
-        return true;
-    } catch(e) {
-        return false;
-    }
-}
-
-function closeMic() {
-    stopMicMonitor();
-    if (micAudioCtx) { try { micAudioCtx.close(); } catch(e) {} micAudioCtx = null; }
-    if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
-    micAnalyser = null;
-}
-
-// Monitor de volume: roda durante TTS pra detectar fala do usuário
-function startMicMonitor() {
-    stopMicMonitor();
-    if (!micAnalyser || !voiceSessionActive) return;
-
-    const data = new Uint8Array(micAnalyser.frequencyBinCount);
-    let loudFrames = 0;
-    let skipFrames = 15; // ignora ~750ms iniciais (evita pegar início do áudio no speaker)
-
-    micCheckInterval = setInterval(() => {
-        if (!currentAudio || currentAudio.paused || !voiceSessionActive) {
-            stopMicMonitor();
-            return;
-        }
-
-        if (skipFrames > 0) { skipFrames--; return; }
-
-        micAnalyser.getByteFrequencyData(data);
-        let sum = 0;
-        for (let i = 0; i < data.length; i++) sum += data[i];
-        const avg = sum / data.length;
-
-        if (avg > 55) {
-            loudFrames++;
-            if (loudFrames >= 4) { // ~200ms de som forte
-                stopMicMonitor();
-                cancelAllPending();
-                isBusy = false;
-                resumeListening();
-            }
-        } else {
-            loudFrames = Math.max(0, loudFrames - 1);
-        }
-    }, 50);
-}
-
-function stopMicMonitor() {
-    if (micCheckInterval) { clearInterval(micCheckInterval); micCheckInterval = null; }
-}
-
 function toggleListening() {
-    if (voiceSessionActive) {
-        stopVoiceSession();
-    } else {
-        startVoiceSession();
-    }
+    if (voiceSessionActive) stopVoiceSession();
+    else startVoiceSession();
 }
 
-async function startVoiceSession() {
+function startVoiceSession() {
     if (voiceSessionActive) return;
-
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) {
-        alert('Seu navegador não suporta reconhecimento de voz.');
-        return;
-    }
-
+    if (!SR) { alert('Navegador sem suporte a voz.'); return; }
     voiceSessionActive = true;
     isBusy = false;
     showVoiceOverlay();
@@ -447,71 +359,42 @@ function stopVoiceSession() {
     voiceSessionActive = false;
     isBusy = false;
     cancelAllPending();
-    stopMicMonitor();
-    closeMic();
     destroyRecognition();
     hideVoiceOverlay();
 }
 
 function destroyRecognition() {
-    if (recognition) {
-        try { recognition.abort(); } catch(e) {}
-        recognition = null;
-    }
+    if (recognition) { try { recognition.abort(); } catch(e) {} recognition = null; }
 }
 
 function startSingleListen() {
     if (!voiceSessionActive) return;
-
     destroyRecognition();
-    closeMic(); // fecha mic pra liberar pro SpeechRecognition
-
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognition = new SR();
     recognition.lang = 'pt-BR';
     recognition.continuous = false;
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
-
     hasSent = false;
-
     recognition.onresult = function(e) {
         if (hasSent) return;
         const text = e.results[0][0].transcript;
-        if (text && text.trim()) {
-            hasSent = true;
-            sendMessage(text.trim(), true);
-        }
+        if (text && text.trim()) { hasSent = true; sendMessage(text.trim(), true); }
     };
-
     recognition.onerror = function(e) {
-        if (e.error === 'not-allowed') {
-            alert('Permita o acesso ao microfone.');
-            stopVoiceSession();
-            return;
-        }
-        if (voiceSessionActive && !isBusy) {
-            setTimeout(() => startSingleListen(), 500);
-        }
+        if (e.error === 'not-allowed') { stopVoiceSession(); return; }
+        if (voiceSessionActive && !isBusy) setTimeout(() => startSingleListen(), 500);
     };
-
     recognition.onend = function() {
-        if (!hasSent && voiceSessionActive && !isBusy) {
-            setTimeout(() => startSingleListen(), 300);
-        }
+        if (!hasSent && voiceSessionActive && !isBusy) setTimeout(() => startSingleListen(), 300);
     };
-
-    try {
-        recognition.start();
-    } catch(e) {
-        setTimeout(() => startSingleListen(), 500);
-    }
+    try { recognition.start(); } catch(e) { setTimeout(() => startSingleListen(), 500); }
 }
 
 function resumeListening() {
     if (!voiceSessionActive) return;
     isBusy = false;
-    stopMicMonitor();
     setVoiceState('listening');
     startSingleListen();
 }
@@ -528,9 +411,7 @@ function playTTS(btn) {
 function doTTS(text, reopenMicAfter) {
     const fd = new FormData();
     fd.append('text', text);
-
     ttsAbort = new AbortController();
-
     fetch('/m/chat/tts', { method: 'POST', body: fd, signal: ttsAbort.signal })
         .then(r => {
             const ct = r.headers.get('content-type') || '';
@@ -539,61 +420,33 @@ function doTTS(text, reopenMicAfter) {
         })
         .then(blob => {
             if (!blob || blob.size < 100) throw new Error('Empty');
-
-            // Abre mic ANTES de tocar áudio (evita travamento de abrir durante reprodução)
-            const setupAndPlay = async () => {
-                if (reopenMicAfter && voiceSessionActive) {
-                    destroyRecognition();
-                    await openMic();
-                }
-
-                const url = URL.createObjectURL(blob);
-                currentAudio = new Audio(url);
-
-                const done = () => {
-                    URL.revokeObjectURL(url);
-                    currentAudio = null;
-                    isBusy = false;
-                    stopMicMonitor();
-                    if (reopenMicAfter && voiceSessionActive) resumeListening();
-                    else { closeMic(); hideVoiceOverlay(); }
-                };
-
-                currentAudio.onended = done;
-                currentAudio.onerror = done;
-
-                try {
-                    await currentAudio.play();
-                    // Áudio tocando — ativa monitor
-                    if (reopenMicAfter && voiceSessionActive && micAnalyser) {
-                        startMicMonitor();
-                    }
-                } catch(e) {
-                    done();
-                }
+            const url = URL.createObjectURL(blob);
+            currentAudio = new Audio(url);
+            const done = () => {
+                URL.revokeObjectURL(url);
+                currentAudio = null;
+                isBusy = false;
+                if (reopenMicAfter && voiceSessionActive) resumeListening();
+                else hideVoiceOverlay();
             };
-
-            setupAndPlay();
+            currentAudio.onended = done;
+            currentAudio.onerror = done;
+            currentAudio.play().catch(() => done());
         })
         .catch(err => {
             if (err.name === 'AbortError') return;
             isBusy = false;
-            stopMicMonitor();
-            closeMic();
             if (reopenMicAfter && voiceSessionActive) resumeListening();
             else hideVoiceOverlay();
         });
 }
 
-// Interromper: tocar na tela (fallback manual)
+// Interromper: tocar na tela
 document.getElementById('voice-overlay').addEventListener('click', function(e) {
     if (!voiceSessionActive) return;
     if (e.target.tagName === 'BUTTON') return;
-
     const orb = document.getElementById('voice-orb');
     if (orb.classList.contains('state-speaking') || orb.classList.contains('state-thinking')) {
-        stopMicMonitor();
-        closeMic();
         cancelAllPending();
         isBusy = false;
         resumeListening();
@@ -602,10 +455,7 @@ document.getElementById('voice-overlay').addEventListener('click', function(e) {
 
 // ========== Keyboard ==========
 document.getElementById('msg-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendTextMessage();
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendTextMessage(); }
 });
 
 // ========== Init ==========

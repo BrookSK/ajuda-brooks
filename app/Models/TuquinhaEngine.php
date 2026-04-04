@@ -1059,11 +1059,6 @@ class TuquinhaEngine
         $parts = [];
         $parts[] = $this->systemPrompt;
 
-        // Contexto do projeto: vai no system prompt pra não ser cortado pelo trim de histórico
-        if (is_string($projectContext) && $projectContext !== '') {
-            $parts[] = $projectContext;
-        }
-
         if ($persona) {
             $personaLines = [];
 
@@ -1216,6 +1211,11 @@ class TuquinhaEngine
                     \App\Models\AiLearning::markUsed($ids);
                 } catch (\Throwable $e) {}
             }
+        }
+
+        // Contexto do projeto: vai no FINAL do system prompt pra ter prioridade sobre regras de personalidade
+        if (is_string($projectContext) && $projectContext !== '') {
+            $parts[] = $projectContext;
         }
 
         return implode("\n\n---\n\n", $parts);

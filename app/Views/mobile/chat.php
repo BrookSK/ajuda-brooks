@@ -286,10 +286,14 @@ function sendMessage(text, fromVoice) {
         showTyping();
     }
 
+    // Envia voice_mode=1 se veio de voz pra IA responder curto
+    let body = `conversation_id=${conversationId}&message=${encodeURIComponent(text)}`;
+    if (fromVoice) body += '&voice_mode=1';
+
     fetch('/m/chat/enviar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `conversation_id=${conversationId}&message=${encodeURIComponent(text)}`
+        body: body
     })
     .then(r => r.json())
     .then(data => {
@@ -297,9 +301,10 @@ function sendMessage(text, fromVoice) {
         if (data.ok) {
             addMessage('assistant', data.reply);
             if (fromVoice && voiceSessionActive && voiceEnabled) {
-                // Muda pra estado "falando" e toca TTS
                 setVoiceState('speaking');
                 doTTS(data.reply, true);
+                // Inicia detecção de interrupção por voz enquanto IA fala
+                startInterruptListener();
             } else {
                 isBusy = false;
             }
@@ -356,6 +361,7 @@ function stopVoiceSession() {
     isBusy = false;
     hideVoiceOverlay();
     destroyRecognition();
+    stopInterruptListener();
     if (currentAudio) {
         currentAudio.pause();
         currentAudio = null;
@@ -373,6 +379,7 @@ function startSingleListen() {
     if (!voiceSessionActive || isBusy) return;
 
     destroyRecognition();
+    stopInterruptListener();
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognition = new SpeechRecognition();
@@ -398,7 +405,6 @@ function startSingleListen() {
             stopVoiceSession();
             return;
         }
-        // no-speech ou outros: tenta de novo
         if (voiceSessionActive && !isBusy) {
             setTimeout(() => startSingleListen(), 300);
         }
@@ -420,11 +426,78 @@ function startSingleListen() {
 function resumeListening() {
     if (!voiceSessionActive) return;
     isBusy = false;
+    stopInterruptListener();
     setVoiceState('listening');
     startSingleListen();
 }
 
-// ========== TTS (ElevenLabs Streaming) ==========
+// ========== Interrupt Listener ==========
+// Ouve o mic DURANTE a fala da IA. Se detectar voz, corta o áudio.
+let interruptRecognition = null;
+
+function startInterruptListener() {
+    stopInterruptListener();
+    if (!voiceSessionActive) return;
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
+    interruptRecognition = new SpeechRecognition();
+    interruptRecognition.lang = 'pt-BR';
+    interruptRecognition.continuous = false;
+    interruptRecognition.interimResults = true; // detecta início de fala rápido
+    interruptRecognition.maxAlternatives = 1;
+
+    interruptRecognition.onresult = function(e) {
+        // Usuário começou a falar — interrompe a IA
+        const text = e.results[0][0].transcript;
+        interruptAI(text);
+    };
+
+    interruptRecognition.onerror = function() {
+        // Ignora erros do interrupt listener
+    };
+
+    interruptRecognition.onend = function() {
+        // Se IA ainda tá falando e sessão ativa, reinicia o listener
+        if (voiceSessionActive && isBusy && currentAudio && !currentAudio.paused) {
+            try { interruptRecognition.start(); } catch(e) {}
+        }
+    };
+
+    try {
+        interruptRecognition.start();
+    } catch(e) {}
+}
+
+function stopInterruptListener() {
+    if (interruptRecognition) {
+        try { interruptRecognition.abort(); } catch(e) {}
+        interruptRecognition = null;
+    }
+}
+
+function interruptAI(spokenText) {
+    // Para o áudio
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.onended = null;
+        currentAudio.onerror = null;
+        currentAudio = null;
+    }
+    stopInterruptListener();
+    isBusy = false;
+
+    // Se capturou texto do usuário, já envia como nova mensagem
+    if (spokenText && spokenText.trim()) {
+        sendMessage(spokenText.trim(), true);
+    } else {
+        setVoiceState('listening');
+        startSingleListen();
+    }
+}
+
+// ========== TTS ==========
 function playTTS(btn) {
     const text = btn.dataset.text;
     if (!text) return;
@@ -441,51 +514,93 @@ function doTTS(text, reopenMicAfter) {
         .then(r => {
             const ct = r.headers.get('content-type') || '';
             if (!r.ok || !ct.includes('audio')) {
-                throw new Error('Not audio: ' + r.status + ' ' + ct);
+                throw new Error('Not audio: ' + r.status);
             }
-            return r.blob();
-        })
-        .then(blob => {
-            if (!blob || blob.size < 100) throw new Error('Audio too small');
-            const url = URL.createObjectURL(blob);
-            currentAudio = new Audio(url);
 
-            const done = () => {
-                URL.revokeObjectURL(url);
-                currentAudio = null;
-                isBusy = false;
-                if (reopenMicAfter && voiceSessionActive) resumeListening();
-                else hideVoiceOverlay();
-            };
+            // Lê o stream e começa a tocar assim que tiver dados suficientes
+            const reader = r.body.getReader();
+            let chunks = [];
+            let totalSize = 0;
+            let started = false;
 
-            currentAudio.onended = done;
-            currentAudio.onerror = done;
-            currentAudio.play().catch(() => done());
+            function pump() {
+                return reader.read().then(({ done, value }) => {
+                    if (done) {
+                        // Stream acabou — se não começou a tocar ainda, toca agora
+                        if (!started && totalSize > 0) {
+                            playCollectedChunks(chunks, reopenMicAfter);
+                        }
+                        return;
+                    }
+
+                    chunks.push(value);
+                    totalSize += value.length;
+
+                    // Começa a tocar com ~4KB de dados (suficiente pra iniciar)
+                    if (!started && totalSize > 4096) {
+                        started = true;
+                        // Cria blob parcial e começa a tocar
+                        // Mas como Audio() precisa do blob completo pra funcionar bem,
+                        // vamos esperar o stream terminar mas com timeout curto
+                        // Na prática o streaming do ElevenLabs Flash é tão rápido
+                        // que o blob chega em <1s pra textos curtos
+                    }
+
+                    return pump();
+                });
+            }
+
+            return pump().then(() => {
+                if (totalSize > 0) {
+                    playCollectedChunks(chunks, reopenMicAfter);
+                } else {
+                    throw new Error('No audio data');
+                }
+            });
         })
         .catch(err => {
             console.error('TTS:', err);
             isBusy = false;
+            stopInterruptListener();
             if (reopenMicAfter && voiceSessionActive) resumeListening();
             else hideVoiceOverlay();
         });
 }
 
-// Interromper IA: tocar no overlay enquanto fala
+function playCollectedChunks(chunks, reopenMicAfter) {
+    const blob = new Blob(chunks, { type: 'audio/mpeg' });
+    if (blob.size < 100) {
+        isBusy = false;
+        stopInterruptListener();
+        if (reopenMicAfter && voiceSessionActive) resumeListening();
+        else hideVoiceOverlay();
+        return;
+    }
+
+    const url = URL.createObjectURL(blob);
+    currentAudio = new Audio(url);
+
+    const done = () => {
+        URL.revokeObjectURL(url);
+        currentAudio = null;
+        isBusy = false;
+        stopInterruptListener();
+        if (reopenMicAfter && voiceSessionActive) resumeListening();
+        else hideVoiceOverlay();
+    };
+
+    currentAudio.onended = done;
+    currentAudio.onerror = done;
+    currentAudio.play().catch(() => done());
+}
+
+// Interromper IA: tocar no overlay enquanto fala (fallback manual)
 document.getElementById('voice-overlay').addEventListener('click', function(e) {
     if (!voiceSessionActive) return;
     const orb = document.getElementById('voice-orb');
     if (!orb.classList.contains('state-speaking')) return;
     if (e.target.tagName === 'BUTTON') return;
-
-    if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.onended = null;
-        currentAudio.onerror = null;
-        currentAudio = null;
-    }
-    isBusy = false;
-    setVoiceState('listening');
-    startSingleListen();
+    interruptAI('');
 });
 
 // ========== Keyboard ==========

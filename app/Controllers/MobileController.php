@@ -433,6 +433,16 @@ class MobileController extends Controller
             $userContext['global_instructions'] = ($existing !== '' ? $existing . "\n\n" : '') . 'Seu nome é "' . $toolNameVal . '". Quando perguntarem seu nome, responda que se chama ' . $toolNameVal . '.';
         }
 
+        // Modo voz: instrui a IA a ser breve pra conversa fluir rápido
+        $isVoiceMode = !empty($_POST['voice_mode']);
+        if ($isVoiceMode) {
+            $existing = trim((string)($userContext['global_instructions'] ?? ''));
+            $userContext['global_instructions'] = ($existing !== '' ? $existing . "\n\n" : '')
+                . 'MODO VOZ ATIVO: O usuário está conversando por voz. Responda de forma MUITO curta e direta, no máximo 2-3 frases. '
+                . 'Seja conversacional como numa ligação telefônica. Não use listas, bullet points, markdown ou formatação. '
+                . 'Não use emojis. Fale de forma natural e fluida como se estivesse conversando pessoalmente.';
+        }
+
         // Gera resposta
         $engine = new TuquinhaEngine();
         $engine->setAiLearnings($learnings);
@@ -473,7 +483,7 @@ class MobileController extends Controller
     }
 
     /**
-     * Gera áudio via ElevenLabs.
+     * TTS via ElevenLabs — tenta streaming, fallback pra blob.
      */
     public function textToSpeech(): void
     {
@@ -483,56 +493,52 @@ class MobileController extends Controller
         if ($text === '') {
             http_response_code(400);
             header('Content-Type: application/json');
-            echo json_encode(['ok' => false, 'error' => 'Texto vazio.']);
+            echo json_encode(['ok' => false]);
             exit;
         }
 
         $elevenlabs = new ElevenLabsService();
-
         if (!$elevenlabs->isConfigured()) {
             http_response_code(503);
             header('Content-Type: application/json');
-            echo json_encode(['ok' => false, 'error' => 'ElevenLabs não configurado.']);
+            echo json_encode(['ok' => false]);
             exit;
         }
 
-        // Limpa buffers
+        // Limpa todos os output buffers pra streaming funcionar
         while (ob_get_level()) {
             ob_end_clean();
         }
 
-        // Corta texto longo — pega só as primeiras ~500 chars (2-3 frases)
-        // pra resposta ser rápida. O resto o usuário lê no chat.
+        // Corta texto longo pra TTS ser rápido
         $maxChars = 500;
         if (mb_strlen($text, 'UTF-8') > $maxChars) {
-            // Corta na última frase completa antes do limite
             $cut = mb_substr($text, 0, $maxChars, 'UTF-8');
             $lastDot = max(
                 (int)mb_strrpos($cut, '.', 0, 'UTF-8'),
                 (int)mb_strrpos($cut, '!', 0, 'UTF-8'),
-                (int)mb_strrpos($cut, '?', 0, 'UTF-8'),
-                (int)mb_strrpos($cut, "\n", 0, 'UTF-8')
+                (int)mb_strrpos($cut, '?', 0, 'UTF-8')
             );
-            if ($lastDot > 50) {
-                $text = mb_substr($text, 0, $lastDot + 1, 'UTF-8');
+            $text = ($lastDot > 50) ? mb_substr($text, 0, $lastDot + 1, 'UTF-8') : $cut;
+        }
+
+        // Tenta streaming (chunks vão direto pro browser)
+        $ok = $elevenlabs->textToSpeechStream($text);
+
+        if (!$ok) {
+            // Fallback: gera tudo e envia de uma vez
+            $audio = $elevenlabs->textToSpeech($text);
+            if ($audio && strlen($audio) > 100) {
+                header('Content-Type: audio/mpeg');
+                header('Content-Length: ' . strlen($audio));
+                echo $audio;
             } else {
-                $text = $cut;
+                http_response_code(502);
+                header('Content-Type: application/json');
+                echo json_encode(['ok' => false]);
             }
         }
 
-        $audio = $elevenlabs->textToSpeech($text);
-
-        if (!$audio || strlen($audio) < 100) {
-            http_response_code(502);
-            header('Content-Type: application/json');
-            echo json_encode(['ok' => false, 'error' => 'Falha ao gerar áudio.']);
-            exit;
-        }
-
-        header('Content-Type: audio/mpeg');
-        header('Content-Length: ' . strlen($audio));
-        header('Cache-Control: no-cache');
-        echo $audio;
         exit;
     }
 

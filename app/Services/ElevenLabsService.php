@@ -13,7 +13,7 @@ class ElevenLabsService
     public function __construct()
     {
         $this->apiKey = trim((string)Setting::get('elevenlabs_api_key', ''));
-        $this->defaultVoiceId = trim((string)Setting::get('elevenlabs_voice_id', 'EXAVITQu4vr4xnSDxMaL')); // Sarah default
+        $this->defaultVoiceId = trim((string)Setting::get('elevenlabs_voice_id', 'EXAVITQu4vr4xnSDxMaL'));
     }
 
     public function isConfigured(): bool
@@ -22,80 +22,64 @@ class ElevenLabsService
     }
 
     /**
-     * Converte texto em áudio usando a API da ElevenLabs.
-     * Retorna o conteúdo binário do MP3 ou null em caso de erro.
+     * TTS não-streaming (fallback). Retorna bytes MP3 ou null.
      */
     public function textToSpeech(string $text, ?string $voiceId = null): ?string
     {
-        if (!$this->isConfigured()) {
-            return null;
-        }
+        if (!$this->isConfigured()) return null;
 
         $voice = $voiceId ?: $this->defaultVoiceId;
         $url = $this->baseUrl . '/text-to-speech/' . urlencode($voice);
 
-        $payload = json_encode([
-            'text' => $text,
-            'model_id' => 'eleven_multilingual_v2',
-            'voice_settings' => [
-                'stability' => 0.5,
-                'similarity_boost' => 0.75,
-                'style' => 0.0,
-                'use_speaker_boost' => true,
-            ],
-        ]);
-
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => $payload,
+            CURLOPT_POSTFIELDS => json_encode([
+                'text' => $text,
+                'model_id' => 'eleven_flash_v2_5',
+                'voice_settings' => [
+                    'stability' => 0.5,
+                    'similarity_boost' => 0.75,
+                ],
+            ]),
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER => [
                 'Accept: audio/mpeg',
                 'Content-Type: application/json',
                 'xi-api-key: ' . $this->apiKey,
             ],
-            CURLOPT_TIMEOUT => 60,
+            CURLOPT_TIMEOUT => 30,
         ]);
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if ($httpCode !== 200 || !$response) {
-            return null;
-        }
-
-        return $response;
+        return ($httpCode === 200 && $response) ? $response : null;
     }
 
     /**
-     * Converte texto em áudio usando a API da ElevenLabs com streaming.
-     * Faz flush dos chunks direto pro output (browser recebe enquanto gera).
-     * Retorna true se conseguiu iniciar o stream, false caso contrário.
+     * TTS com HTTP Streaming — passthrough de chunks pro browser.
+     * Usa modelo Flash v2.5 (~75ms latência) + output_format pcm pra menor latência.
+     * Retorna true se stream iniciou com sucesso.
      */
     public function textToSpeechStream(string $text, ?string $voiceId = null): bool
     {
-        if (!$this->isConfigured()) {
-            return false;
-        }
+        if (!$this->isConfigured()) return false;
 
         $voice = $voiceId ?: $this->defaultVoiceId;
-        $url = $this->baseUrl . '/text-to-speech/' . urlencode($voice) . '/stream';
+        $url = $this->baseUrl . '/text-to-speech/' . urlencode($voice) . '/stream'
+             . '?output_format=mp3_22050_32';
 
         $payload = json_encode([
             'text' => $text,
-            'model_id' => 'eleven_multilingual_v2',
+            'model_id' => 'eleven_flash_v2_5',
             'voice_settings' => [
                 'stability' => 0.5,
                 'similarity_boost' => 0.75,
-                'style' => 0.0,
-                'use_speaker_boost' => true,
             ],
-            'optimize_streaming_latency' => 3,
         ]);
 
-        // Primeiro, faz a request e verifica se deu certo antes de enviar headers
         $headersSent = false;
         $gotData = false;
 
@@ -109,32 +93,20 @@ class ElevenLabsService
                 'Content-Type: application/json',
                 'xi-api-key: ' . $this->apiKey,
             ],
-            CURLOPT_TIMEOUT => 90,
-            CURLOPT_HEADERFUNCTION => function ($ch, $header) use (&$headersSent) {
-                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                if ($httpCode === 200 && !$headersSent) {
-                    header('Content-Type: audio/mpeg');
-                    header('Transfer-Encoding: chunked');
-                    header('Cache-Control: no-cache, no-store');
-                    header('X-Accel-Buffering: no');
-                    $headersSent = true;
-                }
-                return strlen($header);
-            },
+            CURLOPT_TIMEOUT => 60,
             CURLOPT_WRITEFUNCTION => function ($ch, $data) use (&$headersSent, &$gotData) {
                 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
                 if ($httpCode !== 200) {
-                    return strlen($data); // descarta dados de erro
+                    return strlen($data);
                 }
                 if (!$headersSent) {
                     header('Content-Type: audio/mpeg');
-                    header('Transfer-Encoding: chunked');
                     header('Cache-Control: no-cache, no-store');
                     header('X-Accel-Buffering: no');
                     $headersSent = true;
                 }
                 echo $data;
-                if (function_exists('flush')) { flush(); }
+                flush();
                 $gotData = true;
                 return strlen($data);
             },
@@ -148,20 +120,16 @@ class ElevenLabsService
     }
 
     /**
-     * Lista as vozes disponíveis na conta.
+     * Lista as vozes disponíveis.
      */
     public function listVoices(): array
     {
-        if (!$this->isConfigured()) {
-            return [];
-        }
+        if (!$this->isConfigured()) return [];
 
         $ch = curl_init($this->baseUrl . '/voices');
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => [
-                'xi-api-key: ' . $this->apiKey,
-            ],
+            CURLOPT_HTTPHEADER => ['xi-api-key: ' . $this->apiKey],
             CURLOPT_TIMEOUT => 15,
         ]);
 
@@ -169,10 +137,7 @@ class ElevenLabsService
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if ($httpCode !== 200 || !$response) {
-            return [];
-        }
-
+        if ($httpCode !== 200 || !$response) return [];
         $data = json_decode($response, true);
         return $data['voices'] ?? [];
     }

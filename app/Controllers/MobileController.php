@@ -438,9 +438,10 @@ class MobileController extends Controller
         if ($isVoiceMode) {
             $existing = trim((string)($userContext['global_instructions'] ?? ''));
             $userContext['global_instructions'] = ($existing !== '' ? $existing . "\n\n" : '')
-                . 'MODO VOZ ATIVO: O usuário está conversando por voz. Responda de forma MUITO curta e direta, no máximo 2-3 frases. '
-                . 'Seja conversacional como numa ligação telefônica. Não use listas, bullet points, markdown ou formatação. '
-                . 'Não use emojis. Fale de forma natural e fluida como se estivesse conversando pessoalmente.';
+                . 'MODO VOZ ATIVO: O usuário está conversando por voz em tempo real. '
+                . 'Responda em NO MÁXIMO 1 frase curta e direta. Seja ultra conciso. '
+                . 'Não use listas, bullet points, markdown, formatação ou emojis. '
+                . 'Fale como numa conversa rápida por telefone.';
         }
 
         // Gera resposta

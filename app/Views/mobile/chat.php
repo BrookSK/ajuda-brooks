@@ -360,6 +360,7 @@ function stopVoiceSession() {
     isBusy = false;
     cancelAllPending();
     destroyRecognition();
+    stopInterruptRecognition();
     hideVoiceOverlay();
 }
 
@@ -426,12 +427,16 @@ function doTTS(text, reopenMicAfter) {
                 URL.revokeObjectURL(url);
                 currentAudio = null;
                 isBusy = false;
+                stopInterruptRecognition();
                 if (reopenMicAfter && voiceSessionActive) resumeListening();
                 else hideVoiceOverlay();
             };
             currentAudio.onended = done;
             currentAudio.onerror = done;
-            currentAudio.play().catch(() => done());
+            currentAudio.play().then(() => {
+                // Áudio tocando — ativa recognition pra detectar interrupção por voz
+                if (reopenMicAfter && voiceSessionActive) startInterruptRecognition();
+            }).catch(() => done());
         })
         .catch(err => {
             if (err.name === 'AbortError') return;
@@ -441,12 +446,64 @@ function doTTS(text, reopenMicAfter) {
         });
 }
 
+// ========== Interrupt por voz durante TTS ==========
+// SpeechRecognition pode coexistir com Audio.play() no mobile
+// (diferente de getUserMedia que conflita)
+let interruptRec = null;
+
+function startInterruptRecognition() {
+    stopInterruptRecognition();
+    if (!voiceSessionActive) return;
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return;
+
+    interruptRec = new SR();
+    interruptRec.lang = 'pt-BR';
+    interruptRec.continuous = false;
+    interruptRec.interimResults = false;
+    interruptRec.maxAlternatives = 1;
+
+    interruptRec.onresult = function(e) {
+        const text = e.results[0][0].transcript;
+        // Usuário falou — interrompe áudio e envia como nova mensagem
+        stopInterruptRecognition();
+        cancelAllPending();
+        isBusy = false;
+        if (text && text.trim()) {
+            sendMessage(text.trim(), true);
+        } else {
+            resumeListening();
+        }
+    };
+
+    interruptRec.onerror = function(e) {
+        // no-speech: ninguém falou, reinicia se áudio ainda toca
+        if (e.error === 'no-speech' && voiceSessionActive && currentAudio && !currentAudio.paused) {
+            setTimeout(() => startInterruptRecognition(), 300);
+        }
+    };
+
+    interruptRec.onend = function() {
+        // Se áudio ainda toca, reinicia
+        if (voiceSessionActive && currentAudio && !currentAudio.paused) {
+            setTimeout(() => startInterruptRecognition(), 300);
+        }
+    };
+
+    try { interruptRec.start(); } catch(e) {}
+}
+
+function stopInterruptRecognition() {
+    if (interruptRec) { try { interruptRec.abort(); } catch(e) {} interruptRec = null; }
+}
+
 // Interromper: tocar na tela
 document.getElementById('voice-overlay').addEventListener('click', function(e) {
     if (!voiceSessionActive) return;
     if (e.target.tagName === 'BUTTON') return;
     const orb = document.getElementById('voice-orb');
     if (orb.classList.contains('state-speaking') || orb.classList.contains('state-thinking')) {
+        stopInterruptRecognition();
         cancelAllPending();
         isBusy = false;
         resumeListening();

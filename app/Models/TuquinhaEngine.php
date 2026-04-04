@@ -396,7 +396,7 @@ class TuquinhaEngine
                 'model' => $usedModel,
                 'system' => $systemPrompt,
                 'messages' => $claudeMessages,
-                'max_tokens' => 2048,
+                'max_tokens' => 4096,
                 'temperature' => 0.7,
             ]);
 
@@ -482,6 +482,73 @@ class TuquinhaEngine
         $usageTotal = 0;
         if (isset($data['usage']['input_tokens']) || isset($data['usage']['output_tokens'])) {
             $usageTotal = (int)($data['usage']['input_tokens'] ?? 0) + (int)($data['usage']['output_tokens'] ?? 0);
+        }
+
+        // Se a resposta foi cortada por limite de tokens, faz uma continuação automática
+        $stopReason = is_array($data) ? (string)($data['stop_reason'] ?? '') : '';
+        if ($stopReason === 'max_tokens' && is_string($content) && $content !== '') {
+            // Adiciona a resposta parcial como assistant e pede pra continuar
+            $continuationMessages = $claudeMessages;
+            $continuationMessages[] = [
+                'role' => 'assistant',
+                'content' => [['type' => 'text', 'text' => $content]],
+            ];
+            $continuationMessages[] = [
+                'role' => 'user',
+                'content' => [['type' => 'text', 'text' => 'Continue exatamente de onde parou, sem repetir o que já foi dito.']],
+            ];
+
+            $contBody = json_encode([
+                'model' => $usedModel,
+                'system' => $systemPrompt,
+                'messages' => $continuationMessages,
+                'max_tokens' => 4096,
+                'temperature' => 0.7,
+            ]);
+
+            $contResult = false;
+            for ($contTry = 1; $contTry <= 2; $contTry++) {
+                $ch = curl_init('https://api.anthropic.com/v1/messages');
+                curl_setopt_array($ch, [
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_POST => true,
+                    CURLOPT_HTTPHEADER => [
+                        'Content-Type: application/json',
+                        'x-api-key: ' . $apiKey,
+                        'anthropic-version: 2023-06-01',
+                    ],
+                    CURLOPT_POSTFIELDS => $contBody,
+                    CURLOPT_CONNECTTIMEOUT => self::PROVIDER_CONNECT_TIMEOUT_SECONDS,
+                    CURLOPT_TIMEOUT => self::ANTHROPIC_TIMEOUT_SECONDS,
+                ]);
+                $contResult = curl_exec($ch);
+                $contHttpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+
+                if ($contResult !== false && $contHttpCode >= 200 && $contHttpCode < 300) {
+                    break;
+                }
+                if ($contTry < 2 && ($contHttpCode === 429 || $contHttpCode >= 500)) {
+                    sleep(5);
+                    continue;
+                }
+                $contResult = false;
+                break;
+            }
+
+            if (is_string($contResult) && $contResult !== '') {
+                $contData = json_decode($contResult, true);
+                $contText = '';
+                if (!empty($contData['content'][0]['text']) && is_string($contData['content'][0]['text'])) {
+                    $contText = $contData['content'][0]['text'];
+                }
+                if ($contText !== '') {
+                    $content .= "\n\n" . $contText;
+                }
+                if (isset($contData['usage'])) {
+                    $usageTotal += (int)($contData['usage']['input_tokens'] ?? 0) + (int)($contData['usage']['output_tokens'] ?? 0);
+                }
+            }
         }
 
         if (!is_string($content) || $content === '') {

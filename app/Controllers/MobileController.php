@@ -187,12 +187,14 @@ class MobileController extends Controller
 
         $onboarding = UserOnboarding::findByUserId($userId);
         $personalities = Personality::allVisibleForUsers();
+        $projects = \App\Models\Project::allForUser($userId);
 
         $this->view('mobile/onboarding', [
             'pageTitle' => 'Configurar',
             'user' => $user,
             'onboarding' => $onboarding,
             'personalities' => $personalities,
+            'projects' => $projects,
             'layout' => 'mobile',
         ]);
     }
@@ -235,6 +237,23 @@ class MobileController extends Controller
                 $data['wants_projects'] = !empty($prefs['wants_projects']) ? 1 : 0;
                 $data['wants_documents'] = !empty($prefs['wants_documents']) ? 1 : 0;
                 break;
+            case 'project':
+                // Selecionar projeto existente ou criar novo
+                $projectAction = trim($_POST['action'] ?? '');
+                if ($projectAction === 'create') {
+                    $projectName = trim($value);
+                    if ($projectName !== '') {
+                        $projectId = \App\Models\Project::create($userId, $projectName);
+                        if ($projectId > 0) {
+                            $data['project_id'] = $projectId;
+                        }
+                    }
+                } elseif ($projectAction === 'select' && (int)$value > 0) {
+                    $data['project_id'] = (int)$value;
+                } elseif ($projectAction === 'skip') {
+                    $data['project_id'] = 0;
+                }
+                break;
             case 'complete':
                 $data['completed_at'] = date('Y-m-d H:i:s');
                 break;
@@ -262,9 +281,9 @@ class MobileController extends Controller
         }
 
         $file = $_FILES['document'];
-        $maxSize = 10 * 1024 * 1024; // 10MB
+        $maxSize = 50 * 1024 * 1024; // 50MB
         if ($file['size'] > $maxSize) {
-            echo json_encode(['ok' => false, 'error' => 'Arquivo muito grande (máx 10MB).']);
+            echo json_encode(['ok' => false, 'error' => 'Arquivo muito grande (máx 50MB).']);
             return;
         }
 
@@ -279,7 +298,37 @@ class MobileController extends Controller
             return;
         }
 
-        // Extrai texto do documento
+        // Verifica se o usuário tem um projeto selecionado no onboarding
+        $onboarding = UserOnboarding::findByUserId($userId);
+        $projectId = isset($onboarding['project_id']) ? (int)$onboarding['project_id'] : 0;
+
+        if ($projectId > 0) {
+            // Upload para o projeto como arquivo base (igual ao fluxo de projetos do desktop)
+            $remoteUrl = \App\Services\MediaStorageService::uploadFile($file['tmp_name'], $file['name'], $mime);
+            if (!$remoteUrl) {
+                echo json_encode(['ok' => false, 'error' => 'Falha ao enviar arquivo.']);
+                return;
+            }
+
+            $path = '/base/' . $file['name'];
+            $fileId = \App\Models\ProjectFile::create($projectId, null, $file['name'], $path, $mime, true, $userId);
+
+            if ($fileId > 0) {
+                // Extrai texto do documento
+                $extractedText = '';
+                try {
+                    $extractedText = \App\Services\TextExtractionService::extractFromFile($file['tmp_name'], $file['name'], $mime) ?? '';
+                } catch (\Throwable $e) {}
+
+                // Cria versão do arquivo com URL e texto extraído
+                \App\Models\ProjectFileVersion::createNewVersion($fileId, $remoteUrl, (int)$file['size'], null, $extractedText !== '' ? $extractedText : null, $userId);
+            }
+
+            echo json_encode(['ok' => true, 'filename' => $file['name'], 'project' => true]);
+            return;
+        }
+
+        // Fallback: sem projeto, salva como learning do usuário (comportamento antigo)
         $text = '';
         try {
             $text = \App\Services\TextExtractionService::extractFromFile($file['tmp_name'], $file['name'], $mime) ?? '';
@@ -292,7 +341,6 @@ class MobileController extends Controller
             return;
         }
 
-        // Cria learning a partir do documento
         $pdo = \App\Core\Database::getConnection();
         $stmt = $pdo->prepare('INSERT INTO ai_learnings (scope, scope_id, content, category, learning_type, quality_score, source, created_at)
             VALUES (:scope, :scope_id, :content, :category, :learning_type, :quality_score, :source, NOW())');
@@ -331,8 +379,11 @@ class MobileController extends Controller
         $personaId = $onboarding['personality_id'] ?? ($_SESSION['default_persona_id'] ?? null);
 
         if ($isNew || $conversationId === 0) {
-            $conversation = Conversation::createForUser($userId, session_id(), $personaId ? (int)$personaId : null);
+            // Vincula ao projeto do onboarding se houver
+            $projectId = isset($onboarding['project_id']) ? (int)$onboarding['project_id'] : 0;
+            $conversation = Conversation::createForUser($userId, session_id(), $personaId ? (int)$personaId : null, $projectId > 0 ? $projectId : null);
             $_SESSION['current_conversation_id'] = $conversation->id;
+
             if ($isNew) {
                 header('Location: /m/chat?c=' . $conversation->id);
                 exit;

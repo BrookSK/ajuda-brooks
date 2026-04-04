@@ -43,6 +43,7 @@ class UserOnboarding
             'conversation_tone' => $data['conversation_tone'] ?? null,
             'wants_projects'    => isset($data['wants_projects']) ? (int)$data['wants_projects'] : 0,
             'wants_documents'   => isset($data['wants_documents']) ? (int)$data['wants_documents'] : 0,
+            'project_id'        => isset($data['project_id']) ? (int)$data['project_id'] : null,
             'voice_enabled'     => isset($data['voice_enabled']) ? (int)$data['voice_enabled'] : 1,
             'completed_at'      => $data['completed_at'] ?? null,
         ];

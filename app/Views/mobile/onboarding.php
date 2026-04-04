@@ -34,7 +34,7 @@
                 </div>
 
                 <div style="text-align:center; margin-bottom:24px;">
-                    <p style="color:var(--text-dim); font-size:13px; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px;">Passo 1 de 5</p>
+                    <p style="color:var(--text-dim); font-size:13px; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px;">Passo 1 de 6</p>
                     <h2 style="font-size:22px; font-weight:700; margin-bottom:8px;">Olá! 👋</h2>
                     <p style="color:var(--text-dim); font-size:15px; line-height:1.6;">Como você gostaria de ser chamado?</p>
                 </div>
@@ -58,7 +58,7 @@
                 </div>
 
                 <div style="text-align:center; margin-bottom:24px;">
-                    <p style="color:var(--text-dim); font-size:13px; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px;">Passo 2 de 5</p>
+                    <p style="color:var(--text-dim); font-size:13px; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px;">Passo 2 de 6</p>
                     <h2 style="font-size:22px; font-weight:700; margin-bottom:8px;">Legal, <span id="display-name"></span>!</h2>
                     <p style="color:var(--text-dim); font-size:15px; line-height:1.6;">Agora, como quer chamar sua IA?<br><span style="font-size:13px;">Tipo Jarvis, Luna, Atlas... fica a seu critério.</span></p>
                 </div>
@@ -83,7 +83,7 @@
                 </div>
 
                 <div style="text-align:center; margin-bottom:20px;">
-                    <p style="color:var(--text-dim); font-size:13px; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px;">Passo 3 de 5</p>
+                    <p style="color:var(--text-dim); font-size:13px; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px;">Passo 3 de 6</p>
                     <h2 style="font-size:22px; font-weight:700; margin-bottom:8px;">Tom de conversa</h2>
                     <p style="color:var(--text-dim); font-size:15px; line-height:1.6;">Como <span id="tool-name-display"></span> deve falar com você?</p>
                 </div>
@@ -135,8 +135,53 @@
             </div>
         </div>
 
-        <!-- Step 4: Projetos e Documentos -->
+        <!-- Step 4: Selecionar ou criar projeto -->
         <div class="step" data-step="4">
+            <div class="step-content">
+                <div style="display:flex; justify-content:center; margin-bottom:28px;">
+                    <div style="width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg, var(--accent), var(--accent-soft)); position:relative; animation:glow 3s ease-in-out infinite;">
+                        <div style="position:absolute; inset:3px; border-radius:50%; background:var(--bg); display:flex; align-items:center; justify-content:center;">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align:center; margin-bottom:24px;">
+                    <p style="color:var(--text-dim); font-size:13px; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px;">Passo 4 de 6</p>
+                    <h2 style="font-size:22px; font-weight:700; margin-bottom:8px;">Seu projeto</h2>
+                    <p style="color:var(--text-dim); font-size:15px; line-height:1.6;">Selecione um projeto existente ou crie um novo.<br><span style="font-size:13px;">Os arquivos e conversas serão vinculados a ele.</span></p>
+                </div>
+
+                <div style="max-width:340px; margin:0 auto; width:100%;">
+                    <?php if (!empty($projects)): ?>
+                        <div style="margin-bottom:16px;">
+                            <p style="font-size:13px; color:var(--text-dim); margin-bottom:8px;">Projetos existentes:</p>
+                            <div id="project-list" style="display:flex; flex-direction:column; gap:8px; max-height:200px; overflow-y:auto;">
+                                <?php foreach ($projects as $proj): ?>
+                                    <div class="project-card" data-project-id="<?= (int)($proj['id'] ?? 0) ?>" onclick="selectProject(this, <?= (int)($proj['id'] ?? 0) ?>)"
+                                         style="background:var(--bg-card); border:2px solid var(--border); border-radius:12px; padding:12px 14px; cursor:pointer; transition:border-color 0.2s;">
+                                        <div style="font-weight:600; font-size:14px;"><?= htmlspecialchars((string)($proj['name'] ?? '')) ?></div>
+                                        <?php if (!empty($proj['description'])): ?>
+                                            <div style="color:var(--text-dim); font-size:12px; margin-top:4px;"><?= htmlspecialchars(mb_substr((string)$proj['description'], 0, 80)) ?></div>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                        <div style="text-align:center; color:var(--text-dim); font-size:13px; margin-bottom:12px;">ou</div>
+                    <?php endif; ?>
+
+                    <input type="text" id="input-new-project" placeholder="Nome do novo projeto (ex: Brasiliana E-commerce)" style="text-align:center; font-size:16px; padding:14px;">
+
+                    <button onclick="nextStep(4)" class="btn-primary" style="margin-top:16px;" id="btn-project">Continuar</button>
+                    <button onclick="skipProject()" class="btn-ghost" style="margin-top:8px; width:100%;">Pular por agora</button>
+                    <button onclick="prevStep(4)" class="btn-ghost" style="margin-top:8px; width:100%;">Voltar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Documentos -->
+        <div class="step" data-step="5">
             <div class="step-content">
                 <div style="display:flex; justify-content:center; margin-bottom:28px;">
                     <div style="width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg, var(--accent), var(--accent-soft)); position:relative; animation:glow 3s ease-in-out infinite;">
@@ -147,7 +192,7 @@
                 </div>
 
                 <div style="text-align:center; margin-bottom:24px;">
-                    <p style="color:var(--text-dim); font-size:13px; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px;">Passo 4 de 5</p>
+                    <p style="color:var(--text-dim); font-size:13px; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px;">Passo 5 de 6</p>
                     <h2 style="font-size:22px; font-weight:700; margin-bottom:8px;">Documentos</h2>
                     <p style="color:var(--text-dim); font-size:15px; line-height:1.6;">Quer enviar documentos para <span class="tool-name-ref"></span> aprender?<br><span style="font-size:13px;">PDFs, textos, docs da sua empresa...</span></p>
                 </div>
@@ -164,15 +209,15 @@
                     <!-- Lista de arquivos enviados -->
                     <div id="uploaded-files" style="margin-bottom:16px;"></div>
 
-                    <button onclick="nextStep(4)" class="btn-primary">Continuar</button>
-                    <button onclick="skipStep(4)" class="btn-ghost" style="margin-top:8px; width:100%;">Pular por agora</button>
-                    <button onclick="prevStep(4)" class="btn-ghost" style="margin-top:8px; width:100%;">Voltar</button>
+                    <button onclick="nextStep(5)" class="btn-primary">Continuar</button>
+                    <button onclick="skipStep(5)" class="btn-ghost" style="margin-top:8px; width:100%;">Pular por agora</button>
+                    <button onclick="prevStep(5)" class="btn-ghost" style="margin-top:8px; width:100%;">Voltar</button>
                 </div>
             </div>
         </div>
 
-        <!-- Step 5: Tudo pronto -->
-        <div class="step" data-step="5">
+        <!-- Step 6: Tudo pronto -->
+        <div class="step" data-step="6">
             <div class="step-content">
                 <div style="display:flex; justify-content:center; margin-bottom:28px;">
                     <div style="width:100px; height:100px; border-radius:50%; background:linear-gradient(135deg, var(--accent), var(--accent-soft)); position:relative; animation:glow 2s ease-in-out infinite;">
@@ -183,7 +228,7 @@
                 </div>
 
                 <div style="text-align:center; margin-bottom:32px;">
-                    <p style="color:var(--text-dim); font-size:13px; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px;">Passo 5 de 5</p>
+                    <p style="color:var(--text-dim); font-size:13px; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px;">Passo 6 de 6</p>
                     <h2 style="font-size:24px; font-weight:700; margin-bottom:8px;">Tudo pronto! 🚀</h2>
                     <p style="color:var(--text-dim); font-size:15px; line-height:1.6;">
                         <span class="tool-name-ref"></span> está configurado e pronto para conversar com você, <span class="user-name-ref"></span>.
@@ -232,9 +277,10 @@
 
 <script>
 let currentStep = 1;
-const totalSteps = 5;
+const totalSteps = 6;
 let selectedPersonalityId = null;
 let selectedTone = null;
+let selectedProjectId = null;
 let userName = '';
 let toolName = '';
 
@@ -288,8 +334,27 @@ function nextStep(from) {
         saveStep('conversation_tone', selectedTone);
         showStep(4);
     } else if (from === 4) {
+        // Projeto: criar novo ou usar selecionado
+        var newProjectName = document.getElementById('input-new-project').value.trim();
+        if (newProjectName) {
+            fetch('/m/onboarding/salvar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'step=project&action=create&value=' + encodeURIComponent(newProjectName)
+            }).then(r => r.json()).then(() => showStep(5));
+        } else if (selectedProjectId) {
+            fetch('/m/onboarding/salvar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'step=project&action=select&value=' + selectedProjectId
+            }).then(r => r.json()).then(() => showStep(5));
+        } else {
+            document.getElementById('input-new-project').focus();
+            return;
+        }
+    } else if (from === 5) {
         saveStep('preferences', JSON.stringify({ wants_projects: 1, wants_documents: 1 }));
-        showStep(5);
+        showStep(6);
     }
 }
 
@@ -298,10 +363,29 @@ function prevStep(from) {
 }
 
 function skipStep(from) {
-    if (from === 4) {
+    if (from === 5) {
         saveStep('preferences', JSON.stringify({ wants_projects: 0, wants_documents: 0 }));
-        showStep(5);
+        showStep(6);
     }
+}
+
+function skipProject() {
+    fetch('/m/onboarding/salvar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'step=project&action=skip&value=0'
+    }).then(r => r.json()).then(() => showStep(5));
+}
+
+function selectProject(el, id) {
+    document.querySelectorAll('.project-card').forEach(c => {
+        c.style.borderColor = 'var(--border)';
+        c.style.background = 'var(--bg-card)';
+    });
+    el.style.borderColor = 'var(--accent)';
+    el.style.background = 'rgba(229,57,53,0.08)';
+    selectedProjectId = id;
+    document.getElementById('input-new-project').value = '';
 }
 
 function selectTone(el, tone) {

@@ -1317,11 +1317,12 @@ class ChatController extends Controller
 
                 $baseFileTextBudgetUsed = 0;
                 // Budget adaptado ao modelo, respeitando rate limits da API
-                // Anthropic rate limit: 30k tokens/min — precisamos de margem generosa
-                // para system prompt base, personalidade, histórico e resposta
+                // Quanto mais texto dos arquivos, melhor a qualidade da resposta
                 $chatModel = isset($_SESSION['chat_model']) ? (string)$_SESSION['chat_model'] : '';
                 $isClaudeModel = str_starts_with(strtolower($chatModel), 'claude-');
-                $baseFileTextBudgetMax = $isClaudeModel ? 25000 : 30000;
+                // Claude Sonnet 4.5: 200k context window, rate limit 30k tokens/min
+                // Usamos ~50k chars (~12k tokens) pra arquivos, deixando ~18k tokens pro resto
+                $baseFileTextBudgetMax = $isClaudeModel ? 50000 : 30000;
                 $autoPdfFileInputsForModel = [];
                 $baseFileCount = max(1, count($baseFiles));
                 $baseFileIndex  = 0;
@@ -1663,11 +1664,12 @@ class ChatController extends Controller
                         . "NÃO diga que algo 'não é da sua área', 'não é de branding', 'procure outra personalidade' ou qualquer variação disso. "
                         . "Responda QUALQUER pergunta usando os arquivos abaixo como se fosse sua especialidade.\n\n"
                         . "REGRAS:\n"
-                        . "1. Use SOMENTE o conteúdo dos arquivos. Não invente termos ou conceitos.\n"
-                        . "2. Cite trechos entre aspas quando possível.\n"
-                        . "3. Se o arquivo não cobre a pergunta, diga: 'Não encontrei isso nos arquivos.'\n"
-                        . "4. Não recomende ferramentas/métodos que não estejam nos arquivos.\n"
-                        . "5. Ao final, liste fontes: 📚 **Fontes** [N] Arquivo — \"trecho\" (pág. X)\n\n"
+                        . "1. Use SOMENTE o conteúdo dos arquivos abaixo. Cada afirmação deve vir de um trecho real.\n"
+                        . "2. Cite trechos LITERAIS do texto entre aspas. Ex: O autor diz: \"trecho exato aqui\" (pág. X)\n"
+                        . "3. NÃO invente termos, metodologias ou conceitos que não existam nos arquivos.\n"
+                        . "4. NÃO use frases genéricas como 'o livro fala sobre isso'. Cite o trecho EXATO.\n"
+                        . "5. Se o arquivo não cobre a pergunta, diga: 'Não encontrei isso nos arquivos do projeto.'\n"
+                        . "6. Ao final, liste fontes com trechos literais: 📚 **Fontes** [N] Arquivo — \"trecho exato\" (pág. X)\n\n"
                         . "ARQUIVOS DO PROJETO:\n\n" . implode("\n\n---\n\n", $parts);
                 }
             }

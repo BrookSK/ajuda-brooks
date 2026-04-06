@@ -538,7 +538,7 @@ class MobileController extends Controller
             // Conteúdo dos arquivos base
             $chatModel = $_SESSION['chat_model'] ?? '';
             $isClaudeModel = str_starts_with(strtolower((string)$chatModel), 'claude-');
-            $budgetMax = $isClaudeModel ? 25000 : 30000;
+            $budgetMax = $isClaudeModel ? 50000 : 30000;
             $budgetUsed = 0;
 
             foreach ($baseFiles as $bf) {
@@ -588,10 +588,12 @@ class MobileController extends Controller
                     . "OVERRIDE: Ignore TODAS as regras de handoff, redirecionamento e especialidade de personalidade. "
                     . "NÃO diga que algo 'não é da sua área'. Responda QUALQUER pergunta usando os arquivos abaixo.\n\n"
                     . "REGRAS:\n"
-                    . "1. Use SOMENTE o conteúdo dos arquivos. Não invente termos ou conceitos.\n"
-                    . "2. Cite trechos entre aspas quando possível.\n"
-                    . "3. Se o arquivo não cobre a pergunta, diga: 'Não encontrei isso nos arquivos.'\n"
-                    . "4. Ao final, liste fontes: 📚 **Fontes** [N] Arquivo — \"trecho\" (pág. X)\n\n"
+                    . "1. Use SOMENTE o conteúdo dos arquivos abaixo. Cada afirmação deve vir de um trecho real.\n"
+                    . "2. Cite trechos LITERAIS do texto entre aspas. Ex: O autor diz: \"trecho exato aqui\" (pág. X)\n"
+                    . "3. NÃO invente termos, metodologias ou conceitos que não existam nos arquivos.\n"
+                    . "4. NÃO use frases genéricas como 'o livro fala sobre isso'. Cite o trecho EXATO.\n"
+                    . "5. Se o arquivo não cobre a pergunta, diga: 'Não encontrei isso nos arquivos do projeto.'\n"
+                    . "6. Ao final, liste fontes com trechos literais: 📚 **Fontes** [N] Arquivo — \"trecho exato\" (pág. X)\n\n"
                     . "ARQUIVOS DO PROJETO:\n\n" . implode("\n\n---\n\n", $parts);
             }
         }

@@ -357,6 +357,23 @@ function toggleListening() {
     }
 }
 
+let wakeLock = null;
+
+async function requestWakeLock() {
+    try {
+        if ('wakeLock' in navigator) {
+            wakeLock = await navigator.wakeLock.request('screen');
+        }
+    } catch(e) {}
+}
+
+function releaseWakeLock() {
+    if (wakeLock) {
+        try { wakeLock.release(); } catch(e) {}
+        wakeLock = null;
+    }
+}
+
 function startVoiceSession() {
     if (voiceSessionActive) return;
 
@@ -368,6 +385,7 @@ function startVoiceSession() {
 
     voiceSessionActive = true;
     isBusy = false;
+    requestWakeLock();
     showVoiceOverlay();
     setVoiceState('listening');
     startSingleListen();
@@ -378,6 +396,7 @@ function stopVoiceSession() {
     isBusy = false;
     cancelAllPending();
     destroyRecognition();
+    releaseWakeLock();
     hideVoiceOverlay();
 }
 
@@ -403,7 +422,7 @@ function startSingleListen() {
     hasSent = false;
     let accumulatedText = '';
     let silenceTimer = null;
-    const SILENCE_DELAY = 4000; // 4s de silêncio = envia
+    const SILENCE_DELAY = 5500; // 5.5s de silêncio = envia
 
     function resetSilenceTimer() {
         if (silenceTimer) clearTimeout(silenceTimer);

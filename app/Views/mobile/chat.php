@@ -397,13 +397,13 @@ function startSingleListen() {
     recognition = new SR();
     recognition.lang = 'pt-BR';
     recognition.continuous = true;
-    recognition.interimResults = true;
+    recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
     hasSent = false;
     let accumulatedText = '';
     let silenceTimer = null;
-    const SILENCE_DELAY = 2500; // 2.5s de silêncio = envia
+    const SILENCE_DELAY = 4000; // 4s de silêncio = envia
 
     function resetSilenceTimer() {
         if (silenceTimer) clearTimeout(silenceTimer);
@@ -420,12 +420,17 @@ function startSingleListen() {
 
     recognition.onresult = function(e) {
         if (hasSent) return;
-        let fullText = '';
-        for (let i = 0; i < e.results.length; i++) {
-            fullText += e.results[i][0].transcript;
+        // Só pega resultados finais (isFinal), evita duplicação
+        let newText = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+            if (e.results[i].isFinal) {
+                newText += e.results[i][0].transcript + ' ';
+            }
         }
-        accumulatedText = fullText;
-        resetSilenceTimer();
+        if (newText.trim()) {
+            accumulatedText += newText;
+            resetSilenceTimer();
+        }
     };
 
     recognition.onerror = function(e) {
@@ -435,7 +440,6 @@ function startSingleListen() {
             stopVoiceSession();
             return;
         }
-        // Se já acumulou texto, envia o que tem
         if (!hasSent && accumulatedText.trim()) {
             hasSent = true;
             sendMessage(accumulatedText.trim(), true);
@@ -448,7 +452,6 @@ function startSingleListen() {
 
     recognition.onend = function() {
         if (silenceTimer) clearTimeout(silenceTimer);
-        // Se já acumulou texto mas não enviou, envia agora
         if (!hasSent && accumulatedText.trim()) {
             hasSent = true;
             sendMessage(accumulatedText.trim(), true);

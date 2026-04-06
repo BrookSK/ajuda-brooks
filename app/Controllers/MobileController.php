@@ -596,7 +596,15 @@ class MobileController extends Controller
             }
         }
 
-        $result = $engine->generateResponseWithContext($history, null, $userContext, $convSettings, $persona, $projectFileInputs, $projectContext);
+        // Determina modelo: usa o do projeto ou o da sessão
+        $mobileModel = null;
+        if ($projectId > 0 && isset($projectRow['chat_model']) && trim((string)$projectRow['chat_model']) !== '') {
+            $mobileModel = trim((string)$projectRow['chat_model']);
+        } elseif (isset($_SESSION['chat_model']) && is_string($_SESSION['chat_model']) && $_SESSION['chat_model'] !== '') {
+            $mobileModel = $_SESSION['chat_model'];
+        }
+
+        $result = $engine->generateResponseWithContext($history, $mobileModel, $userContext, $convSettings, $persona, $projectFileInputs, $projectContext);
 
         $reply = $result['content'] ?? 'Desculpe, não consegui gerar uma resposta.';
         $tokensUsed = $result['total_tokens'] ?? null;

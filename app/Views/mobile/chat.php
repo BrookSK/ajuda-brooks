@@ -552,7 +552,6 @@ function doTTS(text, reopenMicAfter) {
                 if (reopenMicAfter && voiceSessionActive) resumeListening();
                 else hideVoiceOverlay();
             }, 1000);
-            else hideVoiceOverlay();
         });
 }
 

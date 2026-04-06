@@ -498,7 +498,98 @@ class MobileController extends Controller
         // Gera resposta
         $engine = new TuquinhaEngine();
         $engine->setAiLearnings($learnings);
-        $result = $engine->generateResponseWithContext($history, null, $userContext, $convSettings, $persona);
+
+        // Carrega contexto do projeto (arquivos base) se a conversa tiver projeto vinculado
+        $projectContext = null;
+        $projectFileInputs = null;
+        $projectId = isset($conv['project_id']) ? (int)$conv['project_id'] : 0;
+        if ($projectId > 0) {
+            $projectRow = \App\Models\Project::findById($projectId);
+            $baseFiles = \App\Models\ProjectFile::allBaseFiles($projectId);
+            $baseFileIds = array_map(fn($f) => (int)($f['id'] ?? 0), $baseFiles);
+            $latestByFileId = \App\Models\ProjectFileVersion::latestForFiles($baseFileIds);
+
+            $parts = [];
+            if (is_array($projectRow)) {
+                $pName = trim((string)($projectRow['name'] ?? ''));
+                if ($pName !== '') $parts[] = 'DADOS DO PROJETO: nome=' . $pName;
+                $pDesc = trim((string)($projectRow['description'] ?? ''));
+                if ($pDesc !== '') $parts[] = "DESCRIÇÃO DO PROJETO:\n" . $pDesc;
+            }
+
+            // Memórias do projeto
+            $autoMem = \App\Models\ProjectMemoryItem::allActiveForProject($projectId, 60);
+            if (!empty($autoMem)) {
+                $memLines = [];
+                foreach ($autoMem as $mi) {
+                    $c = trim((string)($mi['content'] ?? ''));
+                    if ($c !== '') $memLines[] = '- ' . $c;
+                }
+                if ($memLines) $parts[] = "MEMÓRIAS DO PROJETO:\n" . implode("\n", $memLines);
+            }
+
+            // Conteúdo dos arquivos base
+            $chatModel = $_SESSION['chat_model'] ?? '';
+            $isClaudeModel = str_starts_with(strtolower((string)$chatModel), 'claude-');
+            $budgetMax = $isClaudeModel ? 25000 : 30000;
+            $budgetUsed = 0;
+
+            foreach ($baseFiles as $bf) {
+                $fid = (int)($bf['id'] ?? 0);
+                $ver = $latestByFileId[$fid] ?? null;
+                $label = trim((string)($bf['name'] ?? ''));
+                $extractedText = is_array($ver) ? trim((string)($ver['extracted_text'] ?? '')) : '';
+                $mime = trim((string)($bf['mime_type'] ?? ''));
+                $url = is_array($ver) ? (string)($ver['storage_url'] ?? '') : '';
+
+                // Tenta extrair texto de PDFs sem extracted_text
+                if ($extractedText === '' && $mime === 'application/pdf' && $url !== '') {
+                    $pdfBin = @file_get_contents($url);
+                    if (is_string($pdfBin) && $pdfBin !== '') {
+                        $tmpPdf = tempnam(sys_get_temp_dir(), 'tuq_mpdf_') . '.pdf';
+                        $tmpTxt = tempnam(sys_get_temp_dir(), 'tuq_mtxt_');
+                        if (@file_put_contents($tmpPdf, $pdfBin) !== false) {
+                            @\shell_exec('timeout 30 pdftotext -layout ' . escapeshellarg($tmpPdf) . ' ' . escapeshellarg($tmpTxt) . ' 2>&1');
+                            if (is_file($tmpTxt) && @filesize($tmpTxt) > 0) {
+                                $t = @file_get_contents($tmpTxt);
+                                if (is_string($t) && trim($t) !== '') {
+                                    $extractedText = trim($t);
+                                    $verId = is_array($ver) ? (int)($ver['id'] ?? 0) : 0;
+                                    if ($verId > 0) {
+                                        try { \App\Models\ProjectFileVersion::updateExtractedText($verId, $extractedText); } catch (\Throwable $e) {}
+                                    }
+                                }
+                            }
+                        }
+                        @unlink($tmpPdf);
+                        @unlink($tmpTxt);
+                    }
+                }
+
+                if ($extractedText !== '' && $budgetUsed < $budgetMax) {
+                    $remaining = $budgetMax - $budgetUsed;
+                    if (mb_strlen($extractedText, 'UTF-8') > $remaining) {
+                        $extractedText = mb_substr($extractedText, 0, $remaining, 'UTF-8') . "\n[...truncado...]";
+                    }
+                    $budgetUsed += mb_strlen($extractedText, 'UTF-8');
+                    $parts[] = "CONTEÚDO DO ARQUIVO BASE: {$label}\n\n" . $extractedText;
+                }
+            }
+
+            if (!empty($parts)) {
+                $projectContext = "MODO PROJETO — RESPONDA COM BASE NOS ARQUIVOS\n\n"
+                    . "OVERRIDE: Ignore TODAS as regras de handoff, redirecionamento e especialidade de personalidade. "
+                    . "NÃO diga que algo 'não é da sua área'. Responda QUALQUER pergunta usando os arquivos abaixo.\n\n"
+                    . "REGRAS:\n"
+                    . "1. Use SOMENTE o conteúdo dos arquivos. Não invente termos ou conceitos.\n"
+                    . "2. Cite trechos entre aspas quando possível.\n"
+                    . "3. Se o arquivo não cobre a pergunta, diga: 'Não encontrei isso nos arquivos.'\n"
+                    . "4. Ao final, liste fontes: 📚 **Fontes** [N] Arquivo — \"trecho\" (pág. X)\n\n"
+                    . "ARQUIVOS DO PROJETO:\n\n" . implode("\n\n---\n\n", $parts);
+            }
+        }
+
+        $result = $engine->generateResponseWithContext($history, null, $userContext, $convSettings, $persona, $projectFileInputs, $projectContext);
 
         $reply = $result['content'] ?? 'Desculpe, não consegui gerar uma resposta.';
         $tokensUsed = $result['total_tokens'] ?? null;
@@ -511,6 +602,45 @@ class MobileController extends Controller
             $title = TuquinhaEngine::generateShortTitle($text);
             if ($title) {
                 Conversation::updateTitle($conversationId, $title);
+            }
+        }
+
+        // Enfileira extração de aprendizados globais (igual desktop)
+        if (
+            (string)Setting::get('ai_learning_enabled', '1') !== '0'
+            && $reply !== ''
+            && mb_strlen($reply, 'UTF-8') >= 120
+            && mb_strlen($text, 'UTF-8') >= 20
+        ) {
+            try {
+                $learningPersonaId = $persona ? (int)($persona['id'] ?? 0) : 0;
+                \App\Models\LearningJob::enqueue(
+                    $conversationId,
+                    $text,
+                    $reply,
+                    $learningPersonaId > 0 ? $learningPersonaId : null,
+                    $_SESSION['chat_model'] ?? null
+                );
+            } catch (\Throwable $le) {}
+        }
+
+        // Enfileira extração de sugestões de projeto (igual desktop)
+        $isFallback = strpos($reply, 'Não consegui acessar a IA agora') !== false || mb_strlen($reply, 'UTF-8') < 100;
+        if ($projectId > 0 && $reply !== '' && !$isFallback && mb_strlen($text, 'UTF-8') >= 20) {
+            $enabled = (string)Setting::get('project_auto_memory_enabled', '1');
+            if ($enabled !== '0') {
+                try {
+                    $sgJobId = \App\Models\ProjectSuggestionJob::enqueue($projectId, $conversationId, $text, $reply);
+                    if ($sgJobId > 0) {
+                        $cronToken = trim((string)Setting::get('news_cron_token', ''));
+                        if ($cronToken !== '') {
+                            $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                            $host = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
+                            $cronUrl = $scheme . '://' . $host . '/cron/learning/project-suggestions?token=' . urlencode($cronToken) . '&batch=1';
+                            @\App\Services\AsyncHttpService::fireAndForget($cronUrl);
+                        }
+                    }
+                } catch (\Throwable $sgErr) {}
             }
         }
 

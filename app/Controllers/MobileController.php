@@ -609,7 +609,7 @@ class MobileController extends Controller
             }
         }
 
-        @file_put_contents('/tmp/tuq_mobile_debug.log', date('Y-m-d H:i:s') . " projectContext=" . ($projectContext !== null ? 'SET(' . mb_strlen($projectContext, 'UTF-8') . ' chars)' : 'NULL') . "\n", FILE_APPEND);
+        @file_put_contents('/tmp/tuq_mobile_debug.log', date('Y-m-d H:i:s') . " projectContext=" . ($projectContext !== null ? 'SET(' . mb_strlen($projectContext, 'UTF-8') . ' chars)' : 'NULL') . " model=" . ($mobileModel ?? 'NULL(default)') . "\n", FILE_APPEND);
 
         // Determina modelo: usa o do projeto ou o da sessão
         $mobileModel = null;
@@ -633,8 +633,11 @@ class MobileController extends Controller
                     . $projectContext
                     . "\n---FIM DO CONTEÚDO DOS ARQUIVOS---\n\n"
                     . "PERGUNTA DO USUÁRIO:\n" . $originalMsg;
+                @file_put_contents('/tmp/tuq_mobile_debug.log', date('Y-m-d H:i:s') . " INJECTED into message, total_len=" . mb_strlen($history[$lastIdx]['content'], 'UTF-8') . "\n", FILE_APPEND);
             }
             $projectContext = null;
+        } else {
+            @file_put_contents('/tmp/tuq_mobile_debug.log', date('Y-m-d H:i:s') . " NOT injected: projectId={$projectId} contextIsString=" . (is_string($projectContext) ? 'Y' : 'N') . " contextEmpty=" . (empty($projectContext) ? 'Y' : 'N') . " historyCount=" . count($history) . "\n", FILE_APPEND);
         }
 
         $result = $engine->generateResponseWithContext($history, $mobileModel, $userContext, $convSettings, $persona, $projectFileInputs, $projectContext);

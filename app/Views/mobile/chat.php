@@ -546,8 +546,12 @@ function doTTS(text, reopenMicAfter) {
         })
         .catch(err => {
             if (err.name === 'AbortError') return;
-            isBusy = false;
-            if (reopenMicAfter && voiceSessionActive) resumeListening();
+            // Se TTS falhou, espera 1s mostrando o estado atual antes de voltar
+            setTimeout(() => {
+                isBusy = false;
+                if (reopenMicAfter && voiceSessionActive) resumeListening();
+                else hideVoiceOverlay();
+            }, 1000);
             else hideVoiceOverlay();
         });
 }

@@ -1828,15 +1828,14 @@ class ChatController extends Controller
                 // Se tem projeto, injeta o CONTEÚDO dos arquivos diretamente na mensagem do usuário
                 if (!empty($conversation->project_id) && is_string($projectContextMessage) && $projectContextMessage !== '') {
                     $originalMsg = $historyForEngine[$lastHistIdx]['content'];
-                    $historyForEngine[$lastHistIdx]['content'] = "CONTEXTO OBRIGATÓRIO — Leia o conteúdo abaixo ANTES de responder. "
-                        . "Sua resposta DEVE ser baseada EXCLUSIVAMENTE neste conteúdo. "
-                        . "Cite trechos literais entre aspas com número de página. "
-                        . "NÃO use conhecimento externo. NÃO diga que 'não usou os arquivos'. "
-                        . "Se o conteúdo aborda o tema de forma indireta, APLIQUE os conceitos ao problema.\n\n"
-                        . "---INÍCIO DO CONTEÚDO DOS ARQUIVOS---\n"
-                        . $projectContextMessage
-                        . "\n---FIM DO CONTEÚDO DOS ARQUIVOS---\n\n"
-                        . "PERGUNTA DO USUÁRIO:\n" . $originalMsg;
+                    $historyForEngine[$lastHistIdx]['content'] = "ATENÇÃO: Você recebeu o conteúdo completo dos arquivos do projeto abaixo. "
+                        . "REGRA ABSOLUTA: Construa sua resposta usando APENAS o texto dos arquivos. "
+                        . "Cada parágrafo da sua resposta deve conter uma citação literal entre aspas com número de página. "
+                        . "NÃO adicione nenhuma informação que não esteja nos arquivos. "
+                        . "NÃO use conhecimento próprio, experiência prática ou informações externas. "
+                        . "Se perguntarem se você usou os arquivos, diga SIM — porque você DEVE usar.\n\n"
+                        . $projectContextMessage . "\n\n"
+                        . "PERGUNTA DO USUÁRIO (responda usando SOMENTE o conteúdo acima):\n" . $originalMsg;
                     // Não passa pro system prompt — já vai na mensagem
                     $projectContextMessage = null;
                 }

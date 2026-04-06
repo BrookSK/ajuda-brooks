@@ -630,15 +630,14 @@ class MobileController extends Controller
             $lastIdx = count($history) - 1;
             if (($history[$lastIdx]['role'] ?? '') === 'user') {
                 $originalMsg = $history[$lastIdx]['content'];
-                $history[$lastIdx]['content'] = "CONTEXTO OBRIGATÓRIO — Leia o conteúdo abaixo ANTES de responder. "
-                    . "Sua resposta DEVE ser baseada EXCLUSIVAMENTE neste conteúdo. "
-                    . "Cite trechos literais entre aspas com número de página. "
-                    . "NÃO use conhecimento externo. NÃO diga que 'não usou os arquivos'. "
-                    . "Se o conteúdo aborda o tema de forma indireta, APLIQUE os conceitos ao problema.\n\n"
-                    . "---INÍCIO DO CONTEÚDO DOS ARQUIVOS---\n"
-                    . $projectContext
-                    . "\n---FIM DO CONTEÚDO DOS ARQUIVOS---\n\n"
-                    . "PERGUNTA DO USUÁRIO:\n" . $originalMsg;
+                $history[$lastIdx]['content'] = "ATENÇÃO: Você recebeu o conteúdo completo dos arquivos do projeto abaixo. "
+                    . "REGRA ABSOLUTA: Construa sua resposta usando APENAS o texto dos arquivos. "
+                    . "Cada parágrafo da sua resposta deve conter uma citação literal entre aspas com número de página. "
+                    . "NÃO adicione nenhuma informação que não esteja nos arquivos. "
+                    . "NÃO use conhecimento próprio, experiência prática ou informações externas. "
+                    . "Se perguntarem se você usou os arquivos, diga SIM — porque você DEVE usar.\n\n"
+                    . $projectContext . "\n\n"
+                    . "PERGUNTA DO USUÁRIO (responda usando SOMENTE o conteúdo acima):\n" . $originalMsg;
                 @file_put_contents('/tmp/tuq_mobile_debug.log', date('Y-m-d H:i:s') . " INJECTED into message, total_len=" . mb_strlen($history[$lastIdx]['content'], 'UTF-8') . "\n", FILE_APPEND);
             }
             $projectContext = null;

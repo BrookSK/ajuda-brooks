@@ -510,9 +510,11 @@ class MobileController extends Controller
         $projectContext = null;
         $projectFileInputs = null;
         $projectId = isset($conv['project_id']) ? (int)$conv['project_id'] : 0;
+        @file_put_contents('/tmp/tuq_mobile_debug.log', date('Y-m-d H:i:s') . " conv_id={$conversationId} project_id={$projectId} conv_project=" . ($conv['project_id'] ?? 'NULL') . " onboarding_project=" . ($onboardingProjectId ?? 'N/A') . "\n", FILE_APPEND);
         if ($projectId > 0) {
             $projectRow = \App\Models\Project::findById($projectId);
             $baseFiles = \App\Models\ProjectFile::allBaseFiles($projectId);
+            @file_put_contents('/tmp/tuq_mobile_debug.log', date('Y-m-d H:i:s') . " baseFiles=" . count($baseFiles) . "\n", FILE_APPEND);
             $baseFileIds = array_map(fn($f) => (int)($f['id'] ?? 0), $baseFiles);
             $latestByFileId = \App\Models\ProjectFileVersion::latestForFiles($baseFileIds);
 
@@ -597,6 +599,8 @@ class MobileController extends Controller
                     . "ARQUIVOS DO PROJETO:\n\n" . implode("\n\n---\n\n", $parts);
             }
         }
+
+        @file_put_contents('/tmp/tuq_mobile_debug.log', date('Y-m-d H:i:s') . " projectContext=" . ($projectContext !== null ? 'SET(' . mb_strlen($projectContext, 'UTF-8') . ' chars)' : 'NULL') . "\n", FILE_APPEND);
 
         // Determina modelo: usa o do projeto ou o da sessão
         $mobileModel = null;

@@ -306,6 +306,7 @@ function sendMessage(text, fromVoice) {
     if (fromVoice) body += '&voice_mode=1';
 
     messageAbort = new AbortController();
+    const messageTimeout = setTimeout(() => messageAbort.abort(), 180000); // 3 min timeout
 
     fetch('/m/chat/enviar', {
         method: 'POST',
@@ -313,7 +314,7 @@ function sendMessage(text, fromVoice) {
         body: body,
         signal: messageAbort.signal
     })
-    .then(r => r.json())
+    .then(r => { clearTimeout(messageTimeout); return r.json(); })
     .then(data => {
         hideTyping();
         if (data.ok) {

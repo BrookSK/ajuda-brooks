@@ -609,7 +609,7 @@ class MobileController extends Controller
             }
         }
 
-        @file_put_contents('/tmp/tuq_mobile_debug.log', date('Y-m-d H:i:s') . " projectContext=" . ($projectContext !== null ? 'SET(' . mb_strlen($projectContext, 'UTF-8') . ' chars)' : 'NULL') . " model=" . ($mobileModel ?? 'NULL(default)') . "\n", FILE_APPEND);
+        @file_put_contents('/tmp/tuq_mobile_debug.log', date('Y-m-d H:i:s') . " projectContext=" . ($projectContext !== null ? 'SET(' . mb_strlen($projectContext, 'UTF-8') . ' chars)' : 'NULL') . "\n", FILE_APPEND);
 
         // Determina modelo: usa o do projeto ou o da sessão
         // Projetos precisam de modelo forte pra seguir instruções com arquivos
@@ -622,6 +622,8 @@ class MobileController extends Controller
         } elseif (isset($_SESSION['chat_model']) && is_string($_SESSION['chat_model']) && $_SESSION['chat_model'] !== '') {
             $mobileModel = $_SESSION['chat_model'];
         }
+
+        @file_put_contents('/tmp/tuq_mobile_debug.log', date('Y-m-d H:i:s') . " model=" . ($mobileModel ?? 'NULL(default)') . "\n", FILE_APPEND);
 
         // Injeta conteúdo dos arquivos diretamente na mensagem do usuário (mais eficaz que system prompt)
         if ($projectId > 0 && is_string($projectContext) && $projectContext !== '' && !empty($history)) {

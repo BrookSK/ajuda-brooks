@@ -195,6 +195,15 @@ function setVoiceState(state) {
         pulse1.style.display = 'none';
         pulse2.style.display = 'none';
         status.textContent = 'Respondendo...';
+        subtitle.textContent = '';
+    } else if (state === 'preparing') {
+        orb.classList.add('state-thinking');
+        thinking.style.display = 'flex';
+        pulse1.style.display = 'none';
+        pulse2.style.display = 'none';
+        status.textContent = 'Preparando voz...';
+        subtitle.textContent = '';
+        status.textContent = 'Respondendo...';
         subtitle.textContent = 'Toque para interromper';
     }
 }
@@ -320,7 +329,7 @@ function sendMessage(text, fromVoice) {
         if (data.ok) {
             addMessage('assistant', data.reply);
             if (fromVoice && voiceSessionActive && voiceEnabled) {
-                setVoiceState('speaking');
+                setVoiceState('preparing');
                 doTTS(data.reply, true);
             } else {
                 isBusy = false;
@@ -501,7 +510,7 @@ function playTTS(btn) {
     const text = btn.dataset.text;
     if (!text) return;
     showVoiceOverlay();
-    setVoiceState('speaking');
+    setVoiceState('preparing');
     doTTS(text, false);
 }
 
@@ -532,6 +541,7 @@ function doTTS(text, reopenMicAfter) {
 
             currentAudio.onended = done;
             currentAudio.onerror = done;
+            setVoiceState('speaking');
             currentAudio.play().catch(() => done());
         })
         .catch(err => {

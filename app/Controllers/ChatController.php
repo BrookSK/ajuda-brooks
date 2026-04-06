@@ -22,6 +22,7 @@ use App\Models\ProjectMemoryItem;
 use App\Models\ChatJob;
 use App\Models\AiLearning;
 use App\Models\AiPromptSuggestion;
+use App\Models\ProjectSuggestionJob;
 use App\Models\LearningJob;
 
 class ChatController extends Controller
@@ -1973,8 +1974,7 @@ class ChatController extends Controller
                 ]);
             }
 
-            // Extração de sugestões de aprendizado do projeto (analisa mensagem + resposta)
-            // Só roda se a resposta principal foi gerada com sucesso (não é fallback de erro)
+            // Extração de sugestões de aprendizado do projeto — enfileira pra processar depois (evita rate limit)
             $isFallbackResponse = strpos($assistantReply, 'Não consegui acessar a IA agora') !== false
                 || strpos($assistantReply, '[DEBUG]') !== false
                 || mb_strlen($assistantReply, 'UTF-8') < 100;
@@ -1982,58 +1982,21 @@ class ChatController extends Controller
             if (!empty($conversation->project_id) && $userId > 0 && $assistantReply !== '' && !$isFallbackResponse && mb_strlen((string)$message, 'UTF-8') >= 20) {
                 $projectIdForSuggestion = (int)$conversation->project_id;
                 $enabled = (string)Setting::get('project_auto_memory_enabled', '1');
-                @file_put_contents('/tmp/tuq_project_suggestion.log', date('Y-m-d H:i:s') . ' Starting: project=' . $projectIdForSuggestion . ' enabled=' . $enabled . ' conv=' . $conversation->id . "\n", FILE_APPEND);
                 if ($enabled !== '0') {
-                    // Espera 15 segundos pra não estourar rate limit (a resposta principal acabou de consumir tokens)
-                    sleep(15);
                     try {
-                        $engineForSuggestion = new TuquinhaEngine();
-                        $suggestionInstruction = "Analise esta conversa entre usuário e assistente sobre um projeto empresarial. "
-                            . "Extraia aprendizados práticos, regras de negócio, decisões tomadas ou padrões de resolução de problemas que seriam úteis para o assistente lembrar em conversas futuras. "
-                            . "Exemplos: políticas da empresa, como resolver problemas recorrentes, regras de atendimento, decisões tomadas, padrões identificados. "
-                            . "Retorne APENAS JSON válido: {\"items\":[{\"content\":\"...\",\"rationale\":\"...\"}]} "
-                            . "Regras: (1) cada content deve ser curto (até 200 chars) e autoexplicativo, "
-                            . "(2) rationale explica por que esse aprendizado é útil (até 100 chars), "
-                            . "(3) sem perguntas, (4) sem dados sensíveis, "
-                            . "(5) só inclua se for algo que ajudaria o assistente a dar respostas melhores no futuro. "
-                            . "Se não houver nada relevante, retorne {\"items\":[]}.";
-
-                        $suggestionResult = $engineForSuggestion->generateResponseWithContext(
-                            [['role' => 'user', 'content' => $suggestionInstruction
-                                . "\n\nMENSAGEM DO USUÁRIO:\n" . mb_substr((string)$message, 0, 500, 'UTF-8')
-                                . "\n\nRESPOSTA DO ASSISTENTE:\n" . mb_substr($assistantReply, 0, 1000, 'UTF-8')]],
-                            'claude-3-5-sonnet-latest',
-                            null, null, null
-                        );
-
-                        $suggestionText = is_array($suggestionResult) ? trim((string)($suggestionResult['content'] ?? '')) : '';
-                        @file_put_contents('/tmp/tuq_project_suggestion.log', date('Y-m-d H:i:s') . ' Response: ' . mb_substr($suggestionText, 0, 500, 'UTF-8') . "\n", FILE_APPEND);
-
-                        // Remove markdown code block wrapper se presente (```json ... ```)
-                        if (strpos($suggestionText, '```') !== false) {
-                            $suggestionText = preg_replace('/^```(?:json)?\s*/i', '', $suggestionText);
-                            $suggestionText = preg_replace('/\s*```\s*$/', '', $suggestionText);
-                            $suggestionText = trim($suggestionText);
-                        }
-
-                        if ($suggestionText !== '' && $suggestionText[0] === '{') {
-                            $suggestionJson = json_decode($suggestionText, true);
-                            if (is_array($suggestionJson) && isset($suggestionJson['items']) && is_array($suggestionJson['items'])) {
-                                foreach ($suggestionJson['items'] as $sgItem) {
-                                    $sgContent = is_array($sgItem) ? trim((string)($sgItem['content'] ?? '')) : '';
-                                    if ($sgContent === '' || mb_strlen($sgContent, 'UTF-8') < 10) continue;
-                                    if (mb_strlen($sgContent, 'UTF-8') > 200) $sgContent = mb_substr($sgContent, 0, 200, 'UTF-8');
-                                    if (strpos($sgContent, '?') !== false) continue;
-                                    $sgRationale = is_array($sgItem) ? trim((string)($sgItem['rationale'] ?? '')) : '';
-                                    if (!AiPromptSuggestion::existsSimilar($sgContent)) {
-                                        $newSgId = AiPromptSuggestion::create($sgContent, $sgRationale, $projectIdForSuggestion, (int)$conversation->id);
-                                        @file_put_contents('/tmp/tuq_project_suggestion.log', date('Y-m-d H:i:s') . ' Created suggestion id=' . $newSgId . ' content=' . mb_substr($sgContent, 0, 80, 'UTF-8') . "\n", FILE_APPEND);
-                                    }
-                                }
+                        $sgJobId = ProjectSuggestionJob::enqueue($projectIdForSuggestion, (int)$conversation->id, (string)$message, $assistantReply);
+                        // Dispara processamento assíncrono (fire-and-forget) com delay
+                        if ($sgJobId > 0) {
+                            $cronToken = trim((string)Setting::get('news_cron_token', ''));
+                            if ($cronToken !== '') {
+                                $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                                $host = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
+                                $cronUrl = $scheme . '://' . $host . '/cron/learning/project-suggestions?token=' . urlencode($cronToken) . '&batch=1';
+                                @\App\Services\AsyncHttpService::fireAndForget($cronUrl);
                             }
                         }
                     } catch (\Throwable $sgErr) {
-                        @file_put_contents('/tmp/tuq_project_suggestion.log', date('Y-m-d H:i:s') . ' ERROR: ' . $sgErr->getMessage() . ' em ' . $sgErr->getFile() . ':' . $sgErr->getLine() . "\n", FILE_APPEND);
+                        // silencioso
                     }
                 }
             }

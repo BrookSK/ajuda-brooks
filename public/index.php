@@ -467,6 +467,7 @@ $router->get('/cron/learning/process', 'CronLearningController@process');
 $router->get('/cron/learning/consolidate', 'CronLearningController@consolidate');
 $router->get('/cron/learning/mine-history', 'CronLearningController@mineHistory');
 $router->get('/cron/learning/embed-backfill', 'CronLearningController@embedBackfill');
+$router->get('/cron/learning/project-suggestions', 'CronLearningController@processProjectSuggestions');
 $router->get('/certificados', 'CertificateController@myCompletedCourses');
 $router->get('/certificados/ver', 'CertificateController@show');
 $router->get('/certificados/verificar', 'CertificateController@verify');

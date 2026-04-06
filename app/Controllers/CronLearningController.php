@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Models\AiLearning;
 use App\Models\AiPromptSuggestion;
+use App\Models\ProjectSuggestionJob;
 use App\Models\LearningJob;
 use App\Models\Message;
 use App\Models\Conversation;
@@ -438,5 +439,80 @@ class CronLearningController extends Controller
         } catch (\Throwable $e) {
             error_log('[CronLearning] Sugestão de prompt falhou: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Processa fila de sugestões de projeto (chamado via cron ou fire-and-forget).
+     */
+    public function processProjectSuggestions(): void
+    {
+        if (!$this->ensureToken()) {
+            return;
+        }
+
+        $batch = max(1, min(10, (int)($_GET['batch'] ?? 3)));
+        $jobs = ProjectSuggestionJob::fetchPendingBatch($batch);
+
+        $processed = 0;
+        foreach ($jobs as $job) {
+            $jobId = (int)($job['id'] ?? 0);
+            if ($jobId <= 0) continue;
+
+            ProjectSuggestionJob::markRunning($jobId);
+
+            try {
+                $projectId = (int)($job['project_id'] ?? 0);
+                $convId = (int)($job['conversation_id'] ?? 0);
+                $userMsg = (string)($job['user_message'] ?? '');
+                $assistantReply = (string)($job['assistant_reply'] ?? '');
+
+                $engine = new TuquinhaEngine();
+                $instruction = "Analise esta conversa e extraia aprendizados práticos para o projeto. "
+                    . "Retorne APENAS JSON: {\"items\":[{\"content\":\"...\",\"rationale\":\"...\"}]} "
+                    . "Regras: content até 200 chars, rationale até 100 chars, sem perguntas, sem dados sensíveis. "
+                    . "Se nada relevante, retorne {\"items\":[]}.";
+
+                $result = $engine->generateResponseWithContext(
+                    [['role' => 'user', 'content' => $instruction
+                        . "\n\nUSUÁRIO:\n" . mb_substr($userMsg, 0, 500, 'UTF-8')
+                        . "\n\nASSISTENTE:\n" . mb_substr($assistantReply, 0, 1000, 'UTF-8')]],
+                    'claude-3-5-sonnet-latest',
+                    null, null, null
+                );
+
+                $text = is_array($result) ? trim((string)($result['content'] ?? '')) : '';
+
+                // Remove markdown code block
+                if (strpos($text, '```') !== false) {
+                    $text = preg_replace('/^```(?:json)?\s*/i', '', $text);
+                    $text = preg_replace('/\s*```\s*$/', '', $text);
+                    $text = trim($text);
+                }
+
+                if ($text !== '' && $text[0] === '{') {
+                    $json = json_decode($text, true);
+                    if (is_array($json) && isset($json['items']) && is_array($json['items'])) {
+                        foreach ($json['items'] as $item) {
+                            $content = is_array($item) ? trim((string)($item['content'] ?? '')) : '';
+                            if ($content === '' || mb_strlen($content, 'UTF-8') < 10) continue;
+                            if (mb_strlen($content, 'UTF-8') > 200) $content = mb_substr($content, 0, 200, 'UTF-8');
+                            if (strpos($content, '?') !== false) continue;
+                            $rationale = is_array($item) ? trim((string)($item['rationale'] ?? '')) : '';
+                            if (!AiPromptSuggestion::existsSimilar($content)) {
+                                AiPromptSuggestion::create($content, $rationale, $projectId, $convId);
+                            }
+                        }
+                    }
+                }
+
+                ProjectSuggestionJob::markDone($jobId);
+                $processed++;
+            } catch (\Throwable $e) {
+                ProjectSuggestionJob::markError($jobId, $e->getMessage());
+            }
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode(['ok' => true, 'processed' => $processed]);
     }
 }

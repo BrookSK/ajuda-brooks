@@ -396,34 +396,64 @@ function startSingleListen() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognition = new SR();
     recognition.lang = 'pt-BR';
-    recognition.continuous = false;
-    recognition.interimResults = false;
+    recognition.continuous = true;
+    recognition.interimResults = true;
     recognition.maxAlternatives = 1;
 
     hasSent = false;
+    let accumulatedText = '';
+    let silenceTimer = null;
+    const SILENCE_DELAY = 2500; // 2.5s de silêncio = envia
+
+    function resetSilenceTimer() {
+        if (silenceTimer) clearTimeout(silenceTimer);
+        silenceTimer = setTimeout(() => {
+            if (hasSent || !voiceSessionActive) return;
+            const finalText = accumulatedText.trim();
+            if (finalText) {
+                hasSent = true;
+                try { recognition.stop(); } catch(e) {}
+                sendMessage(finalText, true);
+            }
+        }, SILENCE_DELAY);
+    }
 
     recognition.onresult = function(e) {
         if (hasSent) return;
-        const text = e.results[0][0].transcript;
-        if (text && text.trim()) {
-            hasSent = true;
-            sendMessage(text.trim(), true);
+        let fullText = '';
+        for (let i = 0; i < e.results.length; i++) {
+            fullText += e.results[i][0].transcript;
         }
+        accumulatedText = fullText;
+        resetSilenceTimer();
     };
 
     recognition.onerror = function(e) {
+        if (silenceTimer) clearTimeout(silenceTimer);
         if (e.error === 'not-allowed') {
             alert('Permita o acesso ao microfone.');
             stopVoiceSession();
             return;
         }
-        // Qualquer outro erro: tenta de novo
+        // Se já acumulou texto, envia o que tem
+        if (!hasSent && accumulatedText.trim()) {
+            hasSent = true;
+            sendMessage(accumulatedText.trim(), true);
+            return;
+        }
         if (voiceSessionActive && !isBusy) {
             setTimeout(() => startSingleListen(), 500);
         }
     };
 
     recognition.onend = function() {
+        if (silenceTimer) clearTimeout(silenceTimer);
+        // Se já acumulou texto mas não enviou, envia agora
+        if (!hasSent && accumulatedText.trim()) {
+            hasSent = true;
+            sendMessage(accumulatedText.trim(), true);
+            return;
+        }
         if (!hasSent && voiceSessionActive && !isBusy) {
             setTimeout(() => startSingleListen(), 300);
         }

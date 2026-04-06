@@ -431,11 +431,18 @@ class MobileController extends Controller
             return;
         }
 
+        // Se a conversa não tem projeto mas o onboarding tem, vincula automaticamente
+        $onboarding = UserOnboarding::findByUserId($userId);
+        $onboardingProjectId = isset($onboarding['project_id']) ? (int)$onboarding['project_id'] : 0;
+        if (empty($conv['project_id']) && $onboardingProjectId > 0) {
+            Conversation::updateProjectId($conversationId, $onboardingProjectId);
+            $conv['project_id'] = $onboardingProjectId;
+        }
+
         // Salva mensagem do usuário
         Message::create($conversationId, 'user', $text);
 
-        // Carrega contexto
-        $onboarding = UserOnboarding::findByUserId($userId);
+        // Carrega contexto (onboarding já foi lido acima)
         $personaId = $conv['persona_id'] ?? ($onboarding['personality_id'] ?? null);
         $persona = $personaId ? Personality::findById((int)$personaId) : null;
         $convSettings = ConversationSetting::findForConversation($conversationId, $userId);

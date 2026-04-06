@@ -612,9 +612,13 @@ class MobileController extends Controller
         @file_put_contents('/tmp/tuq_mobile_debug.log', date('Y-m-d H:i:s') . " projectContext=" . ($projectContext !== null ? 'SET(' . mb_strlen($projectContext, 'UTF-8') . ' chars)' : 'NULL') . " model=" . ($mobileModel ?? 'NULL(default)') . "\n", FILE_APPEND);
 
         // Determina modelo: usa o do projeto ou o da sessão
+        // Projetos precisam de modelo forte pra seguir instruções com arquivos
         $mobileModel = null;
         if ($projectId > 0 && isset($projectRow['chat_model']) && trim((string)$projectRow['chat_model']) !== '') {
             $mobileModel = trim((string)$projectRow['chat_model']);
+        } elseif ($projectId > 0) {
+            // Projeto sem modelo configurado: usa Claude Sonnet 4.5 (forte o suficiente pra seguir instruções)
+            $mobileModel = 'claude-sonnet-4-5';
         } elseif (isset($_SESSION['chat_model']) && is_string($_SESSION['chat_model']) && $_SESSION['chat_model'] !== '') {
             $mobileModel = $_SESSION['chat_model'];
         }

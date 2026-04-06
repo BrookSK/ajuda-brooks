@@ -1815,7 +1815,7 @@ class ChatController extends Controller
             $engine = new TuquinhaEngine();
             $historyForEngine = $history;
 
-            // Injeta anexos da mensagem atual no histórico (NÃO o contexto do projeto — esse vai no system prompt)
+            // Injeta anexos da mensagem atual no histórico
             $lastHistIdx = count($historyForEngine) - 1;
             if ($lastHistIdx >= 0 && ($historyForEngine[$lastHistIdx]['role'] ?? '') === 'user') {
                 $ctxPrefix = '';
@@ -1825,9 +1825,20 @@ class ChatController extends Controller
                 if ($ctxPrefix !== '') {
                     $historyForEngine[$lastHistIdx]['content'] = $ctxPrefix . $historyForEngine[$lastHistIdx]['content'];
                 }
-                // Se tem projeto, injeta instrução automática pra forçar uso dos arquivos
+                // Se tem projeto, injeta o CONTEÚDO dos arquivos diretamente na mensagem do usuário
                 if (!empty($conversation->project_id) && is_string($projectContextMessage) && $projectContextMessage !== '') {
-                    $historyForEngine[$lastHistIdx]['content'] .= "\n\n[INSTRUÇÃO DO SISTEMA: Responda EXCLUSIVAMENTE com base nos arquivos do projeto. Use citações literais do conteúdo dos arquivos.]";
+                    $originalMsg = $historyForEngine[$lastHistIdx]['content'];
+                    $historyForEngine[$lastHistIdx]['content'] = "CONTEXTO OBRIGATÓRIO — Leia o conteúdo abaixo ANTES de responder. "
+                        . "Sua resposta DEVE ser baseada EXCLUSIVAMENTE neste conteúdo. "
+                        . "Cite trechos literais entre aspas com número de página. "
+                        . "NÃO use conhecimento externo. NÃO diga que 'não usou os arquivos'. "
+                        . "Se o conteúdo aborda o tema de forma indireta, APLIQUE os conceitos ao problema.\n\n"
+                        . "---INÍCIO DO CONTEÚDO DOS ARQUIVOS---\n"
+                        . $projectContextMessage
+                        . "\n---FIM DO CONTEÚDO DOS ARQUIVOS---\n\n"
+                        . "PERGUNTA DO USUÁRIO:\n" . $originalMsg;
+                    // Não passa pro system prompt — já vai na mensagem
+                    $projectContextMessage = null;
                 }
             } else {
                 if (is_string($attachmentsMessage) && $attachmentsMessage !== '') {

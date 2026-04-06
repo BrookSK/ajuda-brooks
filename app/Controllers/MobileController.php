@@ -461,16 +461,6 @@ class MobileController extends Controller
             $history[] = ['role' => $msg['role'], 'content' => $msg['content']];
         }
 
-        // Se tem projeto, injeta instrução automática na última mensagem do usuário
-        // pra forçar a IA a usar os arquivos sem o usuário precisar pedir
-        $convProjectId = (int)($conv['project_id'] ?? 0);
-        if ($convProjectId > 0 && !empty($history)) {
-            $lastIdx = count($history) - 1;
-            if (($history[$lastIdx]['role'] ?? '') === 'user') {
-                $history[$lastIdx]['content'] .= "\n\n[INSTRUÇÃO DO SISTEMA: Responda EXCLUSIVAMENTE com base nos arquivos do projeto. Use citações literais do conteúdo dos arquivos.]";
-            }
-        }
-
         // Injeta nome da ferramenta e tom de conversa no contexto do usuário
         $userContext = $user;
         if (!empty($onboarding['tool_name'])) {
@@ -627,6 +617,24 @@ class MobileController extends Controller
             $mobileModel = trim((string)$projectRow['chat_model']);
         } elseif (isset($_SESSION['chat_model']) && is_string($_SESSION['chat_model']) && $_SESSION['chat_model'] !== '') {
             $mobileModel = $_SESSION['chat_model'];
+        }
+
+        // Injeta conteúdo dos arquivos diretamente na mensagem do usuário (mais eficaz que system prompt)
+        if ($projectId > 0 && is_string($projectContext) && $projectContext !== '' && !empty($history)) {
+            $lastIdx = count($history) - 1;
+            if (($history[$lastIdx]['role'] ?? '') === 'user') {
+                $originalMsg = $history[$lastIdx]['content'];
+                $history[$lastIdx]['content'] = "CONTEXTO OBRIGATÓRIO — Leia o conteúdo abaixo ANTES de responder. "
+                    . "Sua resposta DEVE ser baseada EXCLUSIVAMENTE neste conteúdo. "
+                    . "Cite trechos literais entre aspas com número de página. "
+                    . "NÃO use conhecimento externo. NÃO diga que 'não usou os arquivos'. "
+                    . "Se o conteúdo aborda o tema de forma indireta, APLIQUE os conceitos ao problema.\n\n"
+                    . "---INÍCIO DO CONTEÚDO DOS ARQUIVOS---\n"
+                    . $projectContext
+                    . "\n---FIM DO CONTEÚDO DOS ARQUIVOS---\n\n"
+                    . "PERGUNTA DO USUÁRIO:\n" . $originalMsg;
+            }
+            $projectContext = null;
         }
 
         $result = $engine->generateResponseWithContext($history, $mobileModel, $userContext, $convSettings, $persona, $projectFileInputs, $projectContext);

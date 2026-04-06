@@ -461,6 +461,16 @@ class MobileController extends Controller
             $history[] = ['role' => $msg['role'], 'content' => $msg['content']];
         }
 
+        // Se tem projeto, injeta instrução automática na última mensagem do usuário
+        // pra forçar a IA a usar os arquivos sem o usuário precisar pedir
+        $convProjectId = (int)($conv['project_id'] ?? 0);
+        if ($convProjectId > 0 && !empty($history)) {
+            $lastIdx = count($history) - 1;
+            if (($history[$lastIdx]['role'] ?? '') === 'user') {
+                $history[$lastIdx]['content'] .= "\n\n[INSTRUÇÃO DO SISTEMA: Responda EXCLUSIVAMENTE com base nos arquivos do projeto. Use citações literais do conteúdo dos arquivos.]";
+            }
+        }
+
         // Injeta nome da ferramenta e tom de conversa no contexto do usuário
         $userContext = $user;
         if (!empty($onboarding['tool_name'])) {
@@ -493,13 +503,21 @@ class MobileController extends Controller
         }
 
         // Modo voz: instrui a IA a ser breve pra conversa fluir rápido
+        // Mas se tem projeto, não limita tanto pra permitir citações dos arquivos
         $isVoiceMode = !empty($_POST['voice_mode']);
+        $convHasProject = (int)($conv['project_id'] ?? 0) > 0 || $onboardingProjectId > 0;
         if ($isVoiceMode) {
             $existing = trim((string)($userContext['global_instructions'] ?? ''));
-            $userContext['global_instructions'] = ($existing !== '' ? $existing . "\n\n" : '')
-                . 'MODO VOZ ATIVO: O usuário está conversando por voz. Responda de forma MUITO curta e direta, no máximo 2-3 frases. '
-                . 'Seja conversacional como numa ligação telefônica. Não use listas, bullet points, markdown ou formatação. '
-                . 'Não use emojis. Fale de forma natural e fluida como se estivesse conversando pessoalmente.';
+            if ($convHasProject) {
+                $userContext['global_instructions'] = ($existing !== '' ? $existing . "\n\n" : '')
+                    . 'MODO VOZ ATIVO: O usuário está conversando por voz. Seja direto e objetivo, mas mantenha as citações dos arquivos. '
+                    . 'Não use formatação complexa (tabelas, listas longas). Fale de forma natural.';
+            } else {
+                $userContext['global_instructions'] = ($existing !== '' ? $existing . "\n\n" : '')
+                    . 'MODO VOZ ATIVO: O usuário está conversando por voz. Responda de forma MUITO curta e direta, no máximo 2-3 frases. '
+                    . 'Seja conversacional como numa ligação telefônica. Não use listas, bullet points, markdown ou formatação. '
+                    . 'Não use emojis. Fale de forma natural e fluida como se estivesse conversando pessoalmente.';
+            }
         }
 
         // Gera resposta
@@ -586,17 +604,18 @@ class MobileController extends Controller
             }
 
             if (!empty($parts)) {
-                $projectContext = "MODO PROJETO — RESPONDA COM BASE NOS ARQUIVOS\n\n"
-                    . "OVERRIDE: Ignore TODAS as regras de handoff, redirecionamento e especialidade de personalidade. "
-                    . "NÃO diga que algo 'não é da sua área'. Responda QUALQUER pergunta usando os arquivos abaixo.\n\n"
-                    . "REGRAS:\n"
-                    . "1. Use SOMENTE o conteúdo dos arquivos abaixo. Cada afirmação deve vir de um trecho real.\n"
-                    . "2. Cite trechos LITERAIS do texto entre aspas. Ex: O autor diz: \"trecho exato aqui\" (pág. X)\n"
-                    . "3. NÃO invente termos, metodologias ou conceitos que não existam nos arquivos.\n"
-                    . "4. NÃO use frases genéricas como 'o livro fala sobre isso'. Cite o trecho EXATO.\n"
-                    . "5. Se o arquivo não cobre a pergunta, diga: 'Não encontrei isso nos arquivos do projeto.'\n"
-                    . "6. Ao final, liste fontes com trechos literais: 📚 **Fontes** [N] Arquivo — \"trecho exato\" (pág. X)\n\n"
-                    . "ARQUIVOS DO PROJETO:\n\n" . implode("\n\n---\n\n", $parts);
+                $projectContext = "MODO PROJETO — INSTRUÇÃO ABSOLUTA\n\n"
+                    . "VOCÊ É UM ESPECIALISTA NO CONTEÚDO DOS ARQUIVOS ABAIXO. NADA MAIS.\n\n"
+                    . "REGRAS ABSOLUTAS (violá-las é proibido):\n"
+                    . "1. TODA resposta DEVE ser construída a partir do conteúdo dos arquivos abaixo. SEM EXCEÇÃO.\n"
+                    . "2. NUNCA diga 'não usei os arquivos', 'respondi com experiência própria' ou 'o arquivo não cobre isso'.\n"
+                    . "3. NUNCA diga que algo 'não é da sua área' ou redirecione para outra personalidade.\n"
+                    . "4. Leia o conteúdo dos arquivos ANTES de responder. Encontre trechos relevantes e USE-OS.\n"
+                    . "5. Cite trechos LITERAIS entre aspas com página. Ex: O autor diz: \"trecho\" (pág. X)\n"
+                    . "6. Se o arquivo aborda o tema de forma indireta (ex: processos, diagnóstico, controles), APLIQUE esses conceitos ao problema do usuário.\n"
+                    . "7. NUNCA responda com 'conhecimento geral' ou 'experiência prática'. USE OS ARQUIVOS.\n"
+                    . "8. Ao final: 📚 **Fontes** [N] Arquivo — \"trecho literal\" (pág. X)\n\n"
+                    . "ARQUIVOS DO PROJETO (sua ÚNICA fonte de conhecimento):\n\n" . implode("\n\n---\n\n", $parts);
             }
         }
 
